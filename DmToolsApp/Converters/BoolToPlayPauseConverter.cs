@@ -1,10 +1,10 @@
-﻿using DmTools.Resources.Icons;
+﻿using DmToolsApp.Resources.Icons;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace DmTools.Converters
+namespace DmToolsApp.Converters
 {
     internal class BoolToPlayPauseConverter : IValueConverter
     {

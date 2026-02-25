@@ -1,6 +1,6 @@
-namespace DmTools.Features.AudioMixer;
+namespace DmToolsApp.Features.AudioMixer;
 
-public partial class AudioMixerView : ContentView
+public partial class AudioMixerView : ContentPage
 {
     public AudioMixerView(AudioMixerViewModel vm)
 	{

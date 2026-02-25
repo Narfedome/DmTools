@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:DmTools.Features.AudioMixer"
-             xmlns:components="clr-namespace:DmTools.Components"
-             x:Class="DmTools.Features.AudioMixer.AudioMixerView"
-             xmlns:icons="clr-namespace:DmTools.Resources.Icons"
+             xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.AudioMixer.AudioMixerView"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              x:DataType="local:AudioMixerViewModel">
 
     <Grid Padding="10">
@@ -40,7 +40,7 @@
         </Grid>
 
         <Border  Grid.Row="1">
-            <CollectionView ItemsSource="{Binding Channels}" ItemsLayout="HorizontalList">
+            <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="components:ChannelStripViewModel">
 
@@ -82,4 +82,4 @@
             </CollectionView>
         </Border>
     </Grid  >
-</ContentView>
+</ContentPage>

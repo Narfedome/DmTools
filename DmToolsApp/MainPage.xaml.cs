@@ -1,4 +1,4 @@
-﻿using DmTools.Features.AudioMixer;
+﻿using DmToolsApp.Features.AudioMixer;
 
 namespace DmToolsApp
 {
@@ -7,8 +7,6 @@ namespace DmToolsApp
         public MainPage(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-            var mixerView = serviceProvider.GetRequiredService<AudioMixerView>();
-            Content = mixerView;
         }
     }
 }

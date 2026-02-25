@@ -1,6 +1,6 @@
 using Microsoft.Maui.Controls.Shapes;
 
-namespace DmTools.Components;
+namespace DmToolsApp.Components;
 
 public partial class ScrollingLabelView : ContentView
 {
@@ -64,6 +64,18 @@ public partial class ScrollingLabelView : ContentView
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+    public static readonly BindableProperty LineBreakModeProperty =
+        BindableProperty.Create(
+            nameof(LineBreakMode),
+            typeof(string),
+            typeof(ScrollingLabelView),
+            string.Empty);
+
+    public string LineBreakMode
+    {
+        get => (string)GetValue(LineBreakModeProperty);
+        set => SetValue(LineBreakModeProperty, value);
     }
 
     private static void OnTextOrPlayingChanged(BindableObject bindable, object oldValue, object newValue)

@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DmTools.Components;
-using DmTools.Services;
+using DmToolsApp.Components;
+using DmToolsApp.Models;
+using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
-namespace DmTools.Features.AudioMixer
+namespace DmToolsApp.Features.AudioMixer
 {
     public partial class AudioMixerViewModel : ObservableObject
     {
@@ -12,23 +13,23 @@ namespace DmTools.Features.AudioMixer
         public AudioMixerViewModel(AudioMixerService audioMixerService)
         {
             _audioMixerService = audioMixerService;
-            Channels = new ObservableCollection<ChannelStripViewModel>();
+            CurrentChannels = new ObservableCollection<ChannelStripViewModel>();
         }
 
         [ObservableProperty]
-        private ObservableCollection<ChannelStripViewModel> channels = new();
+        private ObservableCollection<ChannelStripViewModel> currentChannels = new();
 
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { Name=("Channel " + (channels.Count + 1)), IsPlaying = false };
-            Channels.Add(channel);
+            var channel = new ChannelStripViewModel() { Name = ("Channel " + (currentChannels.Count + 1)), IsPlaying = false };
+            CurrentChannels.Add(channel);
         }
 
         [RelayCommand]
         public void StopAll()
         {
-            foreach (var c in Channels)
+            foreach (var c in CurrentChannels)
                 c.Stop();
         }
 
@@ -39,7 +40,7 @@ namespace DmTools.Features.AudioMixer
                 return;
             if (channel.Player == null)
             {
-                Channels.Remove(channel);
+                CurrentChannels.Remove(channel);
                 return;
             }
             channel.TogglePlay();
@@ -57,7 +58,7 @@ namespace DmTools.Features.AudioMixer
             }
 
             channel.Stop();
-            Channels.Remove(channel);
+            CurrentChannels.Remove(channel);
         }
 
         [RelayCommand]
@@ -89,7 +90,7 @@ namespace DmTools.Features.AudioMixer
                         var localPath = Path.Combine(FileSystem.CacheDirectory, result.FileName);
 
                         channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                        channel.Source = localPath;
+                        channel.Track.FilePath = localPath;
                         channel.Name = result.FileName;
                         channel.TogglePlay();
                     }
@@ -101,5 +102,18 @@ namespace DmTools.Features.AudioMixer
                 Console.WriteLine(ex);
             }
         }
+
+        public async Task LoadChannels()
+        {
+            foreach (var channel in CurrentChannels)
+            {
+                if (channel.Player == null)
+                {
+                    var stream = File.OpenRead(channel.Track.FilePath);
+                    channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                }
+            }
+        }
     }
 }
+

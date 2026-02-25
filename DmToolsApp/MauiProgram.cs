@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui.Core;
-using DmTools.Features.AudioMixer;
-using DmTools.Services;
+using DmToolsApp.Features.AudioMixer;
+using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
 

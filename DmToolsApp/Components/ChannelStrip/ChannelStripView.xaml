@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DmTools.Components.ChannelStripView"
-             xmlns:components ="clr-namespace:DmTools.Components"
-             xmlns:icons="clr-namespace:DmTools.Resources.Icons"  WidthRequest="50">
+             x:Class="DmToolsApp.Components.ChannelStripView"
+             xmlns:components ="clr-namespace:DmToolsApp.Components"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="50">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -24,6 +24,11 @@
             <Label Text="{Binding DisplayVolume}"  Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Start"/>
         </Grid>
         <!-- Nom de la tranche -->
-        <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Row="2" />
+        <Grid Grid.Row="2">
+
+            <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"   />
+            <!-- Nom de la tranche -->
+            <components:ScrollingLabelView Text="{Binding DisplayTrackName}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100" />
+        </Grid>
     </Grid>
 </ContentView>

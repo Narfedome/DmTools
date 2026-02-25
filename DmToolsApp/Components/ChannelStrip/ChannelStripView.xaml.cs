@@ -1,6 +1,6 @@
 using System.Windows.Input;
 
-namespace DmTools.Components;
+namespace DmToolsApp.Components;
 
 public partial class ChannelStripView : ContentView
 {

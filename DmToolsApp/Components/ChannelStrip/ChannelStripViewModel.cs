@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Models;
+using DmToolsApp.Models.Library;
+using DmToolsApp.Services;
 using Plugin.Maui.Audio;
 
-namespace DmTools.Components
+namespace DmToolsApp.Components
 {
     public partial class ChannelStripViewModel : ObservableObject
     {        // Player audio réel (pas observable)
@@ -12,12 +15,11 @@ namespace DmTools.Components
         [ObservableProperty]
         private string? name;
 
-        // Nom de la tranche
         [ObservableProperty]
-        private string? displayFileName;
+        private Track track = new Track();
 
-        [ObservableProperty]
-        private string? source;
+
+        private string? DisplayTrackName { get => track.Title; }
 
         // Volume (TwoWay binding)
         [ObservableProperty]
@@ -56,6 +58,8 @@ namespace DmTools.Components
             }
         }
 
+
+   
 
 
         [RelayCommand]

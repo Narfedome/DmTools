@@ -2,7 +2,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using System.Windows.Input;
 
-namespace DmTools.Components;
+namespace DmToolsApp.Components;
 
 public partial class FaIconButtonView : ContentView
 {

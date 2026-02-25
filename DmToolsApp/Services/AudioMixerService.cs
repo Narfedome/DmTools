@@ -1,9 +1,9 @@
 ﻿
 using Microsoft.Maui.Storage;
 using Plugin.Maui.Audio;
-using DmTools.Components;
+using DmToolsApp.Components;
 
-namespace DmTools.Services
+namespace DmToolsApp.Services
 {
     public class AudioMixerService
     {
