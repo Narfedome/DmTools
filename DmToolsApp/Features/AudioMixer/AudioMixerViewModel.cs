@@ -1,14 +1,17 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DmTools.Components;
+using DmTools.Services;
 using System.Collections.ObjectModel;
 
 namespace DmTools.Features.AudioMixer
 {
     public partial class AudioMixerViewModel : ObservableObject
     {
-        public AudioMixerViewModel()
+        private readonly AudioMixerService _audioMixerService;
+        public AudioMixerViewModel(AudioMixerService audioMixerService)
         {
+            _audioMixerService = audioMixerService;
             Channels = new ObservableCollection<ChannelStripViewModel>();
         }
 
@@ -34,7 +37,7 @@ namespace DmTools.Features.AudioMixer
         {
             if (channel == null)
                 return;
-            if (string.IsNullOrWhiteSpace(channel.DisplayFileName))
+            if (channel.Player == null)
             {
                 Channels.Remove(channel);
                 return;
@@ -48,7 +51,10 @@ namespace DmTools.Features.AudioMixer
                 "No");
 
             if (!confirm)
+            {
+                channel.TogglePlay();
                 return;
+            }
 
             channel.Stop();
             Channels.Remove(channel);
@@ -81,12 +87,10 @@ namespace DmTools.Features.AudioMixer
 
                         var stream = await result.OpenReadAsync();
                         var localPath = Path.Combine(FileSystem.CacheDirectory, result.FileName);
-                        using (var fs = File.Create(localPath))
-                        {
-                            await stream.CopyToAsync(fs);
-                        }
+
+                        channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
                         channel.Source = localPath;
-                        channel.DisplayFileName = result.FileName;
+                        channel.Name = result.FileName;
                         channel.TogglePlay();
                     }
                 }

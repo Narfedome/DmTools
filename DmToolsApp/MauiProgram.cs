@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui.Core;
-using Microsoft.Extensions.Logging;
 using DmTools.Features.AudioMixer;
+using DmTools.Services;
+using Microsoft.Extensions.Logging;
+using Plugin.Maui.Audio;
 
 namespace DmToolsApp
 {
@@ -20,6 +22,8 @@ namespace DmToolsApp
                     fonts.AddFont("Font Awesome 7 Free-Regular-400.otf", "FontBrands");
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
                 });
+            builder.AddAudio();
+            builder.Services.AddSingleton<AudioMixerService>();
             builder.Services.AddSingleton<AudioMixerViewModel>();
             builder.Services.AddTransient<AudioMixerView>();
             builder.Services.AddTransient<MainPage>();

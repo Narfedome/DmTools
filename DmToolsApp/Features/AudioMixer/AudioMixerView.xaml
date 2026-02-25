@@ -7,7 +7,7 @@
              xmlns:icons="clr-namespace:DmTools.Resources.Icons"
              x:DataType="local:AudioMixerViewModel">
 
-    <Grid Padding="20" RowSpacing="15" ColumnSpacing="15">
+    <Grid Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
@@ -39,39 +39,44 @@
             </HorizontalStackLayout>
         </Grid>
 
-        <Border Grid.Row="1" >
-            <CollectionView ItemsSource="{Binding Channels}" Margin="15"   >
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical"
-                       ItemSpacing="5"/>
-                </CollectionView.ItemsLayout>
+        <Border  Grid.Row="1">
+            <CollectionView ItemsSource="{Binding Channels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="components:ChannelStripViewModel">
 
-                        <Border Margin="10">
-
-                            <Grid ColumnSpacing="10" Margin="10,5,5,5" >
+                            <Grid >
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
-                                    <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
-                                <components:ChannelStripView Grid.Column="0"/>
+                            <Grid Grid.Column="0" Margin="10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <components:ChannelStripView Grid.Row="0" />
+                                    <Grid Grid.Row="1" RowSpacing="5">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileCirclePlus}"               
+                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickFileCommand}"
+                                                                 CommandParameter="{Binding .}" Grid.Row="0"/>
 
-                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileCirclePlus}"                             
-                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickFileCommand}"
-                        CommandParameter="{Binding .}" Grid.Column="1"/>
+                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"     
+                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
+                                                                 CommandParameter="{Binding .}" Grid.Row="1"/>
+                                    </Grid>
 
-                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Cloud}"                             
-                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PlayStreamCommand}"
-                        CommandParameter="{Binding .}" Grid.Column="2"/>
+                                </Grid>
 
-                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"                            
-                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
-                        CommandParameter="{Binding .}" Grid.Column="3"/>
+                                <BoxView   Grid.Column="1"
+                      Color="Gray"  
+                      Margin="0,0,0,0"                   
+                      WidthRequest="1"  
+                      VerticalOptions="Fill" />
                             </Grid>
-                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

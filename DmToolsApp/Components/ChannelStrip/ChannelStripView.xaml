@@ -3,31 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmTools.Components.ChannelStripView"
              xmlns:components ="clr-namespace:DmTools.Components"
-             xmlns:icons="clr-namespace:DmTools.Resources.Icons">
-    <Grid ColumnSpacing="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <!-- Slider volume -->
-        <HorizontalStackLayout VerticalOptions="Center" Spacing="5" Grid.Column="0">
-            <Slider Minimum="0" Maximum="1"
-              Value="{Binding Volume, Mode=TwoWay}"  WidthRequest="120"  />
-            <Label Text="{Binding DisplayVolume}" VerticalOptions="Center"/>
-        </HorizontalStackLayout>
-        
+             xmlns:icons="clr-namespace:DmTools.Resources.Icons"  WidthRequest="50">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         <!-- Bouton play/pause -->
         <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
                                            Command="{Binding TogglePlayCommand}"
-                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" Grid.Column="1"/>
+                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" Grid.Row="0"/>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Slider Minimum="0" Maximum="1"  Grid.Row="0"  Rotation="-90"   Value="{Binding Volume, Mode=TwoWay}"  VerticalOptions="Center"
+    WidthRequest="150"/>
+            <Label Text="{Binding DisplayVolume}"  Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Start"/>
+        </Grid>
         <!-- Nom de la tranche -->
-        <Label Text="{Binding Name}" VerticalOptions="Center" Grid.Column="2"/>
-        <components:ScrollingLabelView Text="{Binding DisplayFileName}" TextColor="Grey" FontSize="10" IsPlaying="{Binding IsPlaying}"  WidthRequest="120" Grid.Column="3"/>
-
-
-
+        <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Row="2" />
     </Grid>
 </ContentView>
