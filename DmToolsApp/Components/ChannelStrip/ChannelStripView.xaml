@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DmTools.Components.ChannelStripView"
+             xmlns:components ="clr-namespace:DmTools.Components"
+             xmlns:icons="clr-namespace:DmTools.Resources.Icons">
+    <Grid ColumnSpacing="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Slider volume -->
+        <HorizontalStackLayout VerticalOptions="Center" Spacing="5" Grid.Column="0">
+            <Slider Minimum="0" Maximum="1"
+              Value="{Binding Volume, Mode=TwoWay}"  WidthRequest="120"  />
+            <Label Text="{Binding DisplayVolume}" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+        
+        <!-- Bouton play/pause -->
+        <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
+                                           Command="{Binding TogglePlayCommand}"
+                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" Grid.Column="1"/>
+        <!-- Nom de la tranche -->
+        <Label Text="{Binding Name}" VerticalOptions="Center" Grid.Column="2"/>
+        <components:ScrollingLabelView Text="{Binding DisplayFileName}" TextColor="Grey" FontSize="10" IsPlaying="{Binding IsPlaying}"  WidthRequest="120" Grid.Column="3"/>
+
+
+
+    </Grid>
+</ContentView>

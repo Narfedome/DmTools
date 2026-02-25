@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmTools.Features.AudioMixer"
+             xmlns:components="clr-namespace:DmTools.Components"
+             x:Class="DmTools.Features.AudioMixer.AudioMixerView"
+             xmlns:icons="clr-namespace:DmTools.Resources.Icons"
+             x:DataType="local:AudioMixerViewModel">
+
+    <Grid Padding="20" RowSpacing="15" ColumnSpacing="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Padding="20" RowSpacing="15" ColumnSpacing="15" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Row="0" Grid.Column="0" >
+                <VerticalStackLayout  Spacing="15" Margin="15" >
+                    <Label>Commandes générales</Label>
+                    <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"                             
+                      Command="{Binding AddChannelCommand}" />
+                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"                             
+                      Command="{Binding StopAllCommand}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+            <HorizontalStackLayout Spacing="15" Grid.Row="0" Grid.Column="2">
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"                             
+                     Command="{Binding AddChannelCommand}" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <Border Grid.Row="1" >
+            <CollectionView ItemsSource="{Binding Channels}" Margin="15"   >
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                       ItemSpacing="5"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="components:ChannelStripViewModel">
+
+                        <Border Margin="10">
+
+                            <Grid ColumnSpacing="10" Margin="10,5,5,5" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <components:ChannelStripView Grid.Column="0"/>
+
+                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileCirclePlus}"                             
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickFileCommand}"
+                        CommandParameter="{Binding .}" Grid.Column="1"/>
+
+                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Cloud}"                             
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PlayStreamCommand}"
+                        CommandParameter="{Binding .}" Grid.Column="2"/>
+
+                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"                            
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
+                        CommandParameter="{Binding .}" Grid.Column="3"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+    </Grid  >
+</ContentView>

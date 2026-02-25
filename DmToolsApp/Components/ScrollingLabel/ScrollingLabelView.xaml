@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DmTools.Components.ScrollingLabelView"  x:Name="root">
+
+    <Grid x:Name="RootGrid">
+        <Grid.Clip>
+            <RectangleGeometry Rect="0,0,120,30" />
+            <!-- largeur et hauteur du container -->
+        </Grid.Clip>
+        <Label x:Name="ScrollingLabel"
+               Text="{Binding Source={x:Reference root}, Path=Text}"
+               TextColor="{Binding Source={x:Reference root}, Path=TextColor}"
+               FontSize="{Binding Source={x:Reference root}, Path=FontSize}"
+               LineBreakMode="NoWrap"
+               VerticalOptions="Center"
+               HorizontalOptions="Start">            
+        </Label>
+    </Grid>
+</ContentView>
