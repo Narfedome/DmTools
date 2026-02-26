@@ -1,11 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DmToolsApp.Features.Library.LibraryView">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+             x:Class="DmToolsApp.Features.Library.LibraryView" x:Name="root">
+    <VerticalStackLayout Padding="20" Spacing="10">
+
+        <CollectionView ItemsSource="{Binding LibraryItems}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedLibraryItem}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                        <Label Text="{Binding Name}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Boutons CRUD (visibles uniquement en mode CRUD) -->
+        <HorizontalStackLayout Spacing="10"
+                               IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}">
+            <Button Text="Add" Command="{Binding AddCommand}" />
+            <Button Text="Delete" Command="{Binding DeleteCommand}" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="10"                             >
+            <Button Text="Cancel" Command="{Binding CancelCommand}" />
+            <Button Text="Confirm" Command="{Binding ConfirmSelectionCommand}" />
+        </HorizontalStackLayout>
+
     </VerticalStackLayout>
-</ContentPage>
+</ContentView>

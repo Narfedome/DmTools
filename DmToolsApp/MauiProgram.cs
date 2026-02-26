@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Maui.Core;
 using DmToolsApp.Features.AudioMixer;
+using DmToolsApp.Features.Library;
+using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
@@ -13,7 +15,7 @@ namespace DmToolsApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseMauiApp<App>().UseMauiCommunityToolkitCore()
+                .UseMauiCommunityToolkitCore()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -24,8 +26,11 @@ namespace DmToolsApp
                 });
             builder.AddAudio();
             builder.Services.AddSingleton<AudioMixerService>();
+            builder.Services.AddSingleton<ILibraryPickerService,LibraryPickerService>();
+            builder.Services.AddSingleton<ILibraryPickerNavigationService,LibraryPickerNavigationService>();
+            builder.Services.AddTransient<LibraryViewModel>();
             builder.Services.AddSingleton<AudioMixerViewModel>();
-            builder.Services.AddTransient<AudioMixerView>();
+            builder.Services.AddTransient<AudioMixerPage>();
             builder.Services.AddTransient<MainPage>();
 
 #if DEBUG

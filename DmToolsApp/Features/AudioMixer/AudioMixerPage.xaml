@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
              xmlns:components="clr-namespace:DmToolsApp.Components"
-             x:Class="DmToolsApp.Features.AudioMixer.AudioMixerView"
+             x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              x:DataType="local:AudioMixerViewModel">
 

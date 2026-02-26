@@ -4,7 +4,8 @@ using System.Text;
 
 namespace DmToolsApp.Models.Library
 {
-    public class Spell
-    {
+    public class Spell : LibraryItem
+    {        
+        public string Description { get; set; } = "";
     }
 }

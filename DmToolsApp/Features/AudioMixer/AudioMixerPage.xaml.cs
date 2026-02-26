@@ -1,8 +1,8 @@
 namespace DmToolsApp.Features.AudioMixer;
 
-public partial class AudioMixerView : ContentPage
+public partial class AudioMixerPage : ContentPage
 {
-    public AudioMixerView(AudioMixerViewModel vm)
+    public AudioMixerPage(AudioMixerViewModel vm)
 	{
 		InitializeComponent();
 		BindingContext = vm;

@@ -83,7 +83,13 @@
 	  <MauiXaml Update="Components\ScrollingLabel\ScrollingLabelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\AudioMixer\AudioMixerView.xaml">
+	  <MauiXaml Update="Features\AudioMixer\AudioMixerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Features\Library\LibraryPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Features\Library\LibrarySelectorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Features\Library\LibraryView.xaml">
@@ -96,6 +102,15 @@
 
 	<ItemGroup>
 	  <Folder Include="Features\CharacterTool\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Features\AudioMixer\AudioMixerPage.xaml.cs">
+	    <DependentUpon>AudioMixerPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Features\Library\LibrarySelectorPage.xaml.cs">
+	    <DependentUpon>LibrarySelectorPage.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 </Project>

@@ -35,11 +35,9 @@ namespace DmToolsApp.Services
             Channels.Add(channel);
             return channel;
         }
-        public async Task<IAudioPlayer> CreatePlayerFromSelectedFile(Stream fileStream)
+        public IAudioPlayer CreatePlayerFromSelectedFile(Stream stream)
         {
-            IAudioPlayer? player = null;
-            player = audioManager.CreatePlayer(fileStream);
-            return player;
+            return audioManager.CreatePlayer(stream);
         }
 
         public async Task<IAudioPlayer> PlayLoop(string file, double volume = 1)

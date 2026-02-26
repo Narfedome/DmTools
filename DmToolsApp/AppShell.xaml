@@ -13,7 +13,7 @@
   
         <Tab Title="AudioMixer"
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Sliders}}" >
-            <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerView}" />
+            <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
        </Tab>  
         <Tab Title="Home" 
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.House}}" >
@@ -21,7 +21,7 @@
         </Tab>
         <Tab Title="Library"
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.BookOpen}}" >
-            <ShellContent ContentTemplate="{DataTemplate library:LibraryView}" />
+            <ShellContent ContentTemplate="{DataTemplate library:LibraryPage}" />
        </Tab>
     </TabBar>
 
