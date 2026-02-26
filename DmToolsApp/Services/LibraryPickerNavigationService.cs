@@ -7,21 +7,24 @@ namespace DmToolsApp.Services
 {
     public class LibraryPickerNavigationService : ILibraryPickerNavigationService
     {
-        private readonly TaskCompletionSource<LibraryItem?> _tcs;
+        private TaskCompletionSource<LibraryItem?>? _tcs;
 
-        public LibraryPickerNavigationService(TaskCompletionSource<LibraryItem?> tcs)
+        public void RegisterTaskSource(TaskCompletionSource<LibraryItem?> tcs)
         {
             _tcs = tcs;
         }
 
         public async Task ClosePickerAsync(LibraryItem? result)
         {
-            _tcs.TrySetResult(result);
-            await Shell.Current.Navigation.PopModalAsync();
+            _tcs?.TrySetResult(result);
+
+            if (Shell.Current.Navigation.ModalStack.Count > 0)
+                await Shell.Current.Navigation.PopModalAsync();
         }
     }
     public interface ILibraryPickerNavigationService
     {
+        void RegisterTaskSource(TaskCompletionSource<LibraryItem?> tcs);
         Task ClosePickerAsync(LibraryItem? result);
     }
 }

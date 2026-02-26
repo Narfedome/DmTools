@@ -25,10 +25,13 @@
         </Grid>
         <!-- Nom de la tranche -->
         <Grid Grid.Row="2">
-
-            <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"   />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Column="0" />
             <!-- Nom de la tranche -->
-            <components:ScrollingLabelView Text="{Binding DisplayTrackName}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100" />
+            <components:ScrollingLabelView Text="{Binding DisplayTrackName}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Column="1" />
         </Grid>
     </Grid>
 </ContentView>

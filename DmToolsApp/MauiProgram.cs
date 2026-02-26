@@ -29,6 +29,7 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryPickerService,LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService,LibraryPickerNavigationService>();
             builder.Services.AddTransient<LibraryViewModel>();
+            builder.Services.AddTransient<LibrarySelectorPage>();
             builder.Services.AddSingleton<AudioMixerViewModel>();
             builder.Services.AddTransient<AudioMixerPage>();
             builder.Services.AddTransient<MainPage>();

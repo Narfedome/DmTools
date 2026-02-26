@@ -14,7 +14,8 @@ namespace DmToolsApp.Features.Library
     {
         private readonly ILibraryPickerNavigationService _navigation;
 
-        public ObservableCollection<LibraryItem> LibraryItems { get; } = new();
+        [ObservableProperty]
+        public ObservableCollection<LibraryItem> libraryItems =new();
 
         [ObservableProperty]
         private LibraryItem? selectedLibraryItem;
@@ -28,10 +29,12 @@ namespace DmToolsApp.Features.Library
 
         private void LoadData()
         {
-            LibraryItems.Add(new LibraryItem
+            LibraryItems.Add(new Track
             {
                 Id = Guid.NewGuid(),
-                Title = "Demo Track"
+                Title = "Demo Track",
+                FilePath = "E:\\tab_music\\Exhausted\\Maquette MP3\\Instru\\4_Rebirth_instru.mp3",
+
             });
         }
 

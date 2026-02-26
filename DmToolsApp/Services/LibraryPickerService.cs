@@ -8,20 +8,29 @@ namespace DmToolsApp.Services
 {
     public class LibraryPickerService : ILibraryPickerService
     {
-        private TaskCompletionSource<LibraryItem?>? _tcs;
+        private readonly IServiceProvider _provider;
+
+        public LibraryPickerService(IServiceProvider provider)
+        {
+            _provider = provider;
+        }
 
         public async Task<LibraryItem?> PickTrackAsync()
         {
-            _tcs = new TaskCompletionSource<LibraryItem?>();
+            var tcs = new TaskCompletionSource<LibraryItem?>();
 
-            var page = new NavigationPage(
-                new LibrarySelectorPage(_tcs));
+            var navigationService =
+                _provider.GetRequiredService<ILibraryPickerNavigationService>();
 
-            await Shell.Current.Navigation.PushModalAsync(page);
+            navigationService.RegisterTaskSource(tcs);
 
-            return await _tcs.Task;
+            var page =
+                _provider.GetRequiredService<LibrarySelectorPage>();
+
+            await Shell.Current.Navigation.PushModalAsync(new NavigationPage(page));
+
+            return await tcs.Task;
         }
-
 
     }
     public interface ILibraryPickerService { Task<LibraryItem?> PickTrackAsync(); }

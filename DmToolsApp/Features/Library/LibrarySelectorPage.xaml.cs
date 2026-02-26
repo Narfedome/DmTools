@@ -5,12 +5,9 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibrarySelectorPage : ContentPage
 {
-    public LibrarySelectorPage(TaskCompletionSource<LibraryItem?> tcs)
+    public LibrarySelectorPage(LibraryViewModel vm)
     {
         InitializeComponent();
-
-        var navigation = new LibraryPickerNavigationService(tcs);
-
-        BindingContext = new LibraryViewModel(navigation);
+        BindingContext = vm;
     }
 }

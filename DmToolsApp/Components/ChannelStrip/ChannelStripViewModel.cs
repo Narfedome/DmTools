@@ -15,11 +15,10 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private string? name;
 
+
+
         [ObservableProperty]
-        private Track track = new Track();
-
-
-        private string? DisplayTrackName { get => track.Title; }
+        private string? displayTrackName;
 
         // Volume (TwoWay binding)
         [ObservableProperty]
