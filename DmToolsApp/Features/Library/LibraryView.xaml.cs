@@ -5,7 +5,7 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibraryView : ContentView
 {
-	public LibraryView()
+    public LibraryView()
 	{
 		InitializeComponent();
     }

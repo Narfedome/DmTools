@@ -56,7 +56,14 @@ namespace DmToolsApp.Components
                 IsPlaying = true;
             }
         }
+        public void Pause()
+        {
+            if (Player == null)
+                return;
 
+            Player.Pause();
+            IsPlaying = false;
+        }
 
    
 

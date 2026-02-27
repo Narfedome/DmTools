@@ -24,10 +24,10 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Row="0" Grid.Column="0" >
                 <VerticalStackLayout  Spacing="15" Margin="15" >
-                    <Label>Commandes générales</Label>
+                    <Label>Global Commands</Label>
                     <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
                         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"                             
-                      Command="{Binding AddChannelCommand}" />
+                      Command="{Binding PlayAllCommand}" />
                         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"                             
                       Command="{Binding StopAllCommand}" />
                     </HorizontalStackLayout>

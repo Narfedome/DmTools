@@ -7,8 +7,7 @@
     xmlns:library="clr-namespace:DmToolsApp.Features.Library"
     xmlns:local="clr-namespace:DmToolsApp"
     xmlns:extensions="clr-namespace:DmToolsApp.Extensions"
-             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
-    Title="DmToolsApp">
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons">
     <TabBar>
   
         <Tab Title="AudioMixer"
@@ -21,7 +20,8 @@
         </Tab>
         <Tab Title="Library"
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.BookOpen}}" >
-            <ShellContent ContentTemplate="{DataTemplate library:LibraryPage}" />
+            <ShellContent Title="Tracks" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
+            <ShellContent Title="Spells" ContentTemplate="{DataTemplate library:LibrarySpellPage}" />
        </Tab>
     </TabBar>
 

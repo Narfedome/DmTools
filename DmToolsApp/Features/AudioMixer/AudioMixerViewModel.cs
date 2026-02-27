@@ -33,6 +33,12 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
         [RelayCommand]
+        public void PlayAll()
+        {
+            foreach (var c in CurrentChannels)
+                c.TogglePlay();
+        }
+        [RelayCommand]
         public void StopAll()
         {
             foreach (var c in CurrentChannels)
@@ -49,7 +55,7 @@ namespace DmToolsApp.Features.AudioMixer
                 CurrentChannels.Remove(channel);
                 return;
             }
-            channel.TogglePlay();
+            channel.Pause();
 
             bool confirm = await Shell.Current.DisplayAlertAsync(
                 "Delete",
@@ -124,6 +130,8 @@ namespace DmToolsApp.Features.AudioMixer
                 Console.WriteLine(ex);
             }
         }
+
+
         //public async Task LoadChannels()
         //{
         //    foreach (var channel in CurrentChannels)

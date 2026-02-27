@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Maui.Core;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Core;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
@@ -15,6 +16,7 @@ namespace DmToolsApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitCore()
                 .ConfigureFonts(fonts =>
                 {

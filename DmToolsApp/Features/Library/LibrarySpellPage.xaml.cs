@@ -1,8 +1,8 @@
 namespace DmToolsApp.Features.Library;
 
-public partial class LibraryPage : ContentPage
+public partial class LibrarySpellPage : ContentPage
 {
-    public LibraryPage(LibraryViewModel vm)
+	public LibrarySpellPage(LibraryViewModel vm)
     {
         InitializeComponent();
         BindingContext = vm;
