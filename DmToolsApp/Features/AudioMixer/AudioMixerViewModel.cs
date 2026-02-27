@@ -72,58 +72,68 @@ namespace DmToolsApp.Features.AudioMixer
             channel.Stop();
             CurrentChannels.Remove(channel);
         }
+
+
         [RelayCommand]
         public async Task PickFile(ChannelStripViewModel channel)
         {
             try
             {
-
-                var ispickedFile = false;
                 if (channel == null) return;
-                if (ispickedFile)
+                var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    var result = await FilePicker.Default.PickAsync(new PickOptions
-                    {
-                        PickerTitle = "Select audio file",
-                        FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    PickerTitle = "Select audio file",
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },
                             { DevicePlatform.Android, new[] { "audio/*" } },
                             { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
                             { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
                         })
-                    });
+                });
 
-                    if (result != null)
+                if (result != null)
+                {
+                    // Ouvrir le fichier
+
+                    var stream = await result.OpenReadAsync();
+
+                    channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                    channel.DisplayTrackName = result.FileName;
+                    channel.TogglePlay();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+
+        [RelayCommand]
+        public async Task PickLibraryItem(ChannelStripViewModel channel)
+        {
+            try
+            {
+                if (channel == null) return;
+                var selectedLibraryItem = await _pickerService.PickTrackAsync();
+
+                if (selectedLibraryItem is null)
+                    return;
+                else
+                {
+                    Track selectedTrack = (Track)selectedLibraryItem;
+                    if (File.Exists(selectedTrack.FilePath))
                     {
-                        // Ouvrir le fichier
-
-                        var stream = await result.OpenReadAsync();
+                        var stream = File.OpenRead(selectedTrack.FilePath);
 
                         channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                        channel.DisplayTrackName = result.FileName;
+                        channel.DisplayTrackName = selectedTrack.Title;
                         channel.TogglePlay();
                     }
                 }
-                else
-                {
-                    var selectedLibraryItem = await _pickerService.PickTrackAsync();
 
-                    if (selectedLibraryItem is null)
-                        return;
-                    else
-                    {
-                        Track selectedTrack = (Track)selectedLibraryItem;
-                        if (File.Exists(selectedTrack.FilePath))
-                        {
-                            var stream = File.OpenRead(selectedTrack.FilePath);
-
-                            channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                            channel.DisplayTrackName = selectedTrack.Title;
-                            channel.TogglePlay();
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {
