@@ -7,8 +7,8 @@ namespace DmToolsApp.Selectors
 {
     public class LibraryItemTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate SpellTemplate { get; set; }
-        public DataTemplate TrackTemplate { get; set; }
+        public DataTemplate SpellTemplate { get; set; } = new DataTemplate();
+        public DataTemplate TrackTemplate { get; set; } = new DataTemplate();
 
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
         {

@@ -28,7 +28,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { Name = ("Channel " + (currentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { Name = ("Channel " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
