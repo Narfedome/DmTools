@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DmToolsApp.Features.Library.LibraryItemEditPage"
+             xmlns:components="clr-namespace:DmToolsApp.Features.Library.CreateEdit"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+    <Grid Padding="20" RowDefinitions="*,Auto">
+        <VerticalStackLayout>
+            <components:LibraryTrackEditView
+        IsVisible="{Binding IsTrack}" />
+
+            <components:LibrarySpellEditView
+        IsVisible="{Binding IsSpell}" />
+
+        </VerticalStackLayout>
+        <HorizontalStackLayout Grid.Row="1"
+                               HorizontalOptions="Center"
+                               Spacing="20">
+
+            <Button Text="Cancel"
+                    Command="{Binding CancelCommand}" />
+
+            <Button Text="Save"
+                    Command="{Binding SaveCommand}" />
+
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

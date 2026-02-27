@@ -10,12 +10,4 @@ namespace DmToolsApp.Models.Library
         public string Title { get; set; } = ""; 
         public string ImagePath { get; set; } = "";
     }
-
-    public enum LibraryType
-    {
-        SoundEffects,
-        Music,
-        Images,
-        Tokens
-    }
 }

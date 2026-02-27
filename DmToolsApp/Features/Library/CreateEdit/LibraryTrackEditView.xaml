@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DmToolsApp.Features.Library.CreateEdit.LibraryTrackEditView">
+    <VerticalStackLayout>
+        <Label Text="Edit Trakc" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
+        <Entry Text="{Binding Title}" />
+        <Entry Text="{Binding FilePath}" />
+        <Entry Text="{Binding Duration}" />
+    </VerticalStackLayout>
+</ContentView>

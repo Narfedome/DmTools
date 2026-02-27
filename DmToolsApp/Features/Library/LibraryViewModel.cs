@@ -2,17 +2,15 @@
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Text;
 
 namespace DmToolsApp.Features.Library
 {
     public partial class LibraryViewModel : ObservableObject
     {
         private readonly ILibraryPickerNavigationService _navigation;
+
+        public Type CurrentLibraryType { get; set; } = typeof(LibraryItem);
 
         [ObservableProperty]
         public ObservableCollection<LibraryItem> libraryItems = new();
@@ -25,6 +23,11 @@ namespace DmToolsApp.Features.Library
             _navigation = navigation;
 
             LoadData();
+
+            if(LibraryItems.Count >0)
+            {
+                SelectedLibraryItem = LibraryItems.FirstOrDefault();
+            }
         }
 
         private void LoadData()
@@ -77,15 +80,6 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public void AddItem()
-        {
-            LibraryItems.Add(new LibraryItem
-            {
-                Id = Guid.NewGuid(),
-                Title = $"Item {LibraryItems.Count + 1}"
-            });
-        }
-        [RelayCommand]
         public void DeleteItem()
         {
             if (SelectedLibraryItem != null)
@@ -93,6 +87,31 @@ namespace DmToolsApp.Features.Library
                 LibraryItems.Remove(SelectedLibraryItem);
                 SelectedLibraryItem = null;
             }
+        }
+
+        [RelayCommand]
+        public async Task EditItem()
+        {
+            if (SelectedLibraryItem == null)
+                return;
+
+            await Shell.Current.GoToAsync(nameof(LibraryItemEditPage),
+                new Dictionary<string, object>
+                {
+            { "Item", SelectedLibraryItem }
+                });
+        }
+
+        [RelayCommand]
+        public async Task CreateItem()
+        {
+            var newItem = Activator.CreateInstance(CurrentLibraryType)!;
+
+            await Shell.Current.GoToAsync(nameof(LibraryItemEditPage),
+                new Dictionary<string, object>
+                {
+            { "Item", newItem }
+                });
         }
     }
 }
