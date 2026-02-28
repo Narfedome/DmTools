@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
@@ -9,6 +10,8 @@ namespace DmToolsApp.Features.Library
     public partial class LibraryViewModel : ObservableObject
     {
         private readonly ILibraryPickerNavigationService _navigation;
+        private readonly ILibraryDataService _libraryDataService;
+
 
         public Type CurrentLibraryType { get; set; } = typeof(LibraryItem);
 
@@ -18,52 +21,32 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private LibraryItem? selectedLibraryItem;
 
-        public LibraryViewModel(ILibraryPickerNavigationService navigation)
+        public LibraryViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService)
         {
             _navigation = navigation;
-
-            LoadData();
-
-            if(LibraryItems.Count >0)
+            _libraryDataService = libraryDataService;
+            WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
+            async (r, m) =>
             {
-                SelectedLibraryItem = LibraryItems.FirstOrDefault();
-            }
+                await MainThread.InvokeOnMainThreadAsync(LoadData);
+            });
         }
 
-        private void LoadData()
+        public async Task InitializeAsync()
         {
-            LibraryItems.Add(new Track
-            {
-                Id = Guid.NewGuid(),
-                Title = "Demo Track",
-                FilePath = "E:\\tab_music\\Exhausted\\Maquette MP3\\Instru\\4_Rebirth_instru.mp3",
-                ImagePath = "E:\\JDR\\Dnd\\Ressources\\Token\\dragonnet bronze - token.png"
+            await LoadData();
+        }
 
-            });
-            LibraryItems.Add(new Spell
-            {
-                Id = Guid.NewGuid(),
-                Title = "Demo Spell 2",
-               // FilePath = "E:\\tab_music\\Exhausted\\Maquette MP3\\Instru\\2_Impurity_instru.mp3",
-                ImagePath = "E:\\JDR\\Dnd\\Ressources\\Token\\Guivre follette - token.png"
+        private async Task LoadData()
+        {
+            var items = await _libraryDataService.GetAllItemsTypeAsync(CurrentLibraryType);
 
-            });
-            LibraryItems.Add(new Spell
-            {
-                Id = Guid.NewGuid(),
-                Title = "Demo Spell 3",
-               // FilePath = "E:\\tab_music\\Exhausted\\Maquette MP3\\Instru\\5_Fall_instru.mp3",
-                ImagePath = "E:\\JDR\\Dnd\\Ressources\\Token\\kobold ailé - token.png"
+            LibraryItems.Clear();
 
-            });
-            LibraryItems.Add(new Track
-            {
-                Id = Guid.NewGuid(),
-                Title = "Demo Track 44",
-                FilePath = "E:\\tab_music\\Exhausted\\Maquette MP3\\Instru\\1_Silent_instru.mp3",
-                ImagePath = "E:\\JDR\\Dnd\\Ressources\\Token\\dragonnet bleu - token.png"
+            foreach (var item in items)
+                LibraryItems.Add(item);
 
-            });
+            SelectedLibraryItem = LibraryItems.FirstOrDefault();
         }
 
         [RelayCommand]
@@ -80,11 +63,12 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public void DeleteItem()
+        public async Task DeleteItem()
         {
             if (SelectedLibraryItem != null)
             {
                 LibraryItems.Remove(SelectedLibraryItem);
+              await  _libraryDataService.DeleteLibraryItem(SelectedLibraryItem);
                 SelectedLibraryItem = null;
             }
         }
@@ -95,10 +79,11 @@ namespace DmToolsApp.Features.Library
             if (SelectedLibraryItem == null)
                 return;
 
+            var copy = SelectedLibraryItem.Clone();
             await Shell.Current.GoToAsync(nameof(LibraryItemEditPage),
                 new Dictionary<string, object>
                 {
-            { "Item", SelectedLibraryItem }
+            { "Item", copy }
                 });
         }
 
@@ -113,5 +98,9 @@ namespace DmToolsApp.Features.Library
             { "Item", newItem }
                 });
         }
+    }
+
+    public class LibraryUpdatedMessage
+    {
     }
 }

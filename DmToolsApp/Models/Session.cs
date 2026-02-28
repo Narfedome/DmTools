@@ -10,5 +10,6 @@ namespace DmToolsApp.Models
     {
         [ObservableProperty]
         private ObservableCollection<Scene> scenes = new ObservableCollection<Scene>();
+        public int Id { get; set; }
     }
 }

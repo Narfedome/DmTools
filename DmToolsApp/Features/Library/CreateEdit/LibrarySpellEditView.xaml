@@ -4,7 +4,7 @@
              x:Class="DmToolsApp.Features.Library.CreateEdit.LibrarySpellEditView">
     <VerticalStackLayout>
         <Label Text="Edit Spell" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
-            <Entry Text="{Binding Title}"  />
-        <Editor Text="{Binding Description}" />
-    </VerticalStackLayout>
+        <Entry Text="{Binding Item.Title}"  />
+        <Editor Text="{Binding Item.Description}" />
+    </VerticalStackLayout>    
 </ContentView>

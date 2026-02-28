@@ -16,15 +16,18 @@ namespace DmToolsApp.Components
         private string? name;
 
 
+        [ObservableProperty]
+        private Track? track = new Track();
 
         [ObservableProperty]
         private string? displayTrackName;
 
         // Volume (TwoWay binding)
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayVolume))]
         private double volume = 1;
 
-        public int DisplayVolume { get => (int)(Volume * 100); }
+        public int DisplayVolume => (int)(Volume * 100);
 
         // Lecture en cours
         [ObservableProperty]
@@ -35,7 +38,9 @@ namespace DmToolsApp.Components
         {
             if (Player != null)
                 Player.Volume = newValue;
-            OnPropertyChanged(nameof(DisplayVolume));
+
+            if (Track != null)
+                Track.Volume = newValue;
         }
 
         // Commande toggle play/pause pour MVVM
@@ -65,7 +70,7 @@ namespace DmToolsApp.Components
             IsPlaying = false;
         }
 
-   
+
 
 
         [RelayCommand]

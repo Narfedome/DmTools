@@ -11,5 +11,6 @@ namespace DmToolsApp.Models
     {
         [ObservableProperty]
         private ObservableCollection<Spell> spells = new ObservableCollection<Spell>();
+        public int Id { get; set; }
     }
 }

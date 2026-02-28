@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Core;
+using DmToolsApp.Data;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
@@ -27,9 +28,12 @@ namespace DmToolsApp
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
                 });
             builder.AddAudio();
+            builder.Services.AddSingleton(
+                new AppDatabase(dbPath));
             builder.Services.AddSingleton<AudioMixerService>();
-            builder.Services.AddSingleton<ILibraryPickerService,LibraryPickerService>();
-            builder.Services.AddSingleton<ILibraryPickerNavigationService,LibraryPickerNavigationService>();
+            builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
+            builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
+            builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
             builder.Services.AddTransient<LibraryViewModel>();
             builder.Services.AddTransient<LibraryItemEditViewModel>();
             builder.Services.AddTransient<LibrarySelectorPage>();
@@ -43,5 +47,10 @@ namespace DmToolsApp
 
             return builder.Build();
         }
+
+        static string dbPath = Path.Combine(
+    FileSystem.AppDataDirectory,
+    "dmtools.db3");
     }
+
 }

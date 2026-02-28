@@ -4,8 +4,8 @@
              x:Class="DmToolsApp.Features.Library.CreateEdit.LibraryTrackEditView">
     <VerticalStackLayout>
         <Label Text="Edit Trakc" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
-        <Entry Text="{Binding Title}" />
-        <Entry Text="{Binding FilePath}" />
-        <Entry Text="{Binding Duration}" />
+        <Entry Text="{Binding Item.Title}" />
+        <Entry Text="{Binding Item.FilePath}" />
+        <Entry Text="{Binding Item.Duration}" />
     </VerticalStackLayout>
 </ContentView>

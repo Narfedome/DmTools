@@ -10,6 +10,7 @@ namespace DmToolsApp.Models
     {
         [ObservableProperty]
         private ObservableCollection<Session> sessions = new ObservableCollection<Session>();
+        public int Id { get; set; }
 
     }
 }

@@ -12,5 +12,6 @@ namespace DmToolsApp.Models
 
         [ObservableProperty]
         private ObservableCollection<Track> tracks = new ObservableCollection<Track>();
+        public int Id { get; set; }
     }
 }

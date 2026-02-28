@@ -72,6 +72,8 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -114,6 +116,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Data\Repositories\" />
 	  <Folder Include="Features\CharacterTool\" />
 	</ItemGroup>
 

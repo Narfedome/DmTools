@@ -17,11 +17,11 @@
                                HorizontalOptions="Center"
                                Spacing="20">
 
-            <Button Text="Cancel"
-                    Command="{Binding CancelCommand}" />
 
             <Button Text="Save"
                     Command="{Binding SaveCommand}" />
+            <Button Text="Cancel"
+                    Command="{Binding CancelCommand}" />
 
         </HorizontalStackLayout>
     </Grid>

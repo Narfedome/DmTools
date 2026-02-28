@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Models.Library;
+using DmToolsApp.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +12,12 @@ namespace DmToolsApp.Features.Library
     public partial class LibraryItemEditViewModel
     : ObservableObject, IQueryAttributable
     {
+        private readonly ILibraryDataService _libraryDataService;
+        public LibraryItemEditViewModel(ILibraryDataService libraryDataService)
+        {
+            _libraryDataService = libraryDataService;
+        }
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsTrack))]
         [NotifyPropertyChangedFor(nameof(IsSpell))]
@@ -30,6 +38,12 @@ namespace DmToolsApp.Features.Library
         [RelayCommand]
         public async Task Save()
         {
+
+            if (Item == null)
+                return;
+
+            await _libraryDataService.SaveLibraryItemAsync(Item);
+            WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
             await Shell.Current.GoToAsync("..");
         }
 

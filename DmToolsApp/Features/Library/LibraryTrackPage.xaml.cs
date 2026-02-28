@@ -10,4 +10,11 @@ public partial class LibraryTrackPage : ContentPage
         vm.CurrentLibraryType = typeof(Track);
         BindingContext = vm;
     }
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is LibraryViewModel vm)
+            await vm.InitializeAsync();
+    }
 }

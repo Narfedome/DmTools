@@ -4,10 +4,24 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibrarySpellPage : ContentPage
 {
-	public LibrarySpellPage(LibraryViewModel vm)
+    private readonly LibraryViewModel viewModel;
+
+    public LibrarySpellPage(LibraryViewModel vm)
     {
         InitializeComponent();
+
         vm.CurrentLibraryType = typeof(Spell);
-        BindingContext = vm;
+
+        viewModel = vm;
+        BindingContext = viewModel;
     }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is LibraryViewModel vm)
+            await vm.InitializeAsync();
+    }
+    
 }
