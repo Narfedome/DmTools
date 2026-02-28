@@ -92,7 +92,17 @@ namespace DmToolsApp.Services
         }
         public async Task DeleteLibraryItem(LibraryItem libraryItem)
         {
-            await _db.Connection.DeleteAsync(libraryItem);
+            switch (libraryItem)
+            {
+                case Track track:
+                    await _db.Connection.DeleteAsync<TrackEntity>(track.Id);
+                    break;
+                case Spell spell:
+                    await _db.Connection.DeleteAsync<SpellEntity>(spell.Id);
+                    break;
+
+                    // autres types ici
+            }
         }
 
         private async Task SaveSpell(Spell oldSpell)

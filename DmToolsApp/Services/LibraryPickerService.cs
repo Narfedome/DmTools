@@ -15,7 +15,7 @@ namespace DmToolsApp.Services
             _provider = provider;
         }
 
-        public async Task<LibraryItem?> PickTrackAsync()
+        public async Task<LibraryItem?> PickTrackAsync(Type libraryType)
         {
             var tcs = new TaskCompletionSource<LibraryItem?>();
 
@@ -27,11 +27,14 @@ namespace DmToolsApp.Services
             var page =
                 _provider.GetRequiredService<LibrarySelectorPage>();
 
+
+            page.LibraryType = libraryType;
+
             await Shell.Current.Navigation.PushModalAsync(new NavigationPage(page));
 
             return await tcs.Task;
         }
 
     }
-    public interface ILibraryPickerService { Task<LibraryItem?> PickTrackAsync(); }
+    public interface ILibraryPickerService { Task<LibraryItem?> PickTrackAsync(Type type); }
 }

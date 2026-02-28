@@ -5,9 +5,23 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibrarySelectorPage : ContentPage
 {
+    private readonly LibraryViewModel viewModel;
+
+    public Type? LibraryType { get; set; }
     public LibrarySelectorPage(LibraryViewModel vm)
     {
         InitializeComponent();
-        BindingContext = vm;
+        viewModel = vm;
+        BindingContext = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (LibraryType != null)
+            viewModel.CurrentLibraryType = LibraryType;
+
+        await viewModel.InitializeAsync();
     }
 }

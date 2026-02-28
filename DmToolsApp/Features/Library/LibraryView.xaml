@@ -102,11 +102,14 @@ StrokeThickness="2" StrokeShape="RoundRectangle 5">
         </DataTemplate>
 
     </ContentView.Resources>
+
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}" VerticalOptions="Center"  HorizontalOptions="Center" WidthRequest="120" HeightRequest="120" />
         <CollectionView
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding LibraryItems}"
@@ -134,8 +137,8 @@ StrokeThickness="2" StrokeShape="RoundRectangle 5">
                 <ColumnDefinition  Width="*"/>
                 <ColumnDefinition  Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Text="Cancel" Command="{Binding CancelCommand}"  Grid.Column="0" Margin="10,0,10,0" WidthRequest="85"/>
-            <Button Text="Confirm" Command="{Binding ConfirmSelectionCommand}"  Grid.Column="1" Margin="10,0,10,0" WidthRequest="85"/>
+            <Button Text="Confirm" Command="{Binding ConfirmSelectionCommand}"  Grid.Column="0" Margin="10,0,10,0" WidthRequest="85"/>
+            <Button Text="Cancel" Command="{Binding CancelCommand}"  Grid.Column="1" Margin="10,0,10,0" WidthRequest="85"/>
         </Grid>
 
     </Grid>

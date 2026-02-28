@@ -12,6 +12,9 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
 
+        [ObservableProperty]
+        public bool isBusy = false;
+
 
         public Type CurrentLibraryType { get; set; } = typeof(LibraryItem);
 
@@ -34,7 +37,16 @@ namespace DmToolsApp.Features.Library
 
         public async Task InitializeAsync()
         {
-            await LoadData();
+            try
+            {
+                IsBusy = true;
+
+                await LoadData();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async Task LoadData()
@@ -65,12 +77,16 @@ namespace DmToolsApp.Features.Library
         [RelayCommand]
         public async Task DeleteItem()
         {
-            if (SelectedLibraryItem != null)
-            {
-                LibraryItems.Remove(SelectedLibraryItem);
-              await  _libraryDataService.DeleteLibraryItem(SelectedLibraryItem);
-                SelectedLibraryItem = null;
-            }
+            if (SelectedLibraryItem == null)
+                return;
+
+            var item = SelectedLibraryItem;
+
+            await _libraryDataService.DeleteLibraryItem(item);
+
+            LibraryItems.Remove(item);
+
+            SelectedLibraryItem = null;
         }
 
         [RelayCommand]

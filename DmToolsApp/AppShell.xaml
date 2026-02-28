@@ -9,15 +9,19 @@
     xmlns:extensions="clr-namespace:DmToolsApp.Extensions"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons">
     <TabBar>
-  
-        <Tab Title="AudioMixer"
-             Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Sliders}}" >
-            <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
-       </Tab>  
         <Tab Title="Home" 
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.House}}" >
             <ShellContent ContentTemplate="{DataTemplate local:MainPage}"   Route="InitialPage"/>
         </Tab>
+        <Tab Title="AudioMixer"
+             Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Sliders}}" >
+            <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
+        </Tab>
+        <Tab Title="Characters" 
+             Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Person}}" >
+            <ShellContent ContentTemplate="{DataTemplate local:MainPage}"   Route="InitialPage"/>
+        </Tab>
+
         <Tab Title="Library"
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.BookOpen}}" >
             <ShellContent Title="Tracks" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
