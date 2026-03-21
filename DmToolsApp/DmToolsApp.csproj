@@ -77,7 +77,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Components\AudioButton\AudioButtonView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Components\ChannelStrip\ChannelStripView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Components\LibraryItemImage\LibraryItemImageView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Components\FaIconButton\FaIconButtonView.xaml">
@@ -89,7 +95,7 @@
 	  <MauiXaml Update="Features\AudioMixer\AudioMixerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\LibraryItemEditPage.xaml">
+	  <MauiXaml Update="Features\Library\CreateEdit\LibraryItemEditPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Features\Library\LibrarySelectorPage.xaml">
@@ -121,6 +127,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Components\AudioButton\AudioButtonView.xaml.cs">
+	    <DependentUpon>AudioButtonView.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Components\LibraryItemImage\LibraryItemImageView.xaml.cs">
+	    <DependentUpon>LibraryItemImageView.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Features\AudioMixer\AudioMixerPage.xaml.cs">
 	    <DependentUpon>AudioMixerPage.xaml</DependentUpon>
 	  </Compile>

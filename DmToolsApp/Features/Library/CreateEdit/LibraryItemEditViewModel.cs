@@ -13,9 +13,13 @@ namespace DmToolsApp.Features.Library
     : ObservableObject, IQueryAttributable
     {
         private readonly ILibraryDataService _libraryDataService;
-        public LibraryItemEditViewModel(ILibraryDataService libraryDataService)
+        private readonly TrackFileService _trackFileService;
+
+        public LibraryItemEditViewModel(ILibraryDataService libraryDataService,
+                                        TrackFileService trackFileService)
         {
             _libraryDataService = libraryDataService;
+            _trackFileService = trackFileService;
         }
 
         [ObservableProperty]
@@ -38,9 +42,15 @@ namespace DmToolsApp.Features.Library
         [RelayCommand]
         public async Task Save()
         {
-
             if (Item == null)
                 return;
+
+            // Si c'est un Track et que le fichier a été choisi par l'utilisateur
+            if (Item is Track track && !string.IsNullOrEmpty(track.FilePath))
+            {
+                // Copie le fichier dans le dossier privé
+                track.FilePath = _trackFileService.CopyToLocal(track.FilePath);
+            }
 
             await _libraryDataService.SaveLibraryItemAsync(Item);
             WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());

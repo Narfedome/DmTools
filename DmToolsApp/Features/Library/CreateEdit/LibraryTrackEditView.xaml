@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DmToolsApp.Features.Library.CreateEdit.LibraryTrackEditView">
+             x:Class="DmToolsApp.Features.Library.CreateEdit.LibraryTrackEditView"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:components="clr-namespace:DmToolsApp.Components">
     <VerticalStackLayout>
-        <Label Text="Edit Trakc" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
+
+        <components:LibraryItemImageView ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.Music}"/>
+        <Label Text="Edit Track" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
         <Entry Text="{Binding Item.Title}" />
         <Entry Text="{Binding Item.FilePath}" />
         <Entry Text="{Binding Item.Duration}" />

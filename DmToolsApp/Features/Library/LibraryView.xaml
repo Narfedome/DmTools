@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibraryView"   
              xmlns:selectors="clr-namespace:DmToolsApp.Selectors"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Name="root"      >
 
     <ContentView.Resources>
@@ -35,23 +37,18 @@
 
                     </VisualStateGroup>
                 </VisualStateManager.VisualStateGroups>
-                <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                <Grid WidthRequest="120" HeightRequest="120" >
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
-                    <!-- Image pour Spell -->
-                    <Image Source="{Binding ImagePath}"
-                       
-                WidthRequest="120"
-                HeightRequest="120"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"/>
+
+                    <components:LibraryItemImageView Grid.Row="0" ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.BookOpen}" />
 
                     <Label Text="{Binding Title}"
                            Grid.Row="1" LineBreakMode="TailTruncation"
-                           HorizontalOptions="Center" />
+                           HorizontalOptions="Center" Margin="5"/>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -80,24 +77,21 @@ StrokeThickness="2" StrokeShape="RoundRectangle 5">
 
                     </VisualStateGroup>
                 </VisualStateManager.VisualStateGroups>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Image Source="{Binding ImagePath}"
-                 
-          WidthRequest="120"
-          HeightRequest="120"
-                     HorizontalOptions="Center"
-                     VerticalOptions="Center"/>
-                    <!-- Label au lieu de l'image -->
-                    <Label Text="{Binding Title}"
+                    <Grid WidthRequest="120" HeightRequest="120" >
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+
+
+                        <components:AudioButtonView Grid.Row="0"  />
+                        <!-- Label au lieu de l'image -->
+                        <Label Text="{Binding Title}"
                                HorizontalOptions="Center"
-                               VerticalOptions="Center" LineBreakMode="TailTruncation"
+                               VerticalOptions="Center" LineBreakMode="TailTruncation" Margin="5"
                                Grid.Row="1"/>
 
-                </Grid>
+                    </Grid>
             </Border>
         </DataTemplate>
 

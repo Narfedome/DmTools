@@ -14,6 +14,8 @@ namespace DmToolsApp
     {
         public static MauiApp CreateMauiApp()
         {
+            string tracksDir = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
+            Directory.CreateDirectory(tracksDir);
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -31,6 +33,7 @@ namespace DmToolsApp
             builder.Services.AddSingleton(
                 new AppDatabase(dbPath));
             builder.Services.AddSingleton<AudioMixerService>();
+            builder.Services.AddSingleton<TrackFileService>();
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
