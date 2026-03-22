@@ -44,7 +44,8 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="auto"/>
                             </Grid.RowDefinitions>
-                            <components:TrackButtonView    CurrentTrack="{Binding .}" />
+                            <components:TrackButtonView    CurrentTrack="{Binding .}"
+                                                           SelectCommand="{Binding Source={x:Reference root}, Path=BindingContext.SelectItemCommand}" />
                             <!-- Label au lieu de l'image -->
                             <Label Text="{Binding Title}" 
                         HorizontalOptions="Center"

@@ -17,6 +17,11 @@ public class AudioPlayerService
 
     public async Task Toggle(string filePath)
     {
+        if(string.IsNullOrEmpty(filePath))
+        { 
+            return;
+        }
+
         if (_player != null && CurrentFile == filePath && _player.IsPlaying)
         {
             _player.Stop();

@@ -133,5 +133,11 @@ namespace DmToolsApp.Features.Library
                        { "Item", newItem }
                 });
         }
+
+        [RelayCommand]
+        public void SelectItem(Track track)
+        {
+            SelectedTrackItem = track;
+        }
     }
 }

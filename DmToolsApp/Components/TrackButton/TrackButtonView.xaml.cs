@@ -3,6 +3,7 @@ using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Microsoft.Maui.Controls;
 using System;
+using System.Windows.Input;
 
 namespace DmToolsApp.Components;
 
@@ -16,6 +17,16 @@ public partial class TrackButtonView : ContentView
     {
         get => (TrackButtonViewModel?)GetValue(ViewModelProperty);
         private set => SetValue(ViewModelProperty, value);
+    }
+
+    // Command to notify parent that this item was selected (bound from parent ViewModel)
+    public static readonly BindableProperty SelectCommandProperty =
+        BindableProperty.Create(nameof(SelectCommand), typeof(ICommand), typeof(TrackButtonView), default(ICommand));
+
+    public ICommand? SelectCommand
+    {
+        get => (ICommand?)GetValue(SelectCommandProperty);
+        set => SetValue(SelectCommandProperty, value);
     }
 
     public TrackButtonView()
@@ -51,6 +62,29 @@ public partial class TrackButtonView : ContentView
         if (IconBtn != null)
         {
             IconBtn.BindingContext = ViewModel;
+
+            // Create a composite command: toggle play then notify parent selection command (if any)
+            IconBtn.Command = new Command(() =>
+            {
+                // Trigger VM play toggle
+                try
+                {
+                    ViewModel?.TogglePlayCommand.Execute(null);
+                }
+                catch (Exception ex)
+                {
+                }
+
+                // Notify parent that this item should be selected
+                try
+                {
+                    SelectCommand?.Execute(CurrentTrack);
+                }
+                catch (Exception ex)
+                {
+                }
+
+            });
         }
 
         // Forward any already-set CurrentTrack to the ViewModel
