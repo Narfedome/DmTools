@@ -1,4 +1,5 @@
 using DmToolsApp.Models.Library;
+using DmToolsApp.Services;
 
 namespace DmToolsApp.Features.Library;
 
@@ -15,5 +16,15 @@ public partial class LibraryTrackPage : ContentPage
 
         if (BindingContext is LibraryTrackViewModel vm)
             await vm.InitializeAsync();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        // Stop any playing audio when leaving the library page via the ViewModel (use DI)
+        if (BindingContext is LibraryTrackViewModel vm)
+        {
+            vm.StopAudio();
+        }
     }
 }

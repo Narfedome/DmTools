@@ -14,8 +14,8 @@ namespace DmToolsApp.Features.Library
     {
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
-        private readonly AudioMixerService _audioMixerService;
         private readonly FileService _fileService;
+        private readonly AudioPlayerService _audioPlayerService;
 
         [ObservableProperty]
         public bool isBusy = false;
@@ -26,17 +26,23 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private Track? selectedTrackItem;
 
-        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioMixerService audioMixerService, FileService fileService)
+        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
             _navigation = navigation;
             _libraryDataService = libraryDataService;
-            _audioMixerService = audioMixerService;
+            _audioPlayerService  = audioPlayerService;
             _fileService = fileService;
             WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
             async (r, m) =>
             {
                 await MainThread.InvokeOnMainThreadAsync(LoadData);
             });
+        }
+
+        // Stop any playing audio when leaving the view
+        public void StopAudio()
+        {
+            _audioPlayerService?.Stop();
         }
 
         public async Task InitializeAsync()

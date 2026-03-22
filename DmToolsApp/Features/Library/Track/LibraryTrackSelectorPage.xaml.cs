@@ -20,4 +20,14 @@ public partial class LibraryTrackSelectorPage : ContentPage
         base.OnAppearing();
         await viewModel.InitializeAsync();
     }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        // Stop any playing audio when leaving the library page via the ViewModel (use DI)
+        if (BindingContext is LibraryTrackViewModel vm)
+        {
+            vm.StopAudio();
+        }
+    }
 }
