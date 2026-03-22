@@ -78,7 +78,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Components\AudioButton\AudioButtonView.xaml">
+	  <MauiXaml Update="Components\TrackButton\TrackButtonView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Components\ChannelStrip\ChannelStripView.xaml">
@@ -132,8 +132,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Components\AudioButton\AudioButtonView.xaml.cs">
-	    <DependentUpon>AudioButtonView.xaml</DependentUpon>
+	  <Compile Update="Components\TrackButton\TrackButtonView.xaml.cs">
+	    <DependentUpon>TrackButtonView.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Components\LibraryItemImage\LibraryItemImageView.xaml.cs">
 	    <DependentUpon>LibraryItemImageView.xaml</DependentUpon>

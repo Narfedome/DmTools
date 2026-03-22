@@ -46,5 +46,12 @@ namespace DmToolsApp.Services
             File.Copy(originalFilePath, destPath, overwrite: true);
             return destPath;
         }
+        public void DeleteTrackFromLocal(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                throw new FileNotFoundException("Le fichier source est introuvable", filePath);
+
+            File.Delete(filePath);
+        }   
     }
 }

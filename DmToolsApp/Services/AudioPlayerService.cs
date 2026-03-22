@@ -1,35 +1,55 @@
-﻿using Plugin.Maui.Audio;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using DmToolsApp.Services;
+using Plugin.Maui.Audio;
 
-namespace DmToolsApp.Services
+public class AudioPlayerService
 {
-    public class AudioPlayerService
+    private readonly IAudioManager _audioManager;
+    private IAudioPlayer? _player;
+
+    public string? CurrentFile { get; private set; }
+
+    public event Action<string?>? OnStateChanged;
+
+    public AudioPlayerService(IAudioManager audioManager)
     {
-        private IAudioPlayer? _player;
+        _audioManager = audioManager;
+    }
 
-        public string? CurrentFile { get; private set; }
-
-        public event Action<string?>? OnStateChanged;
-
-        public void Toggle(string filePath)
+    public async Task Toggle(string filePath)
+    {
+        if (_player != null && CurrentFile == filePath && _player.IsPlaying)
         {
-            if (_player != null && CurrentFile == filePath && _player.IsPlaying)
-            {
-                _player.Stop();
-                OnStateChanged?.Invoke(null);
-                CurrentFile = null;
-                return;
-            }
-
-            _player?.Stop();
-
-            _player = AudioManager.Current.CreatePlayer(filePath);
-            _player.Play();
-
-            CurrentFile = filePath;
-            OnStateChanged?.Invoke(filePath);
+            _player.Stop();
+            Cleanup();
+            return;
         }
+
+        Stop();
+
+        var stream = await FileSystem.OpenAppPackageFileAsync(filePath);
+        _player = _audioManager.CreatePlayer(stream);
+
+        _player.Play();
+
+        CurrentFile = filePath;
+        OnStateChanged?.Invoke(CurrentFile);
+    }
+
+    public void Stop()
+    {
+        if (_player != null)
+        {
+            _player.Stop();
+            Cleanup();
+        }
+    }
+
+    private void Cleanup()
+    {
+        _player?.Dispose();
+        _player = null;
+        CurrentFile = null;
+
+        OnStateChanged?.Invoke(null);
     }
 }

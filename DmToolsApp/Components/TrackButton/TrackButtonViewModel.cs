@@ -1,21 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Models.Library;
 using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
-using Plugin.Maui.Audio;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using System.Threading.Tasks;
 
-namespace DmToolsApp.Components.AudioButton
+namespace DmToolsApp.Components.TrackButton
 {
-    public partial class AudioButtonViewModel : ObservableObject
+    public partial class TrackButtonViewModel : ObservableObject
     {
 
 
         private readonly AudioPlayerService _audioService;
 
-        public AudioButtonViewModel(AudioPlayerService audioService)
+        public TrackButtonViewModel(AudioPlayerService audioService)
         {
             _audioService = audioService;
 
@@ -24,20 +23,25 @@ namespace DmToolsApp.Components.AudioButton
 
         private void OnAudioChanged(string? currentFile)
         {
-            IsPlaying = currentFile == FilePath;
+            IsPlaying = currentTrack != null && currentFile == currentTrack.FilePath;
         }
 
-        private string filePath = "";
-        public string FilePath
+        [ObservableProperty]
+        private Track? currentTrack;
+        partial void OnCurrentTrackChanged(Track? value)
         {
-            get => filePath;
-            set
+            if (value == null)
             {
-                SetProperty(ref filePath, value);
-                CoverImage = GetCoverImage(filePath);
+                CoverImage = null;
+                IsPlaying = false;
+                return;
             }
-        }
 
+            CoverImage = GetCoverImage(value.FilePath);
+
+            // Sync avec état actuel du player
+            IsPlaying = _audioService.CurrentFile == value.FilePath;
+        }
 
         [ObservableProperty]
         private bool isPlaying;
@@ -45,20 +49,14 @@ namespace DmToolsApp.Components.AudioButton
         [ObservableProperty]
         private ImageSource? coverImage;
 
-
-        public byte[]? GetCover(string filePath)
+        [RelayCommand]
+        private async Task TogglePlay()
         {
-            var file = TagLib.File.Create(filePath);
+            if (CurrentTrack == null)
+                return;
 
-            if (file.Tag.Pictures.Length > 0)
-            {
-                var pic = file.Tag.Pictures[0];
-                return pic.Data.Data;
-            }
-
-            return null;
+            await _audioService.Toggle(CurrentTrack.FilePath);
         }
-
 
         public ImageSource? GetCoverImage(string filePath)
         {

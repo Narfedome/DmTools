@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DmToolsApp.Components.AudioButton;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Plugin.Maui.Audio;
@@ -16,6 +15,7 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         private readonly AudioMixerService _audioMixerService;
+        private readonly FileService _fileService;
 
         [ObservableProperty]
         public bool isBusy = false;
@@ -26,11 +26,12 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private Track? selectedTrackItem;
 
-        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioMixerService audioMixerService)
+        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioMixerService audioMixerService, FileService fileService)
         {
             _navigation = navigation;
             _libraryDataService = libraryDataService;
             _audioMixerService = audioMixerService;
+            _fileService = fileService;
             WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
             async (r, m) =>
             {
@@ -85,10 +86,20 @@ namespace DmToolsApp.Features.Library
 
             var item = SelectedTrackItem;
 
-            await _libraryDataService.DeleteLibraryItem(item);
+            bool confirm = await Shell.Current.DisplayAlertAsync(
+               "Delete",
+               $"{item.Title} will be deleted permanentaly. Are you sure to proccessed ?",
+               "Yes",
+               "No");
 
-            TrackItems.Remove(item);
-            SelectedTrackItem = null;
+            if (!confirm)
+            {
+                _fileService.DeleteTrackFromLocal(item.FilePath);
+                await _libraryDataService.DeleteLibraryItem(item);
+
+                TrackItems.Remove(item);
+                SelectedTrackItem = null;
+            }          
         }
 
         [RelayCommand]
