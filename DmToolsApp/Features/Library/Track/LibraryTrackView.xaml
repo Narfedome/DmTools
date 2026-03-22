@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DmToolsApp.Features.Library.LibraryTrackView"             
+             xmlns:local="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Name="root"      >
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <ActivityIndicator IsRunning="{Binding IsBusy}" VerticalOptions="Center"  HorizontalOptions="Center" WidthRequest="120" HeightRequest="120" />
+        <CollectionView
+                 x:Name="ItemsCollection"
+                 ItemsSource="{Binding TrackItems}"
+                 SelectionMode="Single"
+                 SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Span="3" VerticalItemSpacing="5" HorizontalItemSpacing="5" Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 5">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="Grey" />
+                                        <Setter Property="StrokeThickness" Value="2" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="LightSkyBlue" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Grid WidthRequest="120" HeightRequest="120" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <components:AudioButtonView    FilePath="{Binding FilePath}" />
+                            <!-- Label au lieu de l'image -->
+                            <Label Text="{Binding Title}" Margin="0,0,0,5"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" LineBreakMode="TailTruncation"
+                        Grid.Row="1"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Boutons CRUD (visibles uniquement en mode CRUD) -->
+        <Grid  Grid.Row="1"  HorizontalOptions="Center" IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}"  >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition  Width="auto"/>
+                <ColumnDefinition  Width="auto"/>
+                <ColumnDefinition  Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Text="Add" Command="{Binding CreateItemCommand}" Grid.Column="0" Margin="10,0,10,0" WidthRequest="85"/>
+            <Button Text="Edit" Command="{Binding EditItemCommand}" Grid.Column="1" Margin="10,0,10,0" WidthRequest="85"/>
+            <Button Text="Delete" Command="{Binding DeleteItemCommand}" Grid.Column="2"  Margin="10,0,10,0" WidthRequest="85"/>
+        </Grid>
+        <Grid  Grid.Row="1" HorizontalOptions="Center" IsVisible="{Binding Source={x:Reference root}, Path=IsCrud,  Converter={StaticResource InverseBoolConverter}}" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition  Width="*"/>
+                <ColumnDefinition  Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Text="Confirm" Command="{Binding ConfirmSelectionCommand}"  Grid.Column="0" Margin="10,0,10,0" WidthRequest="85"/>
+            <Button Text="Cancel" Command="{Binding CancelCommand}"  Grid.Column="1" Margin="10,0,10,0" WidthRequest="85"/>
+        </Grid>
+
+    </Grid>
+</ContentView>

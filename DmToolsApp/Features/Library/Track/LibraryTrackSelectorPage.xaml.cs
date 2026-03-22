@@ -3,12 +3,12 @@ using DmToolsApp.Services;
 
 namespace DmToolsApp.Features.Library;
 
-public partial class LibrarySelectorPage : ContentPage
+public partial class LibraryTrackSelectorPage : ContentPage
 {
-    private readonly LibraryViewModel viewModel;
+    private readonly LibraryTrackViewModel viewModel;
 
     public Type? LibraryType { get; set; }
-    public LibrarySelectorPage(LibraryViewModel vm)
+    public LibraryTrackSelectorPage(LibraryTrackViewModel vm)
     {
         InitializeComponent();
         viewModel = vm;
@@ -18,10 +18,6 @@ public partial class LibrarySelectorPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        if (LibraryType != null)
-            viewModel.CurrentLibraryType = LibraryType;
-
         await viewModel.InitializeAsync();
     }
 }

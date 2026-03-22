@@ -4,17 +4,16 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibraryTrackPage : ContentPage
 {
-	public LibraryTrackPage(LibraryViewModel vm)
+	public LibraryTrackPage(LibraryTrackViewModel vm)
     {
         InitializeComponent();
-        vm.CurrentLibraryType = typeof(Track);
         BindingContext = vm;
     }
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        if (BindingContext is LibraryViewModel vm)
+        if (BindingContext is LibraryTrackViewModel vm)
             await vm.InitializeAsync();
     }
 }

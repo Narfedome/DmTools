@@ -117,7 +117,7 @@ namespace DmToolsApp.Features.AudioMixer
             try
             {
                 if (channel == null) return;
-                var selectedLibraryItem = await _pickerService.PickTrackAsync(typeof(Track));
+                var selectedLibraryItem = await _pickerService.PickTrackAsync();
 
                 if (selectedLibraryItem is null)
                     return;

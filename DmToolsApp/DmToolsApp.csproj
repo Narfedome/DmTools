@@ -96,22 +96,28 @@
 	  <MauiXaml Update="Features\AudioMixer\AudioMixerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\LibrarySelectorPage.xaml">
+	  <MauiXaml Update="Features\Library\Spell\LibrarySpellSelectorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\CreateEdit\LibrarySpellEditPage.xaml">
+	  <MauiXaml Update="Features\Library\Track\LibraryTrackSelectorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\LibrarySpellPage.xaml">
+	  <MauiXaml Update="Features\Library\Spell\LibrarySpellPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\CreateEdit\LibraryTrackEditPage.xaml">
+	  <MauiXaml Update="Features\Library\Spell\LibrarySpellView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\LibraryTrackPage.xaml">
+	  <MauiXaml Update="Features\Library\Track\LibraryTrackPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\LibraryView.xaml">
+	  <MauiXaml Update="Features\Library\Spell\CreateEdit\LibrarySpellEditPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Features\Library\Track\CreateEdit\LibraryTrackEditPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Features\Library\Track\LibraryTrackView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Resources\Styles\Icons.xaml">
@@ -122,6 +128,7 @@
 	<ItemGroup>
 	  <Folder Include="Data\Repositories\" />
 	  <Folder Include="Features\CharacterTool\" />
+	  <Folder Include="Selectors\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -134,14 +141,17 @@
 	  <Compile Update="Features\AudioMixer\AudioMixerPage.xaml.cs">
 	    <DependentUpon>AudioMixerPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Features\Library\CreateEdit\LibrarySpellEditPage.xaml.cs">
-	    <DependentUpon>LibrarySpellEditPage.xaml</DependentUpon>
+	  <Compile Update="Features\Library\Spell\LibrarySpellSelectorPage.xaml.cs">
+	    <DependentUpon>LibrarySpellSelectorPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Features\Library\CreateEdit\LibraryTrackEditPage.xaml.cs">
-	    <DependentUpon>LibraryTrackEditPage.xaml</DependentUpon>
+	  <Compile Update="Features\Library\Track\LibraryTrackSelectorPage.xaml.cs">
+	    <DependentUpon>LibraryTrackSelectorPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Features\Library\LibrarySelectorPage.xaml.cs">
-	    <DependentUpon>LibrarySelectorPage.xaml</DependentUpon>
+	  <Compile Update="Features\Library\Spell\LibrarySpellView.xaml.cs">
+	    <DependentUpon>LibrarySpellView.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Features\Library\Track\LibraryTrackView.xaml.cs">
+	    <DependentUpon>LibraryTrackView.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 

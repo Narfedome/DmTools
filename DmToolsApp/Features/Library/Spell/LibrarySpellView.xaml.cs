@@ -3,15 +3,15 @@ using DmToolsApp.Models.Library;
 
 namespace DmToolsApp.Features.Library;
 
-public partial class LibraryView : ContentView
+public partial class LibrarySpellView : ContentView
 {
-    public LibraryView()
+    public LibrarySpellView()
 	{
 		InitializeComponent();
     }
         
     public static readonly BindableProperty IsCrudProperty =
-    BindableProperty.Create(nameof(IsCrud), typeof(bool), typeof(LibraryView), default(bool));
+    BindableProperty.Create(nameof(IsCrud), typeof(bool), typeof(LibrarySpellView), default(bool));
 
     public bool IsCrud
     {

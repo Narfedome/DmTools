@@ -38,10 +38,12 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
-            builder.Services.AddTransient<LibraryViewModel>();
+            builder.Services.AddTransient<LibraryTrackViewModel>();
+            builder.Services.AddTransient<LibrarySpellViewModel>();
             builder.Services.AddTransient<LibrarySpellEditViewModel>();
             builder.Services.AddTransient<LibraryTrackEditViewModel>();
-            builder.Services.AddTransient<LibrarySelectorPage>();
+            builder.Services.AddTransient<LibrarySpellSelectorPage>();
+            builder.Services.AddTransient<LibraryTrackSelectorPage>();
             builder.Services.AddSingleton<AudioMixerViewModel>();
             builder.Services.AddTransient<AudioMixerPage>();
             builder.Services.AddTransient<MainPage>();

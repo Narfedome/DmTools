@@ -1,0 +1,23 @@
+using DmToolsApp.Models.Library;
+using DmToolsApp.Services;
+
+namespace DmToolsApp.Features.Library;
+
+public partial class LibrarySpellSelectorPage : ContentPage
+{
+    private readonly LibrarySpellViewModel viewModel;
+
+    public Type? LibraryType { get; set; }
+    public LibrarySpellSelectorPage(LibrarySpellViewModel vm)
+    {
+        InitializeComponent();
+        viewModel = vm;
+        BindingContext = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await viewModel.InitializeAsync();
+    }
+}
