@@ -6,7 +6,6 @@ namespace DmToolsApp.Data.Entities
 {
     class TrackEntity : LibraryItemEntity
     {
-        public string FilePath { get; set; } = string.Empty;
 
         public TimeSpan Duration { get; set; }
 

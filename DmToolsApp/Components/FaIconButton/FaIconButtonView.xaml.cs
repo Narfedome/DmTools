@@ -10,6 +10,14 @@ public partial class FaIconButtonView : ContentView
     {
         InitializeComponent();
     }
+    public static readonly BindableProperty BackgroundImageProperty =
+    BindableProperty.Create(nameof(BackgroundImage), typeof(ImageSource), typeof(FaIconButtonView), default(ImageSource));
+
+    public ImageSource BackgroundImage
+    {
+        get => (ImageSource)GetValue(BackgroundImageProperty);
+        set => SetValue(BackgroundImageProperty, value);
+    }
 
     // ICON (glyph)
     public static readonly BindableProperty IconProperty =
@@ -48,7 +56,6 @@ public partial class FaIconButtonView : ContentView
         get => GetValue(CommandParameterProperty);
         set => SetValue(CommandParameterProperty, value);
     }
-
     // ICON SIZE
     public static readonly BindableProperty IconSizeProperty =
         BindableProperty.Create(nameof(IconSize), typeof(double), typeof(FaIconButtonView), 16.0);
@@ -58,17 +65,6 @@ public partial class FaIconButtonView : ContentView
         get => (double)GetValue(IconSizeProperty);
         set => SetValue(IconSizeProperty, value);
     }
-
-    // BUTTON SIZE
-    public static readonly BindableProperty ButtonSizeProperty =
-        BindableProperty.Create(nameof(ButtonSize), typeof(double), typeof(FaIconButtonView), 40.0);
-
-    public double ButtonSize
-    {
-        get => (double)GetValue(ButtonSizeProperty);
-        set => SetValue(ButtonSizeProperty, value);
-    }
-
     // ICON COLOR
     public static readonly BindableProperty IconColorProperty =
         BindableProperty.Create(nameof(IconColor), typeof(Color), typeof(FaIconButtonView), Colors.White);

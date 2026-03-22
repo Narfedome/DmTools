@@ -46,6 +46,7 @@ namespace DmToolsApp.Services
                     Id = s.Id,
                     Title = s.Title,
                     ImagePath = s.ImagePath,
+                    FilePath = s.FilePath,
                     Description = s.Description
                 }));
             }
@@ -111,6 +112,7 @@ namespace DmToolsApp.Services
             {
                 Title = oldSpell.Title,
                 ImagePath = oldSpell.ImagePath,
+                FilePath = oldSpell.FilePath,
                 Description = oldSpell.Description
             };
             if (entity.Id == 0)

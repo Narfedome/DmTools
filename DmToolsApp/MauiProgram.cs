@@ -31,14 +31,16 @@ namespace DmToolsApp
                 });
             builder.AddAudio();
             builder.Services.AddSingleton(
-                new AppDatabase(dbPath));
+                new AppDatabase(dbPath)); 
+            builder.Services.AddSingleton<AudioPlayerService>();
             builder.Services.AddSingleton<AudioMixerService>();
-            builder.Services.AddSingleton<TrackFileService>();
+            builder.Services.AddSingleton<FileService>();
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
             builder.Services.AddTransient<LibraryViewModel>();
-            builder.Services.AddTransient<LibraryItemEditViewModel>();
+            builder.Services.AddTransient<LibrarySpellEditViewModel>();
+            builder.Services.AddTransient<LibraryTrackEditViewModel>();
             builder.Services.AddTransient<LibrarySelectorPage>();
             builder.Services.AddSingleton<AudioMixerViewModel>();
             builder.Services.AddTransient<AudioMixerPage>();

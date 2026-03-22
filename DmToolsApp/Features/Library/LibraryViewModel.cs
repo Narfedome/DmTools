@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DmToolsApp.Components.AudioButton;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
+using Plugin.Maui.Audio;
 using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Library
@@ -11,6 +13,7 @@ namespace DmToolsApp.Features.Library
     {
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
+        private readonly AudioMixerService _audioMixerService;
 
         [ObservableProperty]
         public bool isBusy = false;
@@ -24,10 +27,11 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private LibraryItem? selectedLibraryItem;
 
-        public LibraryViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService)
+        public LibraryViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioMixerService audioMixerService)
         {
             _navigation = navigation;
             _libraryDataService = libraryDataService;
+            _audioMixerService = audioMixerService;
             WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
             async (r, m) =>
             {
@@ -48,7 +52,7 @@ namespace DmToolsApp.Features.Library
                 IsBusy = false;
             }
         }
-
+    
         private async Task LoadData()
         {
             var items = await _libraryDataService.GetAllItemsTypeAsync(CurrentLibraryType);
@@ -96,11 +100,24 @@ namespace DmToolsApp.Features.Library
                 return;
 
             var copy = SelectedLibraryItem.Clone();
-            await Shell.Current.GoToAsync(nameof(LibraryItemEditPage),
+            if (CurrentLibraryType == typeof(Track))
+            {
+                await Shell.Current.GoToAsync(nameof(LibraryTrackEditPage),
                 new Dictionary<string, object>
                 {
-            { "Item", copy }
+                 { "Item", (Track)copy }
                 });
+            }
+            if (CurrentLibraryType == typeof(Spell))
+            {
+                await Shell.Current.GoToAsync(nameof(LibrarySpellEditPage),
+                new Dictionary<string, object>
+                {
+                 { "Item", (Spell)copy }
+                });
+            }
+
+
         }
 
         [RelayCommand]
@@ -108,11 +125,22 @@ namespace DmToolsApp.Features.Library
         {
             var newItem = Activator.CreateInstance(CurrentLibraryType)!;
 
-            await Shell.Current.GoToAsync(nameof(LibraryItemEditPage),
-                new Dictionary<string, object>
-                {
-            { "Item", newItem }
-                });
+            if (CurrentLibraryType == typeof(Track))
+            {
+                await Shell.Current.GoToAsync(nameof(LibraryTrackEditPage),
+                    new Dictionary<string, object>
+                    {
+                       { "Item", (Track)newItem }
+                    });
+            }
+            if (CurrentLibraryType == typeof(Spell))
+            {
+                await Shell.Current.GoToAsync(nameof(LibrarySpellEditPage),
+                    new Dictionary<string, object>
+                    {
+                       { "Item", (Spell)newItem }
+                    });
+            }
         }
     }
 

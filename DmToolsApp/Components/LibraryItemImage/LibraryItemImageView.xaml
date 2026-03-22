@@ -3,9 +3,7 @@
              x:Class="DmToolsApp.Components.LibraryItemImageView"
              x:Name="root">
 
-    <Image 
-           HorizontalOptions="Center"
-           VerticalOptions="Center">
+    <Image>
         <Image.Source>
             <Binding Path="ImagePath" Source="{x:Reference root}" TargetNullValue=""/>
         </Image.Source>

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Components.AudioButton;
+using DmToolsApp.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using Plugin.Maui.Audio;
@@ -9,12 +10,20 @@ namespace DmToolsApp.Components;
 
 public partial class AudioButtonView : ContentView
 {
-    private readonly AudioButtonViewModel vm;
-
+    private AudioButtonViewModel vm;
+    public AudioButtonViewModel ViewModel => vm;
     public AudioButtonView()
     {
         InitializeComponent();
-        vm = new AudioButtonViewModel();
+
+        var audioService = Application.Current
+            .Handler
+            .MauiContext
+            .Services
+            .GetService<AudioPlayerService>();
+
+        vm = new AudioButtonViewModel(audioService!);
+
         BindingContext = vm;
     }
 
@@ -41,4 +50,27 @@ public partial class AudioButtonView : ContentView
             view.vm.FilePath = newValue?.ToString() ?? string.Empty;
         }
     }
+
+    // ICON (glyph)
+    public static readonly BindableProperty IconProperty =
+        BindableProperty.Create(nameof(Icon), typeof(string), typeof(FaIconButtonView), default(string));
+
+    public string Icon
+    {
+        get => (string)GetValue(IconProperty);
+        set => SetValue(IconProperty, value);
+    }
+
+
+
+    // COMMAND PARAM
+    public static readonly BindableProperty CommandParameterProperty =
+        BindableProperty.Create(nameof(CommandParameter), typeof(object), typeof(FaIconButtonView));
+
+    public object CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
 }

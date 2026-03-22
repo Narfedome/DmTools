@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Resources.Icons;
+using DmToolsApp.Services;
 using Plugin.Maui.Audio;
 using System;
 using System.Collections.Generic;
@@ -9,60 +11,74 @@ namespace DmToolsApp.Components.AudioButton
 {
     public partial class AudioButtonViewModel : ObservableObject
     {
-        public AudioButtonViewModel()
+
+
+        private readonly AudioPlayerService _audioService;
+
+        public AudioButtonViewModel(AudioPlayerService audioService)
         {
-            IsPlaying = false;
+            _audioService = audioService;
+
+            _audioService.OnStateChanged += OnAudioChanged;
         }
 
-        [ObservableProperty]
-        public string filePath = "";
+        private void OnAudioChanged(string? currentFile)
+        {
+            IsPlaying = currentFile == FilePath;
+        }
+
+        private string filePath = "";
+        public string FilePath
+        {
+            get => filePath;
+            set
+            {
+                SetProperty(ref filePath, value);
+                CoverImage = GetCoverImage(filePath);
+            }
+        }
+
 
         [ObservableProperty]
         private bool isPlaying;
-        public IAudioPlayer? Player { get; set; }
 
-        private void LoadAudio()
+        [ObservableProperty]
+        private ImageSource? coverImage;
+
+
+        public byte[]? GetCover(string filePath)
         {
-            if (string.IsNullOrEmpty(FilePath))
-                return;
-            try
+            var file = TagLib.File.Create(filePath);
+
+            if (file.Tag.Pictures.Length > 0)
             {
-                Player = AudioManager.Current.CreatePlayer(FilePath);
-                Player.Volume = 1;
+                var pic = file.Tag.Pictures[0];
+                return pic.Data.Data;
             }
-            catch (Exception ex)
-            {
-                // Handle exceptions (e.g., file not found, unsupported format)
-                Console.WriteLine($"Error loading audio: {ex.Message}");
-            }
+
+            return null;
         }
 
 
-        [RelayCommand]
-        public void TogglePlay()
+        public ImageSource? GetCoverImage(string filePath)
         {
-            LoadAudio();
-            if (Player == null)
-                return;
-
-            if (Player.IsPlaying)
+            if (!string.IsNullOrEmpty(filePath))
             {
-                Player.Pause();
-                IsPlaying = false;
-            }
-            else
-            {
-                Player.Play();
-                IsPlaying = true;
-            }
-        }
-        public void Pause()
-        {
-            if (Player == null)
-                return;
 
-            Player.Pause();
-            IsPlaying = false;
+                var file = TagLib.File.Create(filePath);
+
+                if (file.Tag.Pictures.Length > 0)
+                {
+                    var pic = file.Tag.Pictures[0];
+                    return ImageSource.FromStream(() => new MemoryStream(pic.Data.Data));
+                }
+            }
+            return new FontImageSource
+            {
+                Glyph = SolidFont.Music,
+                FontFamily = "FontSolid"
+            };
         }
+
     }
 }

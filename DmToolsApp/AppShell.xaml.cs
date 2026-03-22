@@ -8,7 +8,8 @@ namespace DmToolsApp
         {
             InitializeComponent();
             GoToAsync("//InitialPage");
-            Routing.RegisterRoute(nameof(LibraryItemEditPage), typeof(LibraryItemEditPage));
+            Routing.RegisterRoute(nameof(LibrarySpellEditPage), typeof(LibrarySpellEditPage));
+            Routing.RegisterRoute(nameof(LibraryTrackEditPage), typeof(LibraryTrackEditPage));
 
         }
     }

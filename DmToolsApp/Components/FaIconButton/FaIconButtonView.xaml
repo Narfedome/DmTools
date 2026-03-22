@@ -2,18 +2,28 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Components.FaIconButtonView"  x:Name="root">
-    
-    <Button
+
+    <Grid>
+
+        <!-- Background image -->
+        <Border>
+        <Image
+            Source="{Binding Source={x:Reference root}, Path=BackgroundImage}"
+            Aspect="AspectFill" />
+        </Border>
+
+        <Button
         Text="{Binding Source={x:Reference root}, Path=Icon}"
         FontFamily="FontSolid"
         FontSize="{Binding Source={x:Reference root}, Path=IconSize}"
         TextColor="{Binding Source={x:Reference root}, Path=IconColor}"
         BackgroundColor="{Binding Source={x:Reference root}, Path=BackgroundColor}"
-        WidthRequest="{Binding Source={x:Reference root}, Path=ButtonSize}"
-        HeightRequest="{Binding Source={x:Reference root}, Path=ButtonSize}"
         CornerRadius="{Binding Source={x:Reference root}, Path=CornerRadius}"
         Command="{Binding Source={x:Reference root}, Path=Command}"
         CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
-        ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}"
-        />
+        ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}">           
+            
+        </Button>
+
+    </Grid>
 </ContentView>

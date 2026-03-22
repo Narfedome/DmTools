@@ -12,5 +12,6 @@ namespace DmToolsApp.Data.Entities
 
         public string Title { get; set; } = string.Empty;
         public string ImagePath { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
     }
 }

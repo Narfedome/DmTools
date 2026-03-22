@@ -33,10 +33,10 @@
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
-            <HorizontalStackLayout Spacing="15" Grid.Row="0" Grid.Column="2">
+            <VerticalStackLayout Spacing="15" Grid.Row="0" Grid.Column="2" VerticalOptions="End" Margin="15">
                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"                             
                      Command="{Binding AddChannelCommand}" />
-            </HorizontalStackLayout>
+            </VerticalStackLayout>
         </Grid>
 
         <Border  Grid.Row="1">

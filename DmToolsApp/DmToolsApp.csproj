@@ -74,6 +74,7 @@
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+		<PackageReference Include="TagLibSharp" Version="2.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -95,19 +96,16 @@
 	  <MauiXaml Update="Features\AudioMixer\AudioMixerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\CreateEdit\LibraryItemEditPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Features\Library\LibrarySelectorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\CreateEdit\LibrarySpellEditView.xaml">
+	  <MauiXaml Update="Features\Library\CreateEdit\LibrarySpellEditPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Features\Library\LibrarySpellPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Features\Library\CreateEdit\LibraryTrackEditView.xaml">
+	  <MauiXaml Update="Features\Library\CreateEdit\LibraryTrackEditPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Features\Library\LibraryTrackPage.xaml">
@@ -135,6 +133,12 @@
 	  </Compile>
 	  <Compile Update="Features\AudioMixer\AudioMixerPage.xaml.cs">
 	    <DependentUpon>AudioMixerPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Features\Library\CreateEdit\LibrarySpellEditPage.xaml.cs">
+	    <DependentUpon>LibrarySpellEditPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Features\Library\CreateEdit\LibraryTrackEditPage.xaml.cs">
+	    <DependentUpon>LibraryTrackEditPage.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Features\Library\LibrarySelectorPage.xaml.cs">
 	    <DependentUpon>LibrarySelectorPage.xaml</DependentUpon>

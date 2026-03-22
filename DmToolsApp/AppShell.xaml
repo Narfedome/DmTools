@@ -26,7 +26,8 @@
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.BookOpen}}" >
             <ShellContent Title="Tracks" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
             <ShellContent Title="Spells" ContentTemplate="{DataTemplate library:LibrarySpellPage}" />
-            <ShellContent Route="LibraryItemEditPage" ContentTemplate="{DataTemplate library:LibraryItemEditPage}" />
+            <ShellContent Route="LibrarySpellEditPage" ContentTemplate="{DataTemplate library:LibrarySpellEditPage}" />
+            <ShellContent Route="LibraryTrackEditPage" ContentTemplate="{DataTemplate library:LibraryTrackEditPage}" />
         </Tab>
     </TabBar>
 
