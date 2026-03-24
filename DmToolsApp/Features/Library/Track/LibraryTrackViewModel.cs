@@ -98,10 +98,13 @@ namespace DmToolsApp.Features.Library
                "Yes",
                "No");
 
-            if (!confirm)
+            if (confirm)
             {
-                _fileService.DeleteTrackFromLocal(item.FilePath);
+                StopAudio();
+
                 await _libraryDataService.DeleteLibraryItem(item);
+
+                _fileService.DeleteTrackFromLocal(item.FilePath);
 
                 TrackItems.Remove(item);
                 SelectedTrackItem = null;

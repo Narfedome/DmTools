@@ -1,11 +1,13 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DmToolsApp.Models.Library
 {
-    public class Spell : LibraryItem
-    {        
-        public string Description { get; set; } = "";
+    public partial class Spell : LibraryItem
+    {
+        [ObservableProperty]
+        private string description = "";
     }
 }

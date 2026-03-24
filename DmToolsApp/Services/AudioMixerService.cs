@@ -16,13 +16,13 @@ namespace DmToolsApp.Services
             this.audioManager = audioManager;
         }
 
-        public async Task<ChannelStripViewModel> AddChannel(string? file = null)
+        public ChannelStripViewModel AddChannel(string? file = null)
         {
             IAudioPlayer? player = null;
 
             if (!string.IsNullOrWhiteSpace(file))
             {
-                var stream = await FileSystem.OpenAppPackageFileAsync(file);
+                var stream = File.OpenRead(file);
                 player = audioManager.CreatePlayer(stream);
             }
 

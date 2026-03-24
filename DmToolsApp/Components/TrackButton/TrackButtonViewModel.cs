@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -30,6 +31,25 @@ namespace DmToolsApp.Components.TrackButton
         private Track? currentTrack;
         partial void OnCurrentTrackChanged(Track? value)
         {
+            if (currentTrack != null)
+            {
+                currentTrack.PropertyChanged -= OnTrackChanged;
+            }
+
+            if (value != null)
+            {
+                value.PropertyChanged += OnTrackChanged;
+            }
+
+            UpdateFromTrack(value);
+        }
+        private void OnTrackChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            UpdateFromTrack(CurrentTrack);
+        }
+
+        private void UpdateFromTrack(Track? value)
+        {
             if (value == null)
             {
                 CoverImage = null;
@@ -38,8 +58,6 @@ namespace DmToolsApp.Components.TrackButton
             }
 
             CoverImage = GetCoverImage(value.FilePath);
-
-            // Sync avec état actuel du player
             IsPlaying = _audioService.CurrentFile == value.FilePath;
         }
 
@@ -50,12 +68,12 @@ namespace DmToolsApp.Components.TrackButton
         private ImageSource? coverImage;
 
         [RelayCommand]
-        private async Task TogglePlay()
+        private void TogglePlay()
         {
             if (CurrentTrack == null)
                 return;
 
-            await _audioService.Toggle(CurrentTrack.FilePath);
+            _audioService.Toggle(CurrentTrack.FilePath);
         }
 
         public ImageSource? GetCoverImage(string filePath)
@@ -75,7 +93,8 @@ namespace DmToolsApp.Components.TrackButton
             {
                 Glyph = SolidFont.Music,
                 FontFamily = "FontSolid"
-            };
+            }
+            ;
         }
 
     }

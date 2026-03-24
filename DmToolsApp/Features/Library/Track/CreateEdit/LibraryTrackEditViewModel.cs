@@ -13,19 +13,27 @@ namespace DmToolsApp.Features.Library
     public partial class LibraryTrackEditViewModel
     : ObservableObject, IQueryAttributable
     {
+        private readonly AudioPlayerService _audioPlayerService;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _trackFileService;
 
-        public LibraryTrackEditViewModel(ILibraryDataService libraryDataService,
+
+        public LibraryTrackEditViewModel(AudioPlayerService audioPlayerService, ILibraryDataService libraryDataService,
                                         FileService trackFileService)
         {
+            _audioPlayerService = audioPlayerService;
             _libraryDataService = libraryDataService;
             _trackFileService = trackFileService;
         }
 
         [ObservableProperty]
-        private Track? item;
+        private Track item = new Track();
 
+        [ObservableProperty]
+        private string importedFilePath = string.Empty;
+
+        [ObservableProperty]
+        private string title = string.Empty;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -33,9 +41,21 @@ namespace DmToolsApp.Features.Library
            value is Track item)
             {
                 Item = item;
+                if(Item.Id != 0)
+                {
+                    Title = "Edit Track";
+                }
+                else
+                {
+                    Title = "Create Track";
+                }
+
             }
         }
-
+        public void StopAudio()
+        {
+            _audioPlayerService?.Stop();
+        }
 
         [RelayCommand]
         public async Task PickFile()
@@ -56,7 +76,11 @@ namespace DmToolsApp.Features.Library
 
                 if (result != null)
                 {
+                    var tagfile = TagLib.File.Create(result.FullPath);
                     Item.FilePath = result.FullPath;
+                    Item.Title = string.IsNullOrEmpty(tagfile.Name) ? result.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title} ";
+                    Item.Duration = tagfile.Properties.Duration;
+                    ImportedFilePath = result.FullPath;
                 }
 
             }
@@ -74,15 +98,16 @@ namespace DmToolsApp.Features.Library
                 return;
 
             // Si c'est un Track et que le fichier a été choisi par l'utilisateur
-            if (!string.IsNullOrEmpty(Item.FilePath))
+            if (!string.IsNullOrEmpty(ImportedFilePath))
             {
                 // Copie le fichier dans le dossier privé
-                Item.FilePath = _trackFileService.CopyTrackToLocal(Item.FilePath);
+                Item.FilePath = _trackFileService.CopyTrackToLocal(ImportedFilePath);
             }
 
             await _libraryDataService.SaveLibraryItemAsync(Item);
             WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
             await Shell.Current.GoToAsync("..");
+
         }
 
         [RelayCommand]

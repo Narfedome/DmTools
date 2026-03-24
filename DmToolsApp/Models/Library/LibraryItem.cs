@@ -1,16 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DmToolsApp.Models.Library
 {
-    public class LibraryItem
+    public partial class LibraryItem : ObservableObject
     {
-        public int Id { get; set; }
-        public string Title { get; set; } = ""; 
-        public string ImagePath { get; set; } = "";
-        public string FilePath { get; set; } = "";
 
+        [ObservableProperty]
+        private int id; 
+
+        [ObservableProperty]
+        private string title = "";
+
+        [ObservableProperty]
+        private string imagePath = "";
+
+        [ObservableProperty]
+        private string filePath  ="";
         public LibraryItem Clone()
         {
             return (LibraryItem)this.MemberwiseClone();

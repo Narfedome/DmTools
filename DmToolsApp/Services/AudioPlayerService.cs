@@ -15,7 +15,7 @@ public class AudioPlayerService
         _audioManager = audioManager;
     }
 
-    public async Task Toggle(string filePath)
+    public void Toggle(string filePath)
     {
         if(string.IsNullOrEmpty(filePath))
         { 
@@ -31,7 +31,7 @@ public class AudioPlayerService
 
         Stop();
 
-        var stream = await FileSystem.OpenAppPackageFileAsync(filePath);
+        var stream = File.OpenRead(filePath);
         _player = _audioManager.CreatePlayer(stream);
 
         _player.Play();

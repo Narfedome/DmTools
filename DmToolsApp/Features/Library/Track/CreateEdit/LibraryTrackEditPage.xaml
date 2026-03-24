@@ -10,27 +10,34 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
+        <Grid RowSpacing="15" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <components:LibraryItemImageView Grid.Row="0" ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.Music}" MaximumHeightRequest="30" />
-            <Label Grid.Row="1" Text="Edit Track" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
-
-            <components:FaIconButtonView Grid.Row="2"  Icon="{x:Static  icons:SolidFont.FileImport}"
-                                           Command="{Binding PickFileCommand}"
-                                         Tooltip="Save"/>
+            <Grid Grid.Row="0" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Text="{Binding Title}" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
+                <components:TrackButtonView  Grid.Row="1" CurrentTrack="{Binding Item}"  WidthRequest="120" HeightRequest="120"/>
+            </Grid>
+            <HorizontalStackLayout Grid.Row="2" Spacing="15">  
+                <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FileImport}" Grid.Column="1"
+                                  Command="{Binding PickFileCommand}"
+                                Tooltip="Import"/>
+                <Label  Text="{Binding ImportedFilePath}"  VerticalOptions="Center" />
+            </HorizontalStackLayout>
             <Grid Grid.Row="3"  RowSpacing="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Entry Grid.Row="0" Text="{Binding Item.Title}" Placeholder="Title"/>
-                <Entry Grid.Row="1" Text="{Binding Item.FilePath}"  />
-                <Entry Grid.Row="2" Text="{Binding Item.Duration}" />
+                <Label Grid.Row="1" Text="{Binding Item.DurationFormatted}"/>
             </Grid>
         </Grid>
         <HorizontalStackLayout Grid.Row="1"
@@ -38,12 +45,13 @@
                             Spacing="20">
 
 
+         
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
                                          Tooltip="Save"/>
 
 
-            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleMinus}"
+            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.Stop}"
                                            Command="{Binding CancelCommand}"
                                          Tooltip="Cancel"/>
 

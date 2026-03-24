@@ -6,7 +6,7 @@
     <Grid>
 
         <!-- Background image -->
-        <Border StrokeShape="RoundRectangle 8">
+        <Border StrokeShape="RoundRectangle 8" StrokeThickness="0">
         <Image
             Source="{Binding Source={x:Reference root}, Path=BackgroundImage}"
             Aspect="AspectFit" />

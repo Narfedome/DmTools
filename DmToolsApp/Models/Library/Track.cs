@@ -1,8 +1,22 @@
-﻿namespace DmToolsApp.Models.Library
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace DmToolsApp.Models.Library
 {
-    public class Track : LibraryItem
+    public partial class Track : LibraryItem
     {
-        public TimeSpan Duration { get; set; }        
-        public double Volume { get; set; } = 1.0;
+        [ObservableProperty]
+        private TimeSpan duration;
+
+        partial void OnDurationChanged(TimeSpan value)
+        {
+            OnPropertyChanged(nameof(DurationFormatted));
+        }
+        public string DurationFormatted =>
+            Duration.TotalHours >= 1
+        ? Duration.ToString(@"hh\:mm\:ss")
+        : Duration.ToString(@"mm\:ss");
+
+        [ObservableProperty]
+        private double volume = 1.0;
     }
 }
