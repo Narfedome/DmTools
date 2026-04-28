@@ -4,9 +4,9 @@ namespace DmToolsApp.Features.Library;
 
 public partial class LibrarySpellPage : ContentPage
 {
-    private readonly LibraryTrackViewModel viewModel;
+    private readonly LibrarySpellViewModel viewModel;
 
-    public LibrarySpellPage(LibraryTrackViewModel vm)
+    public LibrarySpellPage(LibrarySpellViewModel vm)
     {
         InitializeComponent();
         
@@ -18,7 +18,7 @@ public partial class LibrarySpellPage : ContentPage
     {
         base.OnAppearing();
 
-        if (BindingContext is LibraryTrackViewModel vm)
+        if (BindingContext is LibrarySpellViewModel vm)
             await vm.InitializeAsync();
     }
     
