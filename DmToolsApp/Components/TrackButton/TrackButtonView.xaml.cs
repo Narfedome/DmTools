@@ -71,7 +71,7 @@ public partial class TrackButtonView : ContentView
                 {
                     ViewModel?.TogglePlayCommand.Execute(null);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
 
@@ -80,7 +80,7 @@ public partial class TrackButtonView : ContentView
                 {
                     SelectCommand?.Execute(CurrentTrack);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
 

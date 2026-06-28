@@ -3,33 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Play"
              xmlns:models="clr-namespace:DmToolsApp.Models"
-             x:Class="DmToolsApp.MainPage"
-             x:DataType="local:PlayCampaignViewModel"
-             Title="Accueil">
+             x:Class="DmToolsApp.Features.Play.PlaySessionPage"
+             x:DataType="local:PlaySessionViewModel"
+             Title="{Binding Campaign.Title}">
 
-    <Grid Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Label Grid.Row="0" Text="Choisissez une campagne" FontSize="20" Margin="0,0,0,16"/>
-
-        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+    <Grid Padding="10">
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Campaigns}">
+        <CollectionView ItemsSource="{Binding Sessions}">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Campaign">
+                <DataTemplate x:DataType="models:Session">
                     <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10" Stroke="Grey">
                         <Grid ColumnDefinitions="*,auto">
-                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="18" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="▶ Jouer" FontSize="14" VerticalOptions="Center"
-                                   TextColor="LightSkyBlue" Margin="8,0,0,0">
+                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="LightSkyBlue" Margin="8,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:PlayCampaignViewModel}}, Path=PlayCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:PlaySessionViewModel}}, Path=NavigateCommand}"
                                         CommandParameter="{Binding .}"/>
                                 </Label.GestureRecognizers>
                             </Label>

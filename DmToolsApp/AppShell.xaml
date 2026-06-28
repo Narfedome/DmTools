@@ -16,7 +16,7 @@
         </Tab>
         <Tab Title="AudioMixer"
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Sliders}}" >
-            <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
+            <ShellContent Route="AudioMixerPage" ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
         </Tab>
         <Tab Title="Campagnes"
              Icon="{extensions:FaIcon Glyph={x:Static icons:SolidFont.Map}}" >

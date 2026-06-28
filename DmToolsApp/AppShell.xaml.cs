@@ -1,5 +1,6 @@
 ﻿using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
+using DmToolsApp.Features.Play;
 
 namespace DmToolsApp
 {
@@ -14,6 +15,8 @@ namespace DmToolsApp
             Routing.RegisterRoute(nameof(SessionListPage), typeof(SessionListPage));
             Routing.RegisterRoute(nameof(SceneListPage), typeof(SceneListPage));
             Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));
+            Routing.RegisterRoute(nameof(PlaySessionPage), typeof(PlaySessionPage));
+            Routing.RegisterRoute(nameof(PlayScenePage), typeof(PlayScenePage));
         }
     }
 }

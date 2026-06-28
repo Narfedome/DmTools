@@ -6,7 +6,7 @@ namespace DmToolsApp.Extensions
 {
     public class FaIconExtension : IMarkupExtension<ImageSource>
     {
-        public string Glyph { get; set; }
+        public string Glyph { get; set; } = null!;
 
         public Color Color { get; set; } = Colors.Black;
 

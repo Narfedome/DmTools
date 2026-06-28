@@ -83,7 +83,7 @@ public partial class ScrollingLabelView : ContentView
         var control = (ScrollingLabelView)bindable;
         control.UpdateScrolling();
     }
-    private void OnSizeChanged(object sender, EventArgs e)
+    private void OnSizeChanged(object? sender, EventArgs e)
     {
         UpdateScrolling();
     }

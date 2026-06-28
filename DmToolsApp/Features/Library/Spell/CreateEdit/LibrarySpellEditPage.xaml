@@ -17,7 +17,7 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <components:LibraryItemImageView Grid.Row="0" ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.Meteor}" MaximumHeightRequest="30" />
-            <Label Grid.Row="1" Text="Edit Spell" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
+            <Label Grid.Row="1" Text="Edit Spell" FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
             <Grid Grid.Row="2"  RowSpacing="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

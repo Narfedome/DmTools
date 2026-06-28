@@ -11,9 +11,8 @@ public partial class AudioMixerPage : ContentPage
         BindingContext = vm;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.InitializeAsync();
     }
 }

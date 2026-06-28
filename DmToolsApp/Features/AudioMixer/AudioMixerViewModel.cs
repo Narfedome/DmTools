@@ -147,16 +147,10 @@ namespace DmToolsApp.Features.AudioMixer
         // ── Sélecteur de scène ────────────────────────────────────
 
         [ObservableProperty]
-        private ObservableCollection<Campaign> campaigns = new();
-
-        [ObservableProperty]
         private ObservableCollection<Session> sessions = new();
 
         [ObservableProperty]
         private ObservableCollection<Scene> scenes = new();
-
-        [ObservableProperty]
-        private Campaign? selectedCampaign;
 
         [ObservableProperty]
         private Session? selectedSession;
@@ -173,21 +167,6 @@ namespace DmToolsApp.Features.AudioMixer
         public bool CanGoPrevScene => SceneIndex > 0;
         public bool CanGoNextScene => SceneIndex < SceneCount - 1;
 
-        public async Task InitializeAsync()
-        {
-            var list = await _sceneDataService.GetCampaignsAsync();
-            Campaigns = new ObservableCollection<Campaign>(list);
-        }
-
-        partial void OnSelectedCampaignChanged(Campaign? value)
-        {
-            SelectedSession = null;
-            Sessions.Clear();
-            Scenes.Clear();
-            if (value != null)
-                _ = LoadSessionsAsync(value.Id);
-        }
-
         partial void OnSelectedSessionChanged(Session? value)
         {
             SelectedScene = null;
@@ -203,12 +182,6 @@ namespace DmToolsApp.Features.AudioMixer
             OnPropertyChanged(nameof(CanGoNextScene));
         }
 
-        private async Task LoadSessionsAsync(int campaignId)
-        {
-            var list = await _sceneDataService.GetSessionsAsync(campaignId);
-            Sessions = new ObservableCollection<Session>(list);
-        }
-
         private async Task LoadScenesAsync(int sessionId)
         {
             var list = await _sceneDataService.GetScenesAsync(sessionId);
@@ -217,6 +190,34 @@ namespace DmToolsApp.Features.AudioMixer
             SelectedScene = Scenes.FirstOrDefault();
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
+        }
+
+        /// <summary>
+        /// Appelé depuis le flow de jeu (Accueil → Chapitre → Scène).
+        /// Charge le contexte de la campagne active et lance la scène.
+        /// </summary>
+        public async Task LoadFromPlayAsync(Campaign campaign, Session session, Scene scene)
+        {
+            // Charger les chapitres de la campagne
+            var sessionList = await _sceneDataService.GetSessionsAsync(campaign.Id);
+            Sessions = new ObservableCollection<Session>(sessionList);
+
+            // Charger les scènes du chapitre sans déclencher OnSelectedSessionChanged
+            var sceneList = await _sceneDataService.GetScenesAsync(session.Id);
+            Scenes = new ObservableCollection<Scene>(sceneList);
+            SceneCount = sceneList.Count;
+
+            // Assigner session + scène sans déclencher la cascade de reload
+            selectedSession = session;
+            OnPropertyChanged(nameof(SelectedSession));
+
+            selectedScene = scene;
+            SceneIndex = Scenes.IndexOf(scene);
+            OnPropertyChanged(nameof(SelectedScene));
+            OnPropertyChanged(nameof(CanGoPrevScene));
+            OnPropertyChanged(nameof(CanGoNextScene));
+
+            await LoadScene();
         }
 
         [RelayCommand]

@@ -22,7 +22,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Text="{Binding Title}" FontSize="Large" HorizontalOptions="Center" Margin="0,0,0,20"/>
+                <Label Grid.Row="0" Text="{Binding Title}" FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
                 <components:TrackButtonView  Grid.Row="1" CurrentTrack="{Binding Item}"  WidthRequest="120" HeightRequest="120"/>
             </Grid>
             <HorizontalStackLayout Grid.Row="2" Spacing="15">  
