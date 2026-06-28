@@ -7,20 +7,25 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.SceneListPage"
              x:DataType="local:SceneListViewModel"
-             Title="{Binding Session.Title}">
+             Title="{Binding PageTitle}">
 
-    <Grid Padding="10">
+    <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <ActivityIndicator Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
+        <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
+            <Label Text="Scènes" FontSize="20"/>
+        </VerticalStackLayout>
+
+        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="0"
+        <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Scenes}"
                         SelectedItem="{Binding SelectedScene}"
                         SelectionMode="Single">
@@ -42,9 +47,17 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Grid ColumnDefinitions="*,auto">
+                        <Grid ColumnDefinitions="*,auto,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
+                            <Label Grid.Column="1" Text="▶ Lancer" FontSize="13" VerticalOptions="Center"
+                                   TextColor="LightSkyBlue" Margin="8,0,4,0">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=LaunchCommand}"
+                                        CommandParameter="{Binding .}"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                            <Label Grid.Column="2" Text="›" FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="4,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=NavigateCommand}"
@@ -57,7 +70,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
                                          Tooltip="Nouvelle scène"/>

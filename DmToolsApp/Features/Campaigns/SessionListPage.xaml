@@ -7,20 +7,25 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.SessionListPage"
              x:DataType="local:SessionListViewModel"
-             Title="{Binding Campaign.Title}">
+             Title="{Binding PageTitle}">
 
-    <Grid Padding="10">
+    <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <ActivityIndicator Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
+        <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
+            <Label Text="Chapitres" FontSize="20"/>
+        </VerticalStackLayout>
+
+        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="0"
+        <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Sessions}"
                         SelectedItem="{Binding SelectedSession}"
                         SelectionMode="Single">
@@ -57,7 +62,7 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
                                          Tooltip="Nouveau chapitre"/>

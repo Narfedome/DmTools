@@ -186,6 +186,14 @@ namespace DmToolsApp.Services
         {
             await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
         }
+
+        public async Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume)
+        {
+            var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
+            if (entity == null) return;
+            entity.Volume = volume;
+            await _db.Connection.UpdateAsync(entity);
+        }
     }
 
     public interface ISceneDataService
@@ -205,5 +213,6 @@ namespace DmToolsApp.Services
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);
         Task DeleteSceneTrackAsync(SceneTrack sceneTrack);
+        Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
     }
 }

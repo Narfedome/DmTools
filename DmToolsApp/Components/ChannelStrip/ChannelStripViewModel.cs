@@ -48,6 +48,8 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private bool isLooping;
 
+        public int SceneTrackId { get; set; }
+
         partial void OnVolumeChanged(double oldValue, double newValue)
         {
             if (Player != null)

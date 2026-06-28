@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Models;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
@@ -9,10 +10,18 @@ namespace DmToolsApp.Features.Campaigns
     public partial class SceneListViewModel : ObservableObject, IQueryAttributable
     {
         private readonly ISceneDataService _sceneDataService;
+        private readonly AudioMixerViewModel _audioMixerViewModel;
+        private readonly SessionStateService _sessionStateService;
+        private Campaign? _campaign;
 
-        public SceneListViewModel(ISceneDataService sceneDataService)
+        public SceneListViewModel(
+            ISceneDataService sceneDataService,
+            AudioMixerViewModel audioMixerViewModel,
+            SessionStateService sessionStateService)
         {
             _sceneDataService = sceneDataService;
+            _audioMixerViewModel = audioMixerViewModel;
+            _sessionStateService = sessionStateService;
         }
 
         [ObservableProperty] private Session? session;
@@ -20,11 +29,16 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private Scene? selectedScene;
         [ObservableProperty] private bool isBusy;
 
+        public string PageTitle => Session != null ? $"Chapitre · {Session.Title}" : "Scènes";
+        partial void OnSessionChanged(Session? value) => OnPropertyChanged(nameof(PageTitle));
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            if (query.TryGetValue("Session", out var value) && value is Session s)
+            if (query.TryGetValue("Campaign", out var c) && c is Campaign campaign)
+                _campaign = campaign;
+            if (query.TryGetValue("Session", out var s) && s is Session session)
             {
-                Session = s;
+                Session = session;
                 _ = LoadAsync();
             }
         }
@@ -81,6 +95,15 @@ namespace DmToolsApp.Features.Campaigns
         {
             await Shell.Current.GoToAsync(nameof(SceneTracksPage),
                 new Dictionary<string, object> { { "Scene", scene } });
+        }
+
+        [RelayCommand]
+        public async Task Launch(Scene scene)
+        {
+            if (_campaign == null || Session == null) return;
+            await _audioMixerViewModel.LoadFromPlayAsync(_campaign, Session, scene);
+            _sessionStateService.SetActive(true);
+            await Shell.Current.GoToAsync("//AudioMixerPage");
         }
     }
 }

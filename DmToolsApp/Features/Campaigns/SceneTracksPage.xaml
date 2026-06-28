@@ -15,7 +15,9 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Text="{Binding Scene.Title}" FontSize="20" HorizontalOptions="Center"/>
+        <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="0">
+            <Label Text="Pistes audio" FontSize="20" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"

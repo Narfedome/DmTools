@@ -20,6 +20,9 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private Session? selectedSession;
         [ObservableProperty] private bool isBusy;
 
+        public string PageTitle => Campaign != null ? $"Campagne · {Campaign.Title}" : "Chapitres";
+        partial void OnCampaignChanged(Campaign? value) => OnPropertyChanged(nameof(PageTitle));
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("Campaign", out var value) && value is Campaign c)
@@ -80,7 +83,11 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Navigate(Session session)
         {
             await Shell.Current.GoToAsync(nameof(SceneListPage),
-                new Dictionary<string, object> { { "Session", session } });
+                new Dictionary<string, object>
+                {
+                    { "Campaign", Campaign! },
+                    { "Session", session }
+                });
         }
     }
 }

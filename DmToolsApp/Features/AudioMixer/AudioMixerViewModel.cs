@@ -159,16 +159,19 @@ namespace DmToolsApp.Features.AudioMixer
         private Scene? selectedScene;
 
         [ObservableProperty]
-        private int sceneIndex = 0;
+        private int sceneIndex = 1;
 
         [ObservableProperty]
         private int sceneCount = 0;
 
-        public bool CanGoPrevScene => SceneIndex > 0;
-        public bool CanGoNextScene => SceneIndex < SceneCount - 1;
+        public bool CanGoPrevScene => SceneIndex > 1;
+        public bool CanGoNextScene => SceneIndex < SceneCount;
+
+        private bool _suppressHandlers;
 
         partial void OnSelectedSessionChanged(Session? value)
         {
+            if (_suppressHandlers) return;
             SelectedScene = null;
             Scenes.Clear();
             if (value != null)
@@ -177,7 +180,8 @@ namespace DmToolsApp.Features.AudioMixer
 
         partial void OnSelectedSceneChanged(Scene? value)
         {
-            SceneIndex = value != null ? Scenes.IndexOf(value) : 0;
+            if (_suppressHandlers) return;
+            SceneIndex = value != null ? Scenes.IndexOf(value) + 1 : 0;
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
         }
@@ -196,24 +200,37 @@ namespace DmToolsApp.Features.AudioMixer
         /// Appelé depuis le flow de jeu (Accueil → Chapitre → Scène).
         /// Charge le contexte de la campagne active et lance la scène.
         /// </summary>
+        private async Task SaveCurrentSceneAsync()
+        {
+            var tasks = CurrentChannels
+                .Where(c => c.SceneTrackId > 0)
+                .Select(c => _sceneDataService.UpdateSceneTrackVolumeAsync(c.SceneTrackId, (float)c.Volume));
+            await Task.WhenAll(tasks);
+        }
+
         public async Task LoadFromPlayAsync(Campaign campaign, Session session, Scene scene)
         {
+            await SaveCurrentSceneAsync();
+
             // Charger les chapitres de la campagne
             var sessionList = await _sceneDataService.GetSessionsAsync(campaign.Id);
             Sessions = new ObservableCollection<Session>(sessionList);
 
-            // Charger les scènes du chapitre sans déclencher OnSelectedSessionChanged
+            // Charger les scènes du chapitre sans déclencher les handlers de cascade
             var sceneList = await _sceneDataService.GetScenesAsync(session.Id);
             Scenes = new ObservableCollection<Scene>(sceneList);
             SceneCount = sceneList.Count;
 
-            // Assigner session + scène sans déclencher la cascade de reload
-            selectedSession = session;
-            OnPropertyChanged(nameof(SelectedSession));
+            // Matcher par Id pour que le Picker trouve l'instance dans la collection
+            var matchedSession = Sessions.FirstOrDefault(s => s.Id == session.Id) ?? session;
+            var matchedScene = Scenes.FirstOrDefault(s => s.Id == scene.Id) ?? scene;
 
-            selectedScene = scene;
-            SceneIndex = Scenes.IndexOf(scene);
-            OnPropertyChanged(nameof(SelectedScene));
+            _suppressHandlers = true;
+            SelectedSession = matchedSession;
+            SelectedScene = matchedScene;
+            _suppressHandlers = false;
+
+            SceneIndex = Scenes.IndexOf(matchedScene) + 1;
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
 
@@ -224,14 +241,14 @@ namespace DmToolsApp.Features.AudioMixer
         public void PrevScene()
         {
             if (!CanGoPrevScene) return;
-            SelectedScene = Scenes[SceneIndex - 1];
+            SelectedScene = Scenes[SceneIndex - 2]; // SceneIndex est 1-based
         }
 
         [RelayCommand]
         public void NextScene()
         {
             if (!CanGoNextScene) return;
-            SelectedScene = Scenes[SceneIndex + 1];
+            SelectedScene = Scenes[SceneIndex]; // SceneIndex est 1-based, donc SceneIndex = prochain index 0-based
         }
 
         [RelayCommand]
@@ -254,6 +271,7 @@ namespace DmToolsApp.Features.AudioMixer
                 var stream = File.OpenRead(st.Track.FilePath);
                 var channel = new ChannelStripViewModel
                 {
+                    SceneTrackId = st.Id,
                     DisplayTrackName = st.Track.Title,
                     Volume = st.Volume,
                     IsLooping = true,

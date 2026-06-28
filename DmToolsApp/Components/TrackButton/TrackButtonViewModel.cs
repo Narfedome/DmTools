@@ -24,7 +24,7 @@ namespace DmToolsApp.Components.TrackButton
 
         private void OnAudioChanged(string? currentFile)
         {
-            IsPlaying = currentTrack != null && currentFile == currentTrack.FilePath;
+            IsPlaying = CurrentTrack != null && currentFile == CurrentTrack.FilePath;
         }
 
         [ObservableProperty]
