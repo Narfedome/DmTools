@@ -29,19 +29,15 @@ namespace DmToolsApp.Components.TrackButton
 
         [ObservableProperty]
         private Track? currentTrack;
-        partial void OnCurrentTrackChanged(Track? value)
+        partial void OnCurrentTrackChanged(Track? oldValue, Track? newValue)
         {
-            if (currentTrack != null)
-            {
-                currentTrack.PropertyChanged -= OnTrackChanged;
-            }
+            if (oldValue != null)
+                oldValue.PropertyChanged -= OnTrackChanged;
 
-            if (value != null)
-            {
-                value.PropertyChanged += OnTrackChanged;
-            }
+            if (newValue != null)
+                newValue.PropertyChanged += OnTrackChanged;
 
-            UpdateFromTrack(value);
+            UpdateFromTrack(newValue);
         }
         private void OnTrackChanged(object? sender, PropertyChangedEventArgs e)
         {

@@ -9,6 +9,7 @@
             <converters:BoolToPlayPauseConverter x:Key="BoolToPlayPauseConverter"/>
             <converters:BoolToTooltipPlayPauseConverter x:Key="BoolToTooltipPlayPauseConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

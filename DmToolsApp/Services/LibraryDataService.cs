@@ -110,6 +110,7 @@ namespace DmToolsApp.Services
         {
             var entity = new SpellEntity
             {
+                Id = oldSpell.Id,
                 Title = oldSpell.Title,
                 ImagePath = oldSpell.ImagePath,
                 FilePath = oldSpell.FilePath,

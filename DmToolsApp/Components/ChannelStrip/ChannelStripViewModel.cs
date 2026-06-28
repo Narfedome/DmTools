@@ -8,13 +8,24 @@ using Plugin.Maui.Audio;
 namespace DmToolsApp.Components
 {
     public partial class ChannelStripViewModel : ObservableObject
-    {        // Player audio réel (pas observable)
-        public IAudioPlayer? Player { get; set; }
+    {
+        private IAudioPlayer? _player;
+        public IAudioPlayer? Player
+        {
+            get => _player;
+            set
+            {
+                _player = value;
+                if (_player != null)
+                {
+                    _player.Volume = Volume;
+                    _player.Loop = IsLooping;
+                }
+            }
+        }
 
-        // Nom de la tranche
         [ObservableProperty]
         private string? name;
-
 
         [ObservableProperty]
         private Track? track = new Track();
@@ -22,18 +33,18 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private string? displayTrackName;
 
-        // Volume (TwoWay binding)
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayVolume))]
         private double volume = 1;
 
         public int DisplayVolume => (int)(Volume * 100);
 
-        // Lecture en cours
         [ObservableProperty]
         private bool isPlaying;
 
-        // Méthode pour appliquer le volume sur le player
+        [ObservableProperty]
+        private bool isLooping;
+
         partial void OnVolumeChanged(double oldValue, double newValue)
         {
             if (Player != null)
@@ -43,7 +54,18 @@ namespace DmToolsApp.Components
                 Track.Volume = newValue;
         }
 
-        // Commande toggle play/pause pour MVVM
+        partial void OnIsLoopingChanged(bool value)
+        {
+            if (Player != null)
+                Player.Loop = value;
+        }
+
+        [RelayCommand]
+        public void ToggleLoop()
+        {
+            IsLooping = !IsLooping;
+        }
+
         [RelayCommand]
         public void TogglePlay()
         {
@@ -61,6 +83,15 @@ namespace DmToolsApp.Components
                 IsPlaying = true;
             }
         }
+        public void Play()
+        {
+            if (Player == null || Player.IsPlaying)
+                return;
+
+            Player.Play();
+            IsPlaying = true;
+        }
+
         public void Pause()
         {
             if (Player == null)

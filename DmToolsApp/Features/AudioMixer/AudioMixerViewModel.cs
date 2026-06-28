@@ -36,7 +36,7 @@ namespace DmToolsApp.Features.AudioMixer
         public void PlayAll()
         {
             foreach (var c in CurrentChannels)
-                c.TogglePlay();
+                c.Play();
         }
         [RelayCommand]
         public void StopAll()
@@ -98,7 +98,7 @@ namespace DmToolsApp.Features.AudioMixer
 
                     var stream = await result.OpenReadAsync();
 
-                    channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                    channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
                     channel.DisplayTrackName = result.FileName;
                     channel.TogglePlay();
                 }
@@ -128,7 +128,7 @@ namespace DmToolsApp.Features.AudioMixer
                     {
                         var stream = File.OpenRead(selectedTrack.FilePath);
 
-                        channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                        channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
                         channel.DisplayTrackName = selectedTrack.Title;
                         channel.TogglePlay();
                     }
@@ -149,7 +149,7 @@ namespace DmToolsApp.Features.AudioMixer
         //        if (channel.Player == null)
         //        {
         //            var stream = File.OpenRead(channel.Track.FilePath);
-        //            //channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+        //            //channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
         //        }
         //    }
         //}

@@ -10,10 +10,15 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <!-- Bouton play/pause -->
-        <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
-                                           Command="{Binding TogglePlayCommand}"
-                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" Grid.Row="0"/>
+        <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="4">
+            <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
+                                         Command="{Binding TogglePlayCommand}"
+                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" />
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
+                                         Command="{Binding ToggleLoopCommand}"
+                                         Tooltip="Loop"
+                                         Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}" />
+        </VerticalStackLayout>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>

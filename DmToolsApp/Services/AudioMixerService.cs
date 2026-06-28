@@ -22,7 +22,7 @@ namespace DmToolsApp.Services
 
             if (!string.IsNullOrWhiteSpace(file))
             {
-                var stream = File.OpenRead(file);
+                using var stream = File.OpenRead(file);
                 player = audioManager.CreatePlayer(stream);
             }
 
@@ -35,11 +35,9 @@ namespace DmToolsApp.Services
             Channels.Add(channel);
             return channel;
         }
-        public async Task<IAudioPlayer> CreatePlayerFromSelectedFile(Stream fileStream)
+        public IAudioPlayer CreatePlayerFromSelectedFile(Stream fileStream)
         {
-            IAudioPlayer? player = null;
-            player = audioManager.CreatePlayer(fileStream);
-            return player;
+            return audioManager.CreatePlayer(fileStream);
         }
 
         public async Task<IAudioPlayer> PlayLoop(string file, double volume = 1)
