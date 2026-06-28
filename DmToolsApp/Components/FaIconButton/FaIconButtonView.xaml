@@ -21,9 +21,11 @@
         CornerRadius="{Binding Source={x:Reference root}, Path=CornerRadius}"
         Command="{Binding Source={x:Reference root}, Path=Command}"
         CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
-        ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}">           
-            
-        </Button>
+        ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}"
+        WidthRequest="44"
+        HeightRequest="44"
+        Padding="0"
+        HorizontalOptions="Center" />
 
     </Grid>
 </ContentView>

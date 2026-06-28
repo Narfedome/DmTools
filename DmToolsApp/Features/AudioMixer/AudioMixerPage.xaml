@@ -26,10 +26,15 @@
                 <VerticalStackLayout  Spacing="15" Margin="15" >
                     <Label>Global Commands</Label>
                     <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"                             
-                      Command="{Binding PlayAllCommand}" />
-                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"                             
-                      Command="{Binding StopAllCommand}" />
+                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
+                                                     Command="{Binding PlayAllCommand}"
+                                                     Tooltip="Play All" />
+                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.VolumeXmark}"
+                                                     Command="{Binding FadeOutAllCommand}"
+                                                     Tooltip="Fade Out All" />
+                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
+                                                     Command="{Binding StopAllCommand}"
+                                                     Tooltip="Stop All" />
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
@@ -54,7 +59,13 @@
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
-                                    <components:ChannelStripView Grid.Row="0" />
+                                    <Border Grid.Row="0"
+                                            StrokeThickness="2"
+                                            StrokeShape="RoundRectangle 8"
+                                            Stroke="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"
+                                            Padding="4">
+                                        <components:ChannelStripView />
+                                    </Border>
                                     <Grid Grid.Row="1" RowSpacing="5">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="auto"/>

@@ -28,7 +28,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { Name = ("Channel " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = ("Channel " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -46,6 +46,13 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
         [RelayCommand]
+        public async Task FadeOutAll()
+        {
+            var tasks = CurrentChannels.Select(c => c.FadeOut()).ToArray();
+            await Task.WhenAll(tasks);
+        }
+
+        [RelayCommand]
         public async Task RemoveChannel(ChannelStripViewModel channel)
         {
             if (channel == null)
@@ -59,7 +66,7 @@ namespace DmToolsApp.Features.AudioMixer
 
             bool confirm = await Shell.Current.DisplayAlertAsync(
                 "Delete",
-                $"Remove {channel.Name} ?",
+                $"Remove {channel.DisplayTrackName} ?",
                 "Yes",
                 "No");
 
@@ -74,7 +81,7 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
 
-        [RelayCommand]
+        [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task PickFile(ChannelStripViewModel channel)
         {
             try
@@ -111,7 +118,7 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
 
-        [RelayCommand]
+        [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task PickLibraryItem(ChannelStripViewModel channel)
         {
             try

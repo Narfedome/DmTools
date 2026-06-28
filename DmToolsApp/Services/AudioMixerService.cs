@@ -29,7 +29,7 @@ namespace DmToolsApp.Services
             var channel = new ChannelStripViewModel
             {
                 Player = player,
-                Name = file ?? "New Channel"
+                DisplayTrackName = file ?? "New Channel"
             };
 
             Channels.Add(channel);

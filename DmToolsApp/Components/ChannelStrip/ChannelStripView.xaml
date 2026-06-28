@@ -4,39 +4,33 @@
              x:Class="DmToolsApp.Components.ChannelStripView"
              xmlns:components ="clr-namespace:DmToolsApp.Components"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="50">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="4">
-            <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
-                                         Command="{Binding TogglePlayCommand}"
-                                         Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}" />
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
-                                         Command="{Binding ToggleLoopCommand}"
-                                         Tooltip="Loop"
-                                         Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}" />
-        </VerticalStackLayout>
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            <Slider Minimum="0" Maximum="1"  Grid.Row="0"  Rotation="-90"   Value="{Binding Volume, Mode=TwoWay}"  VerticalOptions="Center"
-    WidthRequest="150"/>
-            <Label Text="{Binding DisplayVolume}"  Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Start"/>
+    <VerticalStackLayout Spacing="8">
+        <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
+                                     Command="{Binding TogglePlayCommand}"
+                                     Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}"
+                                     HorizontalOptions="Center" />
+        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
+                                     Command="{Binding FadeOutCommand}"
+                                     Tooltip="Fade Out"
+                                     HorizontalOptions="Center" />
+        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
+                                     Command="{Binding ToggleLoopCommand}"
+                                     Tooltip="Loop"
+                                     Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}"
+                                     HorizontalOptions="Center" />
+        <Grid HeightRequest="150" WidthRequest="50">
+            <Label Text="{Binding DisplayVolume}"  
+               HorizontalOptions="Center" />
+            <Slider Minimum="0" Maximum="1"
+                    Rotation="-90" Margin="0,40,0,0"
+                    Value="{Binding Volume, Mode=TwoWay}"
+                    WidthRequest="150"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center" />
         </Grid>
-        <!-- Nom de la tranche -->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Text="{Binding Name}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Column="0" />
-            <!-- Nom de la tranche -->
-            <components:ScrollingLabelView Text="{Binding DisplayTrackName}" Rotation="-90" VerticalOptions="Center" LineBreakMode="TailTruncation"   WidthRequest="100"  Grid.Column="1" />
-        </Grid>
-    </Grid>
+        <Label Text="{Binding DisplayTrackName}"
+               HorizontalOptions="Center"
+               LineBreakMode="TailTruncation" Margin="0,30,0,0"
+               WidthRequest="80" Rotation="-90" />
+    </VerticalStackLayout>
 </ContentView>

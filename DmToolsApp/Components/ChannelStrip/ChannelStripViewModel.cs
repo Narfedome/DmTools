@@ -9,12 +9,18 @@ namespace DmToolsApp.Components
 {
     public partial class ChannelStripViewModel : ObservableObject
     {
+        private static readonly TimeSpan FadeDuration = TimeSpan.FromMilliseconds(1500);
+        private static readonly int FadeSteps = 30;
+
+        private CancellationTokenSource? _fadeCts;
+
         private IAudioPlayer? _player;
         public IAudioPlayer? Player
         {
             get => _player;
             set
             {
+                CancelFade();
                 _player = value;
                 if (_player != null)
                 {
@@ -23,9 +29,6 @@ namespace DmToolsApp.Components
                 }
             }
         }
-
-        [ObservableProperty]
-        private string? name;
 
         [ObservableProperty]
         private Track? track = new Track();
@@ -79,15 +82,20 @@ namespace DmToolsApp.Components
             }
             else
             {
+                CancelFade();
+                Player.Volume = Volume;
                 Player.Play();
                 IsPlaying = true;
             }
         }
+
         public void Play()
         {
             if (Player == null || Player.IsPlaying)
                 return;
 
+            CancelFade();
+            Player.Volume = Volume;
             Player.Play();
             IsPlaying = true;
         }
@@ -101,16 +109,62 @@ namespace DmToolsApp.Components
             IsPlaying = false;
         }
 
-
-
-
         [RelayCommand]
         public void Stop()
         {
             if (Player == null) return;
 
+            CancelFade();
             Player.Stop();
             IsPlaying = false;
+        }
+
+        [RelayCommand]
+        public async Task FadeOut()
+        {
+            if (Player == null || !Player.IsPlaying)
+                return;
+
+            CancelFade();
+            _fadeCts = new CancellationTokenSource();
+            var token = _fadeCts.Token;
+
+            var startVolume = Volume;
+            var stepDelay = (int)(FadeDuration.TotalMilliseconds / FadeSteps);
+            var volumeStep = startVolume / FadeSteps;
+
+            try
+            {
+                for (int i = 0; i < FadeSteps; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    await Task.Delay(stepDelay, token);
+                    if (Player != null)
+                        Player.Volume = Math.Max(0, startVolume - volumeStep * (i + 1));
+                }
+
+                if (Player != null)
+                {
+                    Player.Stop();
+                    Player.Volume = startVolume;
+                    IsPlaying = false;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (Player != null)
+                    Player.Volume = startVolume;
+            }
+            finally
+            {
+                _fadeCts?.Dispose();
+                _fadeCts = null;
+            }
+        }
+
+        private void CancelFade()
+        {
+            _fadeCts?.Cancel();
         }
     }
 }
