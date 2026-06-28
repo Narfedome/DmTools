@@ -1,0 +1,74 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Models;
+using DmToolsApp.Services;
+using System.Collections.ObjectModel;
+
+namespace DmToolsApp.Features.Campaigns
+{
+    public partial class CampaignViewModel : ObservableObject
+    {
+        private readonly ISceneDataService _sceneDataService;
+
+        public CampaignViewModel(ISceneDataService sceneDataService)
+        {
+            _sceneDataService = sceneDataService;
+        }
+
+        [ObservableProperty] private ObservableCollection<Campaign> campaigns = new();
+        [ObservableProperty] private Campaign? selectedCampaign;
+        [ObservableProperty] private bool isBusy;
+
+        public async Task InitializeAsync()
+        {
+            IsBusy = true;
+            try
+            {
+                var list = await _sceneDataService.GetCampaignsAsync();
+                Campaigns = new ObservableCollection<Campaign>(list);
+            }
+            finally { IsBusy = false; }
+        }
+
+        [RelayCommand]
+        public async Task Create()
+        {
+            string? name = await Shell.Current.DisplayPromptAsync("Nouvelle campagne", "Nom :");
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            var campaign = new Campaign { Title = name };
+            await _sceneDataService.SaveCampaignAsync(campaign);
+            Campaigns.Add(campaign);
+        }
+
+        [RelayCommand]
+        public async Task Rename()
+        {
+            if (SelectedCampaign == null) return;
+            string? name = await Shell.Current.DisplayPromptAsync("Renommer", "Nom :", initialValue: SelectedCampaign.Title);
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            SelectedCampaign.Title = name;
+            await _sceneDataService.SaveCampaignAsync(SelectedCampaign);
+        }
+
+        [RelayCommand]
+        public async Task Delete()
+        {
+            if (SelectedCampaign == null) return;
+            bool ok = await Shell.Current.DisplayAlertAsync("Supprimer", $"Supprimer \"{SelectedCampaign.Title}\" ?", "Oui", "Non");
+            if (!ok) return;
+
+            await _sceneDataService.DeleteCampaignAsync(SelectedCampaign);
+            Campaigns.Remove(SelectedCampaign);
+            SelectedCampaign = null;
+        }
+
+        [RelayCommand]
+        public async Task Navigate(Campaign campaign)
+        {
+            await Shell.Current.GoToAsync(nameof(SessionListPage),
+                new Dictionary<string, object> { { "Campaign", campaign } });
+        }
+    }
+}

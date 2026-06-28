@@ -3,98 +3,150 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
              xmlns:components="clr-namespace:DmToolsApp.Components"
+             xmlns:models="clr-namespace:DmToolsApp.Models"
              x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              x:DataType="local:AudioMixerViewModel">
 
-    <Grid Padding="10">
+    <Grid Padding="10" RowSpacing="8">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Padding="20" RowSpacing="15" ColumnSpacing="15" Grid.Row="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+
+        <!-- Barre de sélection de scène -->
+        <Border Grid.Row="0" Padding="10">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Picker Grid.Column="0"
+                        Title="Campagne"
+                        ItemsSource="{Binding Campaigns}"
+                        SelectedItem="{Binding SelectedCampaign}"
+                        ItemDisplayBinding="{Binding Title}" />
+
+                <Picker Grid.Column="1"
+                        Title="Chapitre"
+                        ItemsSource="{Binding Sessions}"
+                        SelectedItem="{Binding SelectedSession}"
+                        ItemDisplayBinding="{Binding Title}" />
+
+                <components:FaIconButtonView Grid.Column="2"
+                        Icon="{x:Static icons:SolidFont.ChevronLeft}"
+                        Command="{Binding PrevSceneCommand}"
+                        IsEnabled="{Binding CanGoPrevScene}"
+                        Tooltip="Scène précédente" />
+
+                <Label Grid.Column="3"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding SelectedScene.Title}" />
+                            <Span Text=" (" />
+                            <Span Text="{Binding SceneIndex, StringFormat='{0}'}" />
+                            <Span Text="/" />
+                            <Span Text="{Binding SceneCount, StringFormat='{0}'}" />
+                            <Span Text=")" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+
+                <components:FaIconButtonView Grid.Column="4"
+                        Icon="{x:Static icons:SolidFont.ChevronRight}"
+                        Command="{Binding NextSceneCommand}"
+                        IsEnabled="{Binding CanGoNextScene}"
+                        Tooltip="Scène suivante" />
+
+                <components:FaIconButtonView Grid.Column="5"
+                        Icon="{x:Static icons:SolidFont.Play}"
+                        Command="{Binding LoadSceneCommand}"
+                        Tooltip="Charger la scène" />
+            </Grid>
+        </Border>
+
+        <!-- Global Commands + Add -->
+        <Grid Grid.Row="1" Padding="10" ColumnSpacing="15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Row="0" Grid.Column="0" >
-                <VerticalStackLayout  Spacing="15" Margin="15" >
-                    <Label>Global Commands</Label>
-                    <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
-                                                     Command="{Binding PlayAllCommand}"
-                                                     Tooltip="Play All" />
-                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.VolumeXmark}"
-                                                     Command="{Binding FadeOutAllCommand}"
-                                                     Tooltip="Fade Out All" />
-                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
-                                                     Command="{Binding StopAllCommand}"
-                                                     Tooltip="Stop All" />
-                    </HorizontalStackLayout>
-                </VerticalStackLayout>
+            <Border Grid.Column="0">
+                <HorizontalStackLayout Spacing="10" Margin="10">
+                    <Label Text="Global" VerticalOptions="Center"/>
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
+                                                 Command="{Binding PlayAllCommand}"
+                                                 Tooltip="Play All" />
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.VolumeXmark}"
+                                                 Command="{Binding FadeOutAllCommand}"
+                                                 Tooltip="Fade Out All" />
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
+                                                 Command="{Binding StopAllCommand}"
+                                                 Tooltip="Stop All" />
+                </HorizontalStackLayout>
             </Border>
-            <VerticalStackLayout Spacing="15" Grid.Row="0" Grid.Column="2" VerticalOptions="End" Margin="15">
-                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"                             
-                     Command="{Binding AddChannelCommand}" />
-            </VerticalStackLayout>
+            <components:FaIconButtonView Grid.Column="2"
+                     Icon="{x:Static icons:SolidFont.Plus}"
+                     Command="{Binding AddChannelCommand}"
+                     Tooltip="Ajouter un channel" />
         </Grid>
 
-        <Border  Grid.Row="1">
+        <!-- Channels -->
+        <Border Grid.Row="2">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="components:ChannelStripViewModel">
-
-                            <Grid >
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="auto"/>
-                                </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
                             <Grid Grid.Column="0" Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Border Grid.Row="0"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 8"
+                                        Stroke="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"
+                                        Padding="4">
+                                    <components:ChannelStripView />
+                                </Border>
+                                <Grid Grid.Row="1" RowSpacing="5">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
                                         <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Border Grid.Row="0"
-                                            StrokeThickness="2"
-                                            StrokeShape="RoundRectangle 8"
-                                            Stroke="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"
-                                            Padding="4">
-                                        <components:ChannelStripView />
-                                    </Border>
-                                    <Grid Grid.Row="1" RowSpacing="5">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="auto"/>
-                                            <RowDefinition Height="auto"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileCirclePlus}"               
-                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickFileCommand}"
-                                                                 CommandParameter="{Binding .}" Grid.Row="0"/>
-                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"               
-                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
-                                                                 CommandParameter="{Binding .}" Grid.Row="1"/>
-
-                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"     
-                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
-                                                                 CommandParameter="{Binding .}" Grid.Row="2"/>
-                                    </Grid>
-
+                                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileCirclePlus}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickFileCommand}"
+                                                             CommandParameter="{Binding .}" Grid.Row="0"/>
+                                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
+                                                             CommandParameter="{Binding .}" Grid.Row="1"/>
+                                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
+                                                             CommandParameter="{Binding .}" Grid.Row="2"/>
                                 </Grid>
-
-                                <BoxView   Grid.Column="1"
-                      Color="Gray"  
-                      Margin="0,0,0,0"                   
-                      WidthRequest="1"  
-                      VerticalOptions="Fill" />
                             </Grid>
+                            <BoxView Grid.Column="1"
+                                     Color="Gray"
+                                     WidthRequest="1"
+                                     VerticalOptions="Fill" />
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Border>
-    </Grid  >
+    </Grid>
 </ContentPage>

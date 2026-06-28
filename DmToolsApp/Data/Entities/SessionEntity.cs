@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    class SessionEntity
+    public class SessionEntity
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

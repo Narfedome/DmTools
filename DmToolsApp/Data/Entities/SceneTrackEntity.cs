@@ -17,5 +17,7 @@ namespace DmToolsApp.Data.Entities
         public double Volume { get; set; } = 1.0;
 
         public int Position { get; set; }
+
+        public bool AutoPlay { get; set; } = false;
     }
 }

@@ -1,10 +1,10 @@
-namespace DmToolsApp.Features.AudioMixer;
+namespace DmToolsApp.Features.Campaigns;
 
-public partial class AudioMixerPage : ContentPage
+public partial class CampaignPage : ContentPage
 {
-    private readonly AudioMixerViewModel _vm;
+    private readonly CampaignViewModel _vm;
 
-    public AudioMixerPage(AudioMixerViewModel vm)
+    public CampaignPage(CampaignViewModel vm)
     {
         InitializeComponent();
         _vm = vm;

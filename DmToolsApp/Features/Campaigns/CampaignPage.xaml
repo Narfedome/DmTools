@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
+             xmlns:models="clr-namespace:DmToolsApp.Models"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.Campaigns.CampaignPage"
+             x:DataType="local:CampaignViewModel"
+             Title="Campagnes">
+
+    <Grid Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <ActivityIndicator Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
+                           IsVisible="{Binding IsBusy}"
+                           VerticalOptions="Center" HorizontalOptions="Center"
+                           WidthRequest="80" HeightRequest="80"/>
+
+        <CollectionView Grid.Row="0"
+                        ItemsSource="{Binding Campaigns}"
+                        SelectedItem="{Binding SelectedCampaign}"
+                        SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Campaign">
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="Grey"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="LightSkyBlue"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Grid ColumnDefinitions="*,auto">
+                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=NavigateCommand}"
+                                        CommandParameter="{Binding .}"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                                         Command="{Binding CreateCommand}"
+                                         Tooltip="Nouvelle campagne"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
+                                         Command="{Binding RenameCommand}"
+                                         Tooltip="Renommer"
+                                         IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
+                                         Command="{Binding DeleteCommand}"
+                                         Tooltip="Supprimer"
+                                         IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

@@ -4,10 +4,11 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:audioMixer="clr-namespace:DmToolsApp.Features.AudioMixer"
+    xmlns:campaign="clr-namespace:DmToolsApp.Features.Campaigns"
     xmlns:library="clr-namespace:DmToolsApp.Features.Library"
     xmlns:local="clr-namespace:DmToolsApp"
     xmlns:extensions="clr-namespace:DmToolsApp.Extensions"
-             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons">
+    xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons">
     <TabBar>
         <Tab Title="Home" 
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.House}}" >
@@ -17,9 +18,9 @@
              Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Sliders}}" >
             <ShellContent ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
         </Tab>
-        <Tab Title="Characters" 
-             Icon="{extensions:FaIcon Glyph={x:Static  icons:SolidFont.Person}}" >
-            <ShellContent ContentTemplate="{DataTemplate local:MainPage}"   Route="InitialPage"/>
+        <Tab Title="Campagnes"
+             Icon="{extensions:FaIcon Glyph={x:Static icons:SolidFont.Map}}" >
+            <ShellContent ContentTemplate="{DataTemplate campaign:CampaignPage}" Route="CampaignPage"/>
         </Tab>
 
         <Tab Title="Library"

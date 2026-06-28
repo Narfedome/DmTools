@@ -2,8 +2,10 @@
 using CommunityToolkit.Maui.Core;
 using DmToolsApp.Data;
 using DmToolsApp.Features.AudioMixer;
+using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
+using DmToolsApp.Models;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
@@ -38,6 +40,7 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
+            builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
             builder.Services.AddTransient<LibraryTrackViewModel>();
             builder.Services.AddTransient<LibrarySpellViewModel>();
             builder.Services.AddTransient<LibrarySpellEditViewModel>();
@@ -47,6 +50,14 @@ namespace DmToolsApp
             builder.Services.AddSingleton<AudioMixerViewModel>();
             builder.Services.AddTransient<AudioMixerPage>();
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<CampaignViewModel>();
+            builder.Services.AddTransient<CampaignPage>();
+            builder.Services.AddTransient<SessionListViewModel>();
+            builder.Services.AddTransient<SessionListPage>();
+            builder.Services.AddTransient<SceneListViewModel>();
+            builder.Services.AddTransient<SceneListPage>();
+            builder.Services.AddTransient<SceneTracksViewModel>();
+            builder.Services.AddTransient<SceneTracksPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

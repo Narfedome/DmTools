@@ -1,4 +1,5 @@
-﻿using DmToolsApp.Features.Library;
+﻿using DmToolsApp.Features.Campaigns;
+using DmToolsApp.Features.Library;
 
 namespace DmToolsApp
 {
@@ -10,7 +11,9 @@ namespace DmToolsApp
             GoToAsync("//InitialPage");
             Routing.RegisterRoute(nameof(LibrarySpellEditPage), typeof(LibrarySpellEditPage));
             Routing.RegisterRoute(nameof(LibraryTrackEditPage), typeof(LibraryTrackEditPage));
-
+            Routing.RegisterRoute(nameof(SessionListPage), typeof(SessionListPage));
+            Routing.RegisterRoute(nameof(SceneListPage), typeof(SceneListPage));
+            Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));
         }
     }
 }

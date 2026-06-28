@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    class CampaignEntity
+    public class CampaignEntity
     {
         [PrimaryKey,AutoIncrement]
         public int Id { get; set; }

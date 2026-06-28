@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
+             xmlns:models="clr-namespace:DmToolsApp.Models"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.Campaigns.SceneTracksPage"
+             x:DataType="local:SceneTracksViewModel">
+
+    <Grid RowSpacing="10" Padding="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Text="{Binding Scene.Title}" FontSize="20" HorizontalOptions="Center"/>
+
+        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}"
+                           VerticalOptions="Center" HorizontalOptions="Center"
+                           WidthRequest="80" HeightRequest="80" />
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding SceneTracks}"
+                        SelectedItem="{Binding SelectedTrack}"
+                        SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SceneTrack">
+                    <Border Padding="10" Margin="0,4">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                                <Label Text="{Binding Track.Title}" FontSize="14"/>
+                                <Label Text="{Binding Track.DurationFormatted}" FontSize="11" TextColor="Gray"/>
+                            </VerticalStackLayout>
+
+                            <!-- Volume -->
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding Volume, StringFormat='{0:P0}'}" FontSize="11" HorizontalOptions="Center"/>
+                                <Slider Minimum="0" Maximum="1"
+                                        Value="{Binding Volume, Mode=TwoWay}"
+                                        WidthRequest="60"/>
+                            </VerticalStackLayout>
+
+                            <!-- AutoPlay toggle -->
+                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="Auto" FontSize="10" HorizontalOptions="Center"/>
+                                <CheckBox IsChecked="{Binding AutoPlay, Mode=TwoWay}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+
+                            <!-- Supprimer + Sauvegarder -->
+                            <HorizontalStackLayout Grid.Column="3" VerticalOptions="Center" Spacing="4">
+                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FloppyDisk}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=SaveTrackCommand}"
+                                                             CommandParameter="{Binding .}"
+                                                             Tooltip="Sauvegarder"/>
+                                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=RemoveTrackCommand}"
+                                                             CommandParameter="{Binding .}"
+                                                             Tooltip="Retirer de la scène"/>
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center">
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                                         Command="{Binding AddTrackCommand}"
+                                         Tooltip="Ajouter une track"/>
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>

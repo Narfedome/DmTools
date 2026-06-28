@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    class SceneEntity
+    public class SceneEntity
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

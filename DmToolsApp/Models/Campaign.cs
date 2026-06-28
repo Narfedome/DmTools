@@ -1,16 +1,16 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Text;
 
 namespace DmToolsApp.Models
 {
     public partial class Campaign : ObservableObject
     {
-        [ObservableProperty]
-        private ObservableCollection<Session> sessions = new ObservableCollection<Session>();
         public int Id { get; set; }
 
+        [ObservableProperty]
+        private string title = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<Session> sessions = new();
     }
 }
