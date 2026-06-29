@@ -9,6 +9,7 @@ namespace DmToolsApp.Features.Play
     public partial class PlayCampaignViewModel : ObservableObject
     {
         private readonly ISceneDataService _sceneDataService;
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public PlayCampaignViewModel(ISceneDataService sceneDataService)
         {

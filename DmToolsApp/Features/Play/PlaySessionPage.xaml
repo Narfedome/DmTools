@@ -18,7 +18,9 @@
                     <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10" Stroke="Grey">
                         <Grid ColumnDefinitions="*,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="LightSkyBlue" Margin="8,0,0,0">
+                            <Label Grid.Column="1"
+                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:PlaySessionViewModel}}, Path=Loc.NavNext}"
+                                   FontSize="22" VerticalOptions="Center" TextColor="LightSkyBlue" Margin="8,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:PlaySessionViewModel}}, Path=NavigateCommand}"

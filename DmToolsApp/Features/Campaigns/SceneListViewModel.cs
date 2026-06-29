@@ -33,8 +33,8 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private bool isBusy;
 
         public string PageTitle => Session != null
-            ? $"{_loc["nav_chapter"]} · {Session.Title}"
-            : _loc["scenes_header"];
+            ? $"{_loc.NavChapter} · {Session.Title}"
+            : _loc.ScenesHeader;
 
         partial void OnSessionChanged(Session? value) => OnPropertyChanged(nameof(PageTitle));
 
@@ -65,7 +65,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Create()
         {
             if (Session == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["dialog_new_scene"], _loc["prompt_name"]);
+            string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogNewScene, _loc.PromptName);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var scene = new Scene { SessionId = Session.Id, Title = name };
@@ -77,7 +77,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedScene == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["dialog_rename"], _loc["prompt_name"], initialValue: SelectedScene.Title);
+            string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogRename, _loc.PromptName, initialValue: SelectedScene.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedScene.Title = name;
@@ -89,10 +89,10 @@ namespace DmToolsApp.Features.Campaigns
         {
             if (SelectedScene == null) return;
             bool ok = await Shell.Current.DisplayAlertAsync(
-                _loc["dialog_delete"],
-                string.Format(_loc["dialog_delete_confirm"], SelectedScene.Title),
-                _loc["dialog_yes"],
-                _loc["dialog_no"]);
+                _loc.DialogDelete,
+                string.Format(_loc.DialogDeleteConfirm, SelectedScene.Title),
+                _loc.DialogYes,
+                _loc.DialogNo);
             if (!ok) return;
 
             await _sceneDataService.DeleteSceneAsync(SelectedScene);

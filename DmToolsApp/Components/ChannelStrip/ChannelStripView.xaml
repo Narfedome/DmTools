@@ -11,15 +11,15 @@
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
                                      Command="{Binding FadeOutCommand}"
-                                     Tooltip="{Binding Loc[channel_fade_out]}"
+                                     Tooltip="{Binding Loc.ChannelFadeOut}"
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
                                      Command="{Binding ToggleLoopCommand}"
-                                     Tooltip="{Binding Loc[channel_loop]}"
+                                     Tooltip="{Binding Loc.ChannelLoop}"
                                      Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}"
                                      HorizontalOptions="Center" />
         <Grid HeightRequest="150" WidthRequest="50">
-            <Label Text="{Binding DisplayVolume}"  
+            <Label Text="{Binding DisplayVolume}"
                HorizontalOptions="Center" />
             <Slider Minimum="0" Maximum="1"
                     Rotation="-90" Margin="0,40,0,0"

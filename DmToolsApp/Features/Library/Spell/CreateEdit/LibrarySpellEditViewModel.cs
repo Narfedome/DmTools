@@ -16,6 +16,8 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
 
+        public DmToolsApp.Services.LocalizationService Loc => DmToolsApp.Services.LocalizationService.Instance;
+
         public LibrarySpellEditViewModel(ILibraryDataService libraryDataService,
                                         FileService fileService)
         {
@@ -42,7 +44,7 @@ namespace DmToolsApp.Features.Library
             {
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["track_select_file"],
+                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance.TrackSelectFile,
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

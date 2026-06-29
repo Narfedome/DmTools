@@ -5,7 +5,7 @@
              xmlns:models="clr-namespace:DmToolsApp.Models"
              x:Class="DmToolsApp.MainPage"
              x:DataType="local:PlayCampaignViewModel"
-             Title="Accueil">
+             Title="{Binding Loc.MainTitle}">
 
     <Grid Padding="20">
         <Grid.RowDefinitions>
@@ -13,7 +13,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Text="Choisissez une campagne" FontSize="20" Margin="0,0,0,16"/>
+        <Label Grid.Row="0" Text="{Binding Loc.MainChooseCampaign}" FontSize="20" Margin="0,0,0,16"/>
 
         <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"
@@ -25,7 +25,9 @@
                     <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10" Stroke="Grey">
                         <Grid ColumnDefinitions="*,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="18" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="▶ Jouer" FontSize="14" VerticalOptions="Center"
+                            <Label Grid.Column="1"
+                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:PlayCampaignViewModel}}, Path=Loc.BtnPlay}"
+                                   FontSize="14" VerticalOptions="Center"
                                    TextColor="LightSkyBlue" Margin="8,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer

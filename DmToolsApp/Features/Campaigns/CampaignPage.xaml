@@ -7,7 +7,7 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.CampaignPage"
              x:DataType="local:CampaignViewModel"
-             Title="{Binding Loc[tab_campaigns]}">
+             Title="{Binding Loc.TabCampaigns}">
 
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Text="{Binding Loc[campaigns_header]}" FontSize="20" Margin="0,0,0,8"/>
+        <Label Grid.Row="0" Text="{Binding Loc.CampaignsHeader}" FontSize="20" Margin="0,0,0,8"/>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"
@@ -47,7 +47,9 @@
                         </VisualStateManager.VisualStateGroups>
                         <Grid ColumnDefinitions="*,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
+                            <Label Grid.Column="1"
+                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=Loc.NavNext}"
+                                   FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=NavigateCommand}"
@@ -63,14 +65,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{Binding Loc[btn_new_campaign]}"/>
+                                         Tooltip="{Binding Loc.BtnNewCampaign}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="{Binding Loc[btn_rename]}"
+                                         Tooltip="{Binding Loc.BtnRename}"
                                          IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="{Binding Loc[btn_delete]}"
+                                         Tooltip="{Binding Loc.BtnDelete}"
                                          IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

@@ -18,6 +18,8 @@ namespace DmToolsApp.Features.Library
         private readonly FileService _trackFileService;
 
 
+        public DmToolsApp.Services.LocalizationService Loc => DmToolsApp.Services.LocalizationService.Instance;
+
         public LibraryTrackEditViewModel(AudioPlayerService audioPlayerService, ILibraryDataService libraryDataService,
                                         FileService trackFileService)
         {
@@ -42,7 +44,7 @@ namespace DmToolsApp.Features.Library
             {
                 Item = item;
                 var loc = DmToolsApp.Services.LocalizationService.Instance;
-                Title = Item.Id != 0 ? loc["track_edit_title"] : loc["track_create_title"];
+                Title = Item.Id != 0 ? loc.TrackEditTitle : loc.TrackCreateTitle;
 
             }
         }
@@ -58,7 +60,7 @@ namespace DmToolsApp.Features.Library
             {
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["track_select_file"],
+                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance.TrackSelectFile,
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

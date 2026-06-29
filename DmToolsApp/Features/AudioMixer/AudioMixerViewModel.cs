@@ -6,7 +6,7 @@ using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
-using Loc = DmToolsApp.Services.LocalizationService;
+
 
 namespace DmToolsApp.Features.AudioMixer
 {
@@ -35,7 +35,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance["channel_new"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance.ChannelNew + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -72,12 +72,12 @@ namespace DmToolsApp.Features.AudioMixer
             }
             channel.Pause();
 
-            var loc = Loc.Instance;
+            var loc = Services.LocalizationService.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                loc["dialog_delete"],
-                string.Format(loc["dialog_remove_channel"], channel.DisplayTrackName),
-                loc["dialog_yes"],
-                loc["dialog_no"]);
+                loc.DialogDelete,
+                string.Format(loc.DialogRemoveChannel, channel.DisplayTrackName),
+                loc.DialogYes,
+                loc.DialogNo);
 
             if (!confirm)
             {
@@ -97,7 +97,7 @@ namespace DmToolsApp.Features.AudioMixer
                 if (channel == null) return;
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = Loc.Instance["track_select_file"],
+                    PickerTitle = Services.LocalizationService.Instance.TrackSelectFile,
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

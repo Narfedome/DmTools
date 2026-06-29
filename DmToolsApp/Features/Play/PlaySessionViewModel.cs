@@ -9,6 +9,7 @@ namespace DmToolsApp.Features.Play
     public partial class PlaySessionViewModel : ObservableObject, IQueryAttributable
     {
         private readonly ISceneDataService _sceneDataService;
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public PlaySessionViewModel(ISceneDataService sceneDataService)
         {

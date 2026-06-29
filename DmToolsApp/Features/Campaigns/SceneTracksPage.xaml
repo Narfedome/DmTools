@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="0">
-            <Label Text="{Binding Loc[tracks_header]}" FontSize="20" HorizontalOptions="Center"/>
+            <Label Text="{Binding Loc.TracksHeader}" FontSize="20" HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}"
@@ -53,7 +53,7 @@
 
                             <!-- AutoPlay toggle -->
                             <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc[scene_auto]}"
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.SceneAuto}"
                                        FontSize="10" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding AutoPlay, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
@@ -63,11 +63,11 @@
                                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FloppyDisk}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=SaveTrackCommand}"
                                                              CommandParameter="{Binding .}"
-                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc[btn_save_track]}"/>
+                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.BtnSaveTrack}"/>
                                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=RemoveTrackCommand}"
                                                              CommandParameter="{Binding .}"
-                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc[btn_remove_scene_track]}"/>
+                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.BtnRemoveSceneTrack}"/>
                             </HorizontalStackLayout>
                         </Grid>
                     </Border>
@@ -78,7 +78,7 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding AddTrackCommand}"
-                                         Tooltip="{Binding Loc[btn_add_track]}"/>
+                                         Tooltip="{Binding Loc.BtnAddTrack}"/>
         </HorizontalStackLayout>
     </Grid>
 </ContentPage>

@@ -12,6 +12,7 @@ namespace DmToolsApp.Features.Play
         private readonly ISceneDataService _sceneDataService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
         private Campaign? _campaign;
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public PlaySceneViewModel(ISceneDataService sceneDataService, AudioMixerViewModel audioMixerViewModel)
         {

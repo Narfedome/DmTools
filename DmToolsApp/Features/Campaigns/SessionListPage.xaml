@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="{Binding Loc[chapters_header]}" FontSize="20"/>
+            <Label Text="{Binding Loc.ChaptersHeader}" FontSize="20"/>
         </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
@@ -49,7 +49,9 @@
                         </VisualStateManager.VisualStateGroups>
                         <Grid ColumnDefinitions="*,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="›" FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
+                            <Label Grid.Column="1"
+                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=Loc.NavNext}"
+                                   FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=NavigateCommand}"
@@ -65,14 +67,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{Binding Loc[btn_new_chapter]}"/>
+                                         Tooltip="{Binding Loc.BtnNewChapter}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="{Binding Loc[btn_rename]}"
+                                         Tooltip="{Binding Loc.BtnRename}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="{Binding Loc[btn_delete]}"
+                                         Tooltip="{Binding Loc.BtnDelete}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

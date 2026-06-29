@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibraryTrackEditPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
-             xmlns:components="clr-namespace:DmToolsApp.Components"
-             xmlns:svc="clr-namespace:DmToolsApp.Services">
+             xmlns:components="clr-namespace:DmToolsApp.Components">
 
     <Grid Padding="20">
         <Grid.RowDefinitions>
@@ -26,10 +25,10 @@
                 <Label Grid.Row="0" Text="{Binding Title}" FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
                 <components:TrackButtonView  Grid.Row="1" CurrentTrack="{Binding Item}"  WidthRequest="120" HeightRequest="120"/>
             </Grid>
-            <HorizontalStackLayout Grid.Row="2" Spacing="15">  
+            <HorizontalStackLayout Grid.Row="2" Spacing="15">
                 <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FileImport}" Grid.Column="1"
                                   Command="{Binding PickFileCommand}"
-                                Tooltip="{Binding [track_import], Source={x:Static svc:LocalizationService.Instance}}"/>
+                                Tooltip="{Binding Loc.TrackImport}"/>
                 <Label  Text="{Binding ImportedFilePath}"  VerticalOptions="Center" />
             </HorizontalStackLayout>
             <Grid Grid.Row="3"  RowSpacing="15">
@@ -38,7 +37,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Entry Grid.Row="0" Text="{Binding Item.Title}"
-                       Placeholder="{Binding [track_title_ph], Source={x:Static svc:LocalizationService.Instance}}"/>
+                       Placeholder="{Binding Loc.TrackTitlePh}"/>
                 <Label Grid.Row="1" Text="{Binding Item.DurationFormatted}"/>
             </Grid>
         </Grid>
@@ -46,14 +45,12 @@
                             HorizontalOptions="Center"
                             Spacing="20">
 
-
-         
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
-                                           Tooltip="{Binding [btn_save], Source={x:Static svc:LocalizationService.Instance}}"/>
+                                           Tooltip="{Binding Loc.BtnSave}"/>
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.Stop}"
                                            Command="{Binding CancelCommand}"
-                                           Tooltip="{Binding [btn_cancel], Source={x:Static svc:LocalizationService.Instance}}"/>
+                                           Tooltip="{Binding Loc.BtnCancel}"/>
 
         </HorizontalStackLayout>
     </Grid>
