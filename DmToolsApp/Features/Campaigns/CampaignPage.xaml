@@ -29,7 +29,8 @@
                         SelectionMode="Single">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Campaign">
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10">
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10"
+                            MinimumHeightRequest="52">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal">
@@ -39,23 +40,24 @@
                                 </VisualState>
                                 <VisualState Name="Selected">
                                     <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="LightSkyBlue"/>
+                                        <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
                                         <Setter Property="Background" Value="Transparent"/>
                                     </VisualState.Setters>
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Grid ColumnDefinitions="*,auto">
+                        <Grid ColumnDefinitions="*,56">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1"
-                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=Loc.NavNext}"
-                                   FontSize="22" VerticalOptions="Center" TextColor="Gray" Margin="8,0,0,0">
-                                <Label.GestureRecognizers>
+                            <Grid Grid.Column="1">
+                                <Grid.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=NavigateCommand}"
                                         CommandParameter="{Binding .}"/>
-                                </Label.GestureRecognizers>
-                            </Label>
+                                </Grid.GestureRecognizers>
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=Loc.NavNext}"
+                                       FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"
+                                       TextColor="{DynamicResource AppTextMuted}"/>
+                            </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
