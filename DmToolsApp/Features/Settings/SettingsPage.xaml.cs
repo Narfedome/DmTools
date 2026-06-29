@@ -3,7 +3,7 @@ namespace DmToolsApp.Features.Settings
     public partial class SettingsPage : ContentPage
     {
         // TODO: replace with your actual buymeacoffee URL
-        private const string CoffeeUrl = "https://buymeacoffee.com/YOUR_USERNAME";
+        private const string CoffeeUrl = "https://buymeacoffee.com/narfedome";
 
         public SettingsPage(SettingsViewModel vm)
         {

@@ -1,8 +1,5 @@
-﻿using DmToolsApp.Data.Entities;
+using DmToolsApp.Data.Entities;
 using SQLite;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DmToolsApp.Data
 {
@@ -14,16 +11,27 @@ namespace DmToolsApp.Data
         public AppDatabase(string path)
         {
             _db = new SQLiteAsyncConnection(path);
+            _ = InitializeAsync();
+        }
 
-            _db.CreateTableAsync<CampaignEntity>();
-            _db.CreateTableAsync<SessionEntity>();
-            _db.CreateTableAsync<SceneEntity>();
-            _db.CreateTableAsync<CharacterEntity>();
-            _db.CreateTableAsync<SpellEntity>();
-            _db.CreateTableAsync<TrackEntity>();
+        private async Task InitializeAsync()
+        {
+            await _db.CreateTableAsync<CampaignEntity>();
+            await _db.CreateTableAsync<SessionEntity>();
+            await _db.CreateTableAsync<SceneEntity>();
+            await _db.CreateTableAsync<CharacterEntity>();
+            await _db.CreateTableAsync<SpellEntity>();
+            await _db.CreateTableAsync<TrackEntity>();
+            await _db.CreateTableAsync<SceneTrackEntity>();
+            await _db.CreateTableAsync<CharacterSpellEntity>();
 
-            _db.CreateTableAsync<SceneTrackEntity>();
-            _db.CreateTableAsync<CharacterSpellEntity>();
+            // Migration : ajout de IsLooping sur les DB existantes
+            try
+            {
+                await _db.ExecuteAsync(
+                    "ALTER TABLE SceneTrackEntity ADD COLUMN IsLooping INTEGER NOT NULL DEFAULT 1");
+            }
+            catch { /* colonne déjà présente */ }
         }
     }
 }

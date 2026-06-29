@@ -6,6 +6,7 @@ using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 
 namespace DmToolsApp.Features.AudioMixer
@@ -16,6 +17,9 @@ namespace DmToolsApp.Features.AudioMixer
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
+
+        private Scene? _activeScene;
+        private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
 
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
@@ -67,6 +71,9 @@ namespace DmToolsApp.Features.AudioMixer
                 return;
             if (channel.Player == null)
             {
+                UnsubscribeChannel(channel);
+                if (channel.SceneTrackId > 0)
+                    await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
                 CurrentChannels.Remove(channel);
                 return;
             }
@@ -86,6 +93,9 @@ namespace DmToolsApp.Features.AudioMixer
             }
 
             channel.Stop();
+            UnsubscribeChannel(channel);
+            if (channel.SceneTrackId > 0)
+                await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
             CurrentChannels.Remove(channel);
         }
 
@@ -137,13 +147,87 @@ namespace DmToolsApp.Features.AudioMixer
                 {
                     var stream = File.OpenRead(selectedTrack.FilePath);
                     channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                    channel.Track = selectedTrack;
                     channel.DisplayTrackName = selectedTrack.Title;
                     channel.TogglePlay();
+
+                    await SaveChannelAsSceneTrack(channel);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+        }
+
+        private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
+        {
+            if (_activeScene == null || channel.Track == null || channel.Track.Id == 0) return;
+
+            var sceneTrack = new SceneTrack
+            {
+                Id = channel.SceneTrackId,
+                SceneId = _activeScene.Id,
+                Track = channel.Track,
+                Volume = channel.Volume,
+                IsLooping = channel.IsLooping,
+                AutoPlay = channel.IsPlaying,
+                Position = CurrentChannels.IndexOf(channel)
+            };
+
+            await _sceneDataService.SaveSceneTrackAsync(sceneTrack);
+            channel.SceneTrackId = sceneTrack.Id;
+
+            SubscribeChannel(channel);
+        }
+
+        // ── Subscriptions pour sauvegarde automatique ─────────────
+
+        private void SubscribeChannel(ChannelStripViewModel channel)
+        {
+            channel.PropertyChanged -= OnChannelPropertyChanged;
+            channel.PropertyChanged += OnChannelPropertyChanged;
+        }
+
+        private void UnsubscribeChannel(ChannelStripViewModel channel)
+        {
+            channel.PropertyChanged -= OnChannelPropertyChanged;
+            if (_pendingSaves.TryGetValue(channel, out var cts))
+            {
+                cts.Cancel();
+                _pendingSaves.Remove(channel);
+            }
+        }
+
+        private void OnChannelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not ChannelStripViewModel channel) return;
+            if (e.PropertyName is nameof(ChannelStripViewModel.Volume) or nameof(ChannelStripViewModel.IsLooping))
+                _ = DebouncedSaveChannel(channel);
+        }
+
+        private async Task DebouncedSaveChannel(ChannelStripViewModel channel)
+        {
+            if (channel.SceneTrackId == 0) return;
+
+            if (_pendingSaves.TryGetValue(channel, out var existingCts))
+                existingCts.Cancel();
+
+            var cts = new CancellationTokenSource();
+            _pendingSaves[channel] = cts;
+
+            try
+            {
+                await Task.Delay(500, cts.Token);
+                await _sceneDataService.UpdateSceneTrackAsync(
+                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying);
+            }
+            catch (OperationCanceledException) { }
+            finally
+            {
+                if (_pendingSaves.TryGetValue(channel, out var current) && current == cts)
+                    _pendingSaves.Remove(channel);
+                cts.Dispose();
             }
         }
 
@@ -187,6 +271,8 @@ namespace DmToolsApp.Features.AudioMixer
             SceneIndex = value != null ? Scenes.IndexOf(value) + 1 : 0;
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
+            if (value != null)
+                _ = LoadScene();
         }
 
         private async Task LoadScenesAsync(int sessionId)
@@ -199,15 +285,12 @@ namespace DmToolsApp.Features.AudioMixer
             OnPropertyChanged(nameof(CanGoNextScene));
         }
 
-        /// <summary>
-        /// Appelé depuis le flow de jeu (Accueil → Chapitre → Scène).
-        /// Charge le contexte de la campagne active et lance la scène.
-        /// </summary>
         private async Task SaveCurrentSceneAsync()
         {
             var tasks = CurrentChannels
                 .Where(c => c.SceneTrackId > 0)
-                .Select(c => _sceneDataService.UpdateSceneTrackVolumeAsync(c.SceneTrackId, (float)c.Volume));
+                .Select(c => _sceneDataService.UpdateSceneTrackAsync(
+                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying));
             await Task.WhenAll(tasks);
         }
 
@@ -237,6 +320,7 @@ namespace DmToolsApp.Features.AudioMixer
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
 
+            _activeScene = matchedScene;
             await LoadScene();
         }
 
@@ -244,14 +328,14 @@ namespace DmToolsApp.Features.AudioMixer
         public void PrevScene()
         {
             if (!CanGoPrevScene) return;
-            SelectedScene = Scenes[SceneIndex - 2]; // SceneIndex est 1-based
+            SelectedScene = Scenes[SceneIndex - 2];
         }
 
         [RelayCommand]
         public void NextScene()
         {
             if (!CanGoNextScene) return;
-            SelectedScene = Scenes[SceneIndex]; // SceneIndex est 1-based, donc SceneIndex = prochain index 0-based
+            SelectedScene = Scenes[SceneIndex];
         }
 
         [RelayCommand]
@@ -259,11 +343,17 @@ namespace DmToolsApp.Features.AudioMixer
         {
             if (SelectedScene == null) return;
 
+            await SaveCurrentSceneAsync();
+
             // Fade out tous les channels actifs
             var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
             await Task.WhenAll(fadeTasks);
 
+            foreach (var c in CurrentChannels)
+                UnsubscribeChannel(c);
             CurrentChannels.Clear();
+
+            _activeScene = SelectedScene;
 
             var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene.Id);
 
@@ -275,15 +365,14 @@ namespace DmToolsApp.Features.AudioMixer
                 var channel = new ChannelStripViewModel
                 {
                     SceneTrackId = st.Id,
+                    Track = st.Track,
                     DisplayTrackName = st.Track.Title,
                     Volume = st.Volume,
-                    IsLooping = true,
+                    IsLooping = st.IsLooping,
                     Player = _audioMixerService.CreatePlayerFromSelectedFile(stream)
                 };
 
-                if (st.AutoPlay)
-                    channel.Play();
-
+                SubscribeChannel(channel);
                 CurrentChannels.Add(channel);
             }
         }

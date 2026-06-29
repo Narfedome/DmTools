@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Extensions;
 using DmToolsApp.Models;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
@@ -57,7 +58,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogNewChapter, _loc.PromptName);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            var session = new Session { CampaignId = Campaign.Id, Title = name };
+            var session = new Session { CampaignId = Campaign.Id, Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveSessionAsync(session);
             Sessions.Add(session);
         }
@@ -69,7 +70,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogRename, _loc.PromptName, initialValue: SelectedSession.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            SelectedSession.Title = name;
+            SelectedSession.Title = name.CapitalizeFirst();
             await _sceneDataService.SaveSessionAsync(SelectedSession);
         }
 

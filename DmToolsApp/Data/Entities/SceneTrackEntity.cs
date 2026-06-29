@@ -19,5 +19,7 @@ namespace DmToolsApp.Data.Entities
         public int Position { get; set; }
 
         public bool AutoPlay { get; set; } = false;
+
+        public bool IsLooping { get; set; } = true;
     }
 }

@@ -145,6 +145,7 @@ namespace DmToolsApp.Services
                     Position = ste.Position,
                     Volume = ste.Volume,
                     AutoPlay = ste.AutoPlay,
+                    IsLooping = ste.IsLooping,
                     Track = new Track
                     {
                         Id = trackEntity.Id,
@@ -169,7 +170,8 @@ namespace DmToolsApp.Services
                 TrackId = sceneTrack.Track.Id,
                 Volume = sceneTrack.Volume,
                 Position = sceneTrack.Position,
-                AutoPlay = sceneTrack.AutoPlay
+                AutoPlay = sceneTrack.AutoPlay,
+                IsLooping = sceneTrack.IsLooping
             };
             if (entity.Id == 0)
             {
@@ -185,6 +187,16 @@ namespace DmToolsApp.Services
         public async Task DeleteSceneTrackAsync(SceneTrack sceneTrack)
         {
             await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
+        }
+
+        public async Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay)
+        {
+            var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
+            if (entity == null) return;
+            entity.Volume = volume;
+            entity.IsLooping = isLooping;
+            entity.AutoPlay = autoPlay;
+            await _db.Connection.UpdateAsync(entity);
         }
 
         public async Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume)
@@ -213,6 +225,7 @@ namespace DmToolsApp.Services
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);
         Task DeleteSceneTrackAsync(SceneTrack sceneTrack);
+        Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay);
         Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
     }
 }

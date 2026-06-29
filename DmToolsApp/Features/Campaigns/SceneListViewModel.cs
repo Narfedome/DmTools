@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Extensions;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Models;
 using DmToolsApp.Services;
@@ -68,7 +69,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogNewScene, _loc.PromptName);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            var scene = new Scene { SessionId = Session.Id, Title = name };
+            var scene = new Scene { SessionId = Session.Id, Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveSceneAsync(scene);
             Scenes.Add(scene);
         }
@@ -80,7 +81,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogRename, _loc.PromptName, initialValue: SelectedScene.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            SelectedScene.Title = name;
+            SelectedScene.Title = name.CapitalizeFirst();
             await _sceneDataService.SaveSceneAsync(SelectedScene);
         }
 

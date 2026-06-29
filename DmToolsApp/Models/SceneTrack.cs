@@ -19,5 +19,8 @@ namespace DmToolsApp.Models
 
         [ObservableProperty]
         private bool autoPlay = false;
+
+        [ObservableProperty]
+        private bool isLooping = true;
     }
 }

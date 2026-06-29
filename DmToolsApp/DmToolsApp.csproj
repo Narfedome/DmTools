@@ -31,7 +31,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>DmToolsApp</ApplicationTitle>
+		<ApplicationTitle>DM Tools</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.dmtoolsapp</ApplicationId>

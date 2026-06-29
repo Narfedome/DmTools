@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DmToolsApp.Extensions;
 using DmToolsApp.Models;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
@@ -38,7 +39,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogNewCampaign, _loc.PromptName);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            var campaign = new Campaign { Title = name };
+            var campaign = new Campaign { Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveCampaignAsync(campaign);
             Campaigns.Add(campaign);
         }
@@ -50,7 +51,7 @@ namespace DmToolsApp.Features.Campaigns
             string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogRename, _loc.PromptName, initialValue: SelectedCampaign.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            SelectedCampaign.Title = name;
+            SelectedCampaign.Title = name.CapitalizeFirst();
             await _sceneDataService.SaveCampaignAsync(SelectedCampaign);
         }
 
