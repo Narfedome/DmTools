@@ -9,6 +9,8 @@ namespace DmToolsApp.Features.Campaigns
     public partial class CampaignViewModel : ObservableObject
     {
         private readonly ISceneDataService _sceneDataService;
+        private readonly LocalizationService _loc = LocalizationService.Instance;
+        public LocalizationService Loc => _loc;
 
         public CampaignViewModel(ISceneDataService sceneDataService)
         {
@@ -33,7 +35,7 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Create()
         {
-            string? name = await Shell.Current.DisplayPromptAsync("Nouvelle campagne", "Nom :");
+            string? name = await Shell.Current.DisplayPromptAsync(_loc["dialog_new_campaign"], _loc["prompt_name"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var campaign = new Campaign { Title = name };
@@ -45,7 +47,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedCampaign == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync("Renommer", "Nom :", initialValue: SelectedCampaign.Title);
+            string? name = await Shell.Current.DisplayPromptAsync(_loc["dialog_rename"], _loc["prompt_name"], initialValue: SelectedCampaign.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedCampaign.Title = name;
@@ -56,7 +58,11 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Delete()
         {
             if (SelectedCampaign == null) return;
-            bool ok = await Shell.Current.DisplayAlertAsync("Supprimer", $"Supprimer \"{SelectedCampaign.Title}\" ?", "Oui", "Non");
+            bool ok = await Shell.Current.DisplayAlertAsync(
+                _loc["dialog_delete"],
+                string.Format(_loc["dialog_delete_confirm"], SelectedCampaign.Title),
+                _loc["dialog_yes"],
+                _loc["dialog_no"]);
             if (!ok) return;
 
             await _sceneDataService.DeleteCampaignAsync(SelectedCampaign);

@@ -6,11 +6,13 @@ using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
+using Loc = DmToolsApp.Services.LocalizationService;
 
 namespace DmToolsApp.Features.AudioMixer
 {
     public partial class AudioMixerViewModel : ObservableObject
     {
+        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
@@ -33,7 +35,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = ("Channel " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance["channel_new"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -70,11 +72,12 @@ namespace DmToolsApp.Features.AudioMixer
             }
             channel.Pause();
 
+            var loc = Loc.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                "Delete",
-                $"Remove {channel.DisplayTrackName} ?",
-                "Yes",
-                "No");
+                loc["dialog_delete"],
+                string.Format(loc["dialog_remove_channel"], channel.DisplayTrackName),
+                loc["dialog_yes"],
+                loc["dialog_no"]);
 
             if (!confirm)
             {
@@ -94,7 +97,7 @@ namespace DmToolsApp.Features.AudioMixer
                 if (channel == null) return;
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = "Select audio file",
+                    PickerTitle = Loc.Instance["track_select_file"],
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

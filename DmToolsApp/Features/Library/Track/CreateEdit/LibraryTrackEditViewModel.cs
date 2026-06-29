@@ -41,14 +41,8 @@ namespace DmToolsApp.Features.Library
            value is Track item)
             {
                 Item = item;
-                if(Item.Id != 0)
-                {
-                    Title = "Edit Track";
-                }
-                else
-                {
-                    Title = "Create Track";
-                }
+                var loc = DmToolsApp.Services.LocalizationService.Instance;
+                Title = Item.Id != 0 ? loc["track_edit_title"] : loc["track_create_title"];
 
             }
         }
@@ -64,7 +58,7 @@ namespace DmToolsApp.Features.Library
             {
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = "Select audio file",
+                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["track_select_file"],
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

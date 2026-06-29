@@ -6,6 +6,8 @@ namespace DmToolsApp
 {
     public partial class AppShell : Shell
     {
+        private readonly LocalizationService _loc = LocalizationService.Instance;
+
         public AppShell(SessionStateService sessionStateService)
         {
             InitializeComponent();
@@ -19,6 +21,19 @@ namespace DmToolsApp
             {
                 AudioMixerTab.IsVisible = sessionStateService.IsSessionActive;
             };
+
+            _loc.LanguageChanged += UpdateTabTitles;
+            UpdateTabTitles();
+        }
+
+        private void UpdateTabTitles()
+        {
+            CampaignsTab.Title    = _loc["tab_campaigns"];
+            AudioMixerTab.Title   = _loc["tab_audiomixer"];
+            LibraryTab.Title      = _loc["tab_library"];
+            TracksContent.Title   = _loc["tab_tracks"];
+            SpellsContent.Title   = _loc["tab_spells"];
+            SettingsTab.Title     = _loc["tab_settings"];
         }
     }
 }

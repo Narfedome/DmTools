@@ -10,6 +10,7 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibrarySpellViewModel : ObservableObject
     {
+        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         [ObservableProperty]

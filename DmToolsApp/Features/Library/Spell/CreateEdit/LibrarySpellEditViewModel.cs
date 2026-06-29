@@ -42,7 +42,7 @@ namespace DmToolsApp.Features.Library
             {
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = "Select audio file",
+                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["track_select_file"],
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },

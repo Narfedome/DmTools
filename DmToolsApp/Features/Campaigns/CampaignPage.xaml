@@ -7,7 +7,7 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.CampaignPage"
              x:DataType="local:CampaignViewModel"
-             Title="Campagnes">
+             Title="{Binding Loc[tab_campaigns]}">
 
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
@@ -16,7 +16,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Text="Vos Campagnes" FontSize="20" Margin="0,0,0,8"/>
+        <Label Grid.Row="0" Text="{Binding Loc[campaigns_header]}" FontSize="20" Margin="0,0,0,8"/>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"
@@ -63,14 +63,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="Nouvelle campagne"/>
+                                         Tooltip="{Binding Loc[btn_new_campaign]}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="Renommer"
+                                         Tooltip="{Binding Loc[btn_rename]}"
                                          IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="Supprimer"
+                                         Tooltip="{Binding Loc[btn_delete]}"
                                          IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

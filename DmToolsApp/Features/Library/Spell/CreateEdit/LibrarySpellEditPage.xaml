@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibrarySpellEditPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
-             xmlns:components="clr-namespace:DmToolsApp.Components">
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             xmlns:svc="clr-namespace:DmToolsApp.Services">
 
     <Grid Padding="20" RowSpacing="20">
         <Grid.RowDefinitions>
@@ -17,14 +18,18 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <components:LibraryItemImageView Grid.Row="0" ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.Meteor}" MaximumHeightRequest="30" />
-            <Label Grid.Row="1" Text="Edit Spell" FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
+            <Label Grid.Row="1"
+                   Text="{Binding [spell_edit_title], Source={x:Static svc:LocalizationService.Instance}}"
+                   FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
             <Grid Grid.Row="2"  RowSpacing="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Entry Grid.Row="0" Text="{Binding Item.Title}" Placeholder="Title" />
-                <Editor Grid.Row="1" Text="{Binding Item.Description}"  Placeholder="Description"/>
+                <Entry Grid.Row="0" Text="{Binding Item.Title}"
+                       Placeholder="{Binding [spell_title_ph], Source={x:Static svc:LocalizationService.Instance}}" />
+                <Editor Grid.Row="1" Text="{Binding Item.Description}"
+                        Placeholder="{Binding [spell_desc_ph], Source={x:Static svc:LocalizationService.Instance}}"/>
             </Grid>
         </Grid>
         <HorizontalStackLayout Grid.Row="1"
@@ -33,12 +38,10 @@
 
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
-                                         Tooltip="Save"/>
-
-
+                                           Tooltip="{Binding [btn_save], Source={x:Static svc:LocalizationService.Instance}}"/>
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleMinus}"
                                            Command="{Binding CancelCommand}"
-                                         Tooltip="Cancel"/>
+                                           Tooltip="{Binding [btn_cancel], Source={x:Static svc:LocalizationService.Instance}}"/>
 
         </HorizontalStackLayout>
     </Grid>

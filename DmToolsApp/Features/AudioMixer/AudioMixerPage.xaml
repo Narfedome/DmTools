@@ -4,8 +4,8 @@
              xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              xmlns:models="clr-namespace:DmToolsApp.Models"
-             x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              x:DataType="local:AudioMixerViewModel">
 
     <Grid Padding="10" RowSpacing="8">
@@ -21,13 +21,13 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Picker Grid.Column="0"
-                        Title="Chapitre"
+                        Title="{Binding Loc[mixer_chapter]}"
                         ItemsSource="{Binding Sessions}"
                         SelectedItem="{Binding SelectedSession}"
                         ItemDisplayBinding="{Binding Title}" />
@@ -36,33 +36,24 @@
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
                         Command="{Binding PrevSceneCommand}"
                         IsEnabled="{Binding CanGoPrevScene}"
-                        Tooltip="Scène précédente" />
+                        Tooltip="{Binding Loc[mixer_prev_scene]}" />
 
-                <Label Grid.Column="2"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center">
-                    <Label.FormattedText>
-                        <FormattedString>
-                            <Span Text="{Binding SelectedScene.Title}" />
-                            <Span Text=" (" />
-                            <Span Text="{Binding SceneIndex, StringFormat='{0}'}" />
-                            <Span Text="/" />
-                            <Span Text="{Binding SceneCount, StringFormat='{0}'}" />
-                            <Span Text=")" />
-                        </FormattedString>
-                    </Label.FormattedText>
-                </Label>
+                <Picker Grid.Column="2"
+                        Title="{Binding Loc[mixer_scene]}"
+                        ItemsSource="{Binding Scenes}"
+                        SelectedItem="{Binding SelectedScene}"
+                        ItemDisplayBinding="{Binding Title}" />
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"
                         Command="{Binding NextSceneCommand}"
                         IsEnabled="{Binding CanGoNextScene}"
-                        Tooltip="Scène suivante" />
+                        Tooltip="{Binding Loc[mixer_next_scene]}" />
 
                 <components:FaIconButtonView Grid.Column="4"
                         Icon="{x:Static icons:SolidFont.Play}"
                         Command="{Binding LoadSceneCommand}"
-                        Tooltip="Charger la scène" />
+                        Tooltip="{Binding Loc[mixer_load_scene]}" />
             </Grid>
         </Border>
 
@@ -75,22 +66,22 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0">
                 <HorizontalStackLayout Spacing="10" Margin="10">
-                    <Label Text="Global" VerticalOptions="Center"/>
+                    <Label Text="{Binding Loc[mixer_global]}" VerticalOptions="Center"/>
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
                                                  Command="{Binding PlayAllCommand}"
-                                                 Tooltip="Play All" />
+                                                 Tooltip="{Binding Loc[mixer_play_all]}" />
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.VolumeXmark}"
                                                  Command="{Binding FadeOutAllCommand}"
-                                                 Tooltip="Fade Out All" />
+                                                 Tooltip="{Binding Loc[mixer_fade_out_all]}" />
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
                                                  Command="{Binding StopAllCommand}"
-                                                 Tooltip="Stop All" />
+                                                 Tooltip="{Binding Loc[mixer_stop_all]}" />
                 </HorizontalStackLayout>
             </Border>
             <components:FaIconButtonView Grid.Column="2"
                      Icon="{x:Static icons:SolidFont.Plus}"
                      Command="{Binding AddChannelCommand}"
-                     Tooltip="Ajouter un channel" />
+                     Tooltip="{Binding Loc[btn_add_channel]}" />
         </Grid>
 
         <!-- Channels -->

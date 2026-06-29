@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Settings"
+             x:Class="DmToolsApp.Features.Settings.SettingsPage"
+             x:DataType="local:SettingsViewModel"
+             Title="{Binding Loc[settings_title]}">
+
+    <VerticalStackLayout Padding="20" Spacing="20">
+
+        <Label Text="{Binding Loc[settings_title]}" FontSize="22" FontAttributes="Bold"/>
+
+        <Border Padding="16" StrokeShape="RoundRectangle 8">
+            <Grid ColumnDefinitions="*,auto" RowDefinitions="auto">
+                <Label Grid.Column="0"
+                       Text="{Binding Loc[settings_language]}"
+                       VerticalOptions="Center" FontSize="16"/>
+                <Picker Grid.Column="1"
+                        ItemsSource="{Binding Languages}"
+                        SelectedItem="{Binding SelectedLanguage}"
+                        WidthRequest="120"/>
+            </Grid>
+        </Border>
+
+    </VerticalStackLayout>
+</ContentPage>

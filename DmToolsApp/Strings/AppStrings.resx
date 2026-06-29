@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- Tabs -->
+  <data name="tab_campaigns"  xml:space="preserve"><value>Campagnes</value></data>
+  <data name="tab_audiomixer" xml:space="preserve"><value>AudioMixer</value></data>
+  <data name="tab_library"    xml:space="preserve"><value>Bibliothèque</value></data>
+  <data name="tab_tracks"     xml:space="preserve"><value>Pistes</value></data>
+  <data name="tab_spells"     xml:space="preserve"><value>Sorts</value></data>
+  <data name="tab_settings"   xml:space="preserve"><value>Paramètres</value></data>
+
+  <!-- Page headers -->
+  <data name="campaigns_header" xml:space="preserve"><value>Vos Campagnes</value></data>
+  <data name="chapters_header"  xml:space="preserve"><value>Chapitres</value></data>
+  <data name="scenes_header"    xml:space="preserve"><value>Scènes</value></data>
+  <data name="tracks_header"    xml:space="preserve"><value>Pistes audio</value></data>
+
+  <!-- Nav context prefixes -->
+  <data name="nav_campaign" xml:space="preserve"><value>Campagne</value></data>
+  <data name="nav_chapter"  xml:space="preserve"><value>Chapitre</value></data>
+
+  <!-- Buttons / tooltips -->
+  <data name="btn_new_campaign"       xml:space="preserve"><value>Nouvelle campagne</value></data>
+  <data name="btn_new_chapter"        xml:space="preserve"><value>Nouveau chapitre</value></data>
+  <data name="btn_new_scene"          xml:space="preserve"><value>Nouvelle scène</value></data>
+  <data name="btn_rename"             xml:space="preserve"><value>Renommer</value></data>
+  <data name="btn_delete"             xml:space="preserve"><value>Supprimer</value></data>
+  <data name="btn_save"               xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="btn_cancel"             xml:space="preserve"><value>Annuler</value></data>
+  <data name="btn_launch"             xml:space="preserve"><value>▶ Lancer</value></data>
+  <data name="btn_add_track"          xml:space="preserve"><value>Ajouter une piste</value></data>
+  <data name="btn_add_channel"        xml:space="preserve"><value>Ajouter un channel</value></data>
+  <data name="btn_save_track"         xml:space="preserve"><value>Sauvegarder</value></data>
+  <data name="btn_remove_scene_track" xml:space="preserve"><value>Retirer de la scène</value></data>
+
+  <!-- AudioMixer bar -->
+  <data name="mixer_chapter"      xml:space="preserve"><value>Chapitre</value></data>
+  <data name="mixer_scene"        xml:space="preserve"><value>Scène</value></data>
+  <data name="mixer_prev_scene"   xml:space="preserve"><value>Scène précédente</value></data>
+  <data name="mixer_next_scene"   xml:space="preserve"><value>Scène suivante</value></data>
+  <data name="mixer_load_scene"   xml:space="preserve"><value>Charger la scène</value></data>
+  <data name="mixer_global"       xml:space="preserve"><value>Global</value></data>
+  <data name="mixer_play_all"     xml:space="preserve"><value>Play All</value></data>
+  <data name="mixer_fade_out_all" xml:space="preserve"><value>Fade Out All</value></data>
+  <data name="mixer_stop_all"     xml:space="preserve"><value>Stop All</value></data>
+
+  <!-- Channel strip -->
+  <data name="channel_fade_out" xml:space="preserve"><value>Fade Out</value></data>
+  <data name="channel_loop"     xml:space="preserve"><value>Loop</value></data>
+  <data name="channel_play"     xml:space="preserve"><value>Lecture</value></data>
+  <data name="channel_pause"    xml:space="preserve"><value>Pause</value></data>
+  <data name="channel_new"      xml:space="preserve"><value>Canal</value></data>
+
+  <!-- Scene tracks -->
+  <data name="scene_auto" xml:space="preserve"><value>Auto</value></data>
+
+  <!-- Library -->
+  <data name="lib_add"     xml:space="preserve"><value>Ajouter</value></data>
+  <data name="lib_edit"    xml:space="preserve"><value>Modifier</value></data>
+  <data name="lib_delete"  xml:space="preserve"><value>Supprimer</value></data>
+  <data name="lib_confirm" xml:space="preserve"><value>Confirmer</value></data>
+  <data name="lib_cancel"  xml:space="preserve"><value>Annuler</value></data>
+  <data name="lib_select"  xml:space="preserve"><value>Sélectionner</value></data>
+
+  <!-- Track edit -->
+  <data name="track_title_ph"     xml:space="preserve"><value>Titre</value></data>
+  <data name="track_edit_title"   xml:space="preserve"><value>Modifier la piste</value></data>
+  <data name="track_create_title" xml:space="preserve"><value>Créer une piste</value></data>
+  <data name="track_import"       xml:space="preserve"><value>Importer</value></data>
+  <data name="track_select_file"  xml:space="preserve"><value>Sélectionner un fichier audio</value></data>
+
+  <!-- Spell edit -->
+  <data name="spell_title_ph"   xml:space="preserve"><value>Titre</value></data>
+  <data name="spell_desc_ph"    xml:space="preserve"><value>Description</value></data>
+  <data name="spell_edit_title" xml:space="preserve"><value>Modifier le sort</value></data>
+
+  <!-- Settings -->
+  <data name="settings_title"    xml:space="preserve"><value>Paramètres</value></data>
+  <data name="settings_language" xml:space="preserve"><value>Langue</value></data>
+
+  <!-- Dialogs -->
+  <data name="prompt_name"                xml:space="preserve"><value>Nom :</value></data>
+  <data name="dialog_rename"              xml:space="preserve"><value>Renommer</value></data>
+  <data name="dialog_delete"              xml:space="preserve"><value>Supprimer</value></data>
+  <data name="dialog_yes"                 xml:space="preserve"><value>Oui</value></data>
+  <data name="dialog_no"                  xml:space="preserve"><value>Non</value></data>
+  <data name="dialog_delete_confirm"      xml:space="preserve"><value>Supprimer "{0}" ?</value></data>
+  <data name="dialog_remove_channel"      xml:space="preserve"><value>Retirer "{0}" ?</value></data>
+  <data name="dialog_delete_track_confirm" xml:space="preserve"><value>"{0}" sera supprimé définitivement. Confirmer ?</value></data>
+  <data name="dialog_new_campaign"        xml:space="preserve"><value>Nouvelle campagne</value></data>
+  <data name="dialog_new_chapter"         xml:space="preserve"><value>Nouveau chapitre</value></data>
+  <data name="dialog_new_scene"           xml:space="preserve"><value>Nouvelle scène</value></data>
+</root>

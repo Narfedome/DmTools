@@ -12,6 +12,7 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackViewModel : ObservableObject
     {
+        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
@@ -92,11 +93,12 @@ namespace DmToolsApp.Features.Library
 
             var item = SelectedTrackItem;
 
+            var loc = DmToolsApp.Services.LocalizationService.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
-               "Delete",
-               $"{item.Title} will be deleted permanentaly. Are you sure to proccessed ?",
-               "Yes",
-               "No");
+               loc["dialog_delete"],
+               string.Format(loc["dialog_delete_track_confirm"], item.Title),
+               loc["dialog_yes"],
+               loc["dialog_no"]);
 
             if (confirm)
             {

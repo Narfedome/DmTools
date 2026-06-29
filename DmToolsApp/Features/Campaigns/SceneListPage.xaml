@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="Scènes" FontSize="20"/>
+            <Label Text="{Binding Loc[scenes_header]}" FontSize="20"/>
         </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
@@ -49,7 +49,9 @@
                         </VisualStateManager.VisualStateGroups>
                         <Grid ColumnDefinitions="*,auto,auto">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="▶ Lancer" FontSize="13" VerticalOptions="Center"
+                            <Label Grid.Column="1"
+                                   Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=Loc[btn_launch]}"
+                                   FontSize="13" VerticalOptions="Center"
                                    TextColor="LightSkyBlue" Margin="8,0,4,0">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer
@@ -73,14 +75,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="Nouvelle scène"/>
+                                         Tooltip="{Binding Loc[btn_new_scene]}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="Renommer"
+                                         Tooltip="{Binding Loc[btn_rename]}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="Supprimer"
+                                         Tooltip="{Binding Loc[btn_delete]}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

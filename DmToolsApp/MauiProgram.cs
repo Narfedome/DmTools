@@ -6,6 +6,7 @@ using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Models;
+using DmToolsApp.Features.Settings;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
@@ -42,6 +43,8 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
             builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
             builder.Services.AddSingleton<SessionStateService>();
+            builder.Services.AddTransient<SettingsViewModel>();
+            builder.Services.AddTransient<SettingsPage>();
             builder.Services.AddTransient<LibraryTrackViewModel>();
             builder.Services.AddTransient<LibrarySpellViewModel>();
             builder.Services.AddTransient<LibrarySpellEditViewModel>();

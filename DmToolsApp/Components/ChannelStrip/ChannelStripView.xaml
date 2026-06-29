@@ -11,11 +11,11 @@
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
                                      Command="{Binding FadeOutCommand}"
-                                     Tooltip="Fade Out"
+                                     Tooltip="{Binding Loc[channel_fade_out]}"
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
                                      Command="{Binding ToggleLoopCommand}"
-                                     Tooltip="Loop"
+                                     Tooltip="{Binding Loc[channel_loop]}"
                                      Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}"
                                      HorizontalOptions="Center" />
         <Grid HeightRequest="150" WidthRequest="50">

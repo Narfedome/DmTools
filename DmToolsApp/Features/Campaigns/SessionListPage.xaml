@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="Chapitres" FontSize="20"/>
+            <Label Text="{Binding Loc[chapters_header]}" FontSize="20"/>
         </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
@@ -65,14 +65,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="Nouveau chapitre"/>
+                                         Tooltip="{Binding Loc[btn_new_chapter]}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="Renommer"
+                                         Tooltip="{Binding Loc[btn_rename]}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="Supprimer"
+                                         Tooltip="{Binding Loc[btn_delete]}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

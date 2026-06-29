@@ -129,6 +129,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Update="Strings\AppStrings.resx" />
+	  <EmbeddedResource Update="Strings\AppStrings.en.resx">
+	    <Culture>en</Culture>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Folder Include="Data\Repositories\" />
 	  <Folder Include="Features\CharacterTool\" />
 	  <Folder Include="Selectors\" />

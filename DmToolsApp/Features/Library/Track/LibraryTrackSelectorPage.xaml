@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:svc="clr-namespace:DmToolsApp.Services"
              x:Class="DmToolsApp.Features.Library.LibraryTrackSelectorPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
-             Title="Select Item">
+             Title="{Binding [lib_select], Source={x:Static svc:LocalizationService.Instance}}">
     <views:LibraryTrackView IsCrud="False" />
 </ContentPage>

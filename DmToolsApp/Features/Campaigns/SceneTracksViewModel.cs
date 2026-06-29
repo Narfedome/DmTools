@@ -10,6 +10,7 @@ namespace DmToolsApp.Features.Campaigns
     {
         private readonly ISceneDataService _sceneDataService;
         private readonly ILibraryPickerService _pickerService;
+        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
 
         public SceneTracksViewModel(ISceneDataService sceneDataService, ILibraryPickerService pickerService)
         {
