@@ -101,13 +101,6 @@ namespace DmToolsApp.Features.Campaigns
         }
 
         [RelayCommand]
-        public async Task Navigate(Scene scene)
-        {
-            await Shell.Current.GoToAsync(nameof(SceneTracksPage),
-                new Dictionary<string, object> { { "Scene", scene } });
-        }
-
-        [RelayCommand]
         public async Task Launch(Scene scene)
         {
             if (_campaign == null || Session == null) return;

@@ -6,6 +6,7 @@ using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Models;
+using DmToolsApp.Features.Onboarding;
 using DmToolsApp.Features.Settings;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
@@ -43,6 +44,8 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
             builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
             builder.Services.AddSingleton<SessionStateService>();
+            builder.Services.AddTransient<OnboardingViewModel>();
+            builder.Services.AddTransient<OnboardingPage>();
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<SettingsPage>();
             builder.Services.AddTransient<LibraryTrackViewModel>();

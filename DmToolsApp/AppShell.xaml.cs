@@ -1,5 +1,7 @@
+using DmToolsApp.Extensions;
 using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
+using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
 
 namespace DmToolsApp
@@ -19,7 +21,12 @@ namespace DmToolsApp
 
             sessionStateService.StateChanged += () =>
             {
-                AudioMixerTab.IsVisible = sessionStateService.IsSessionActive;
+                bool active = sessionStateService.IsSessionActive;
+                AudioMixerTab.IsVisible = active;
+                // Force icon re-render — MAUI doesn't redraw FontImageSource on IsVisible toggle
+                if (active)
+                    AudioMixerTab.Icon = new FaIconExtension { Glyph = SolidFont.Sliders }
+                        .ProvideValue(null!);
             };
 
             _loc.LanguageChanged += UpdateTabTitles;

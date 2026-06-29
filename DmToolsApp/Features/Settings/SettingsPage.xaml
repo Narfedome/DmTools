@@ -2,25 +2,67 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Settings"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Settings.SettingsPage"
              x:DataType="local:SettingsViewModel"
              Title="{Binding Loc.SettingsTitle}">
 
-    <VerticalStackLayout Padding="20" Spacing="20">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
 
-        <Label Text="{Binding Loc.SettingsTitle}" FontSize="22" FontAttributes="Bold"/>
+            <Label Text="{Binding Loc.SettingsTitle}" FontSize="22" FontAttributes="Bold"/>
 
-        <Border Padding="16" StrokeShape="RoundRectangle 8">
-            <Grid ColumnDefinitions="*,auto" RowDefinitions="auto">
-                <Label Grid.Column="0"
-                       Text="{Binding Loc.SettingsLanguage}"
-                       VerticalOptions="Center" FontSize="16"/>
-                <Picker Grid.Column="1"
-                        ItemsSource="{Binding Languages}"
-                        SelectedItem="{Binding SelectedLanguage}"
-                        WidthRequest="120"/>
-            </Grid>
-        </Border>
+            <!-- Langue -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <Label Grid.Column="0" Text="{Binding Loc.SettingsLanguage}"
+                           VerticalOptions="Center" FontSize="16"/>
+                    <Picker Grid.Column="1"
+                            ItemsSource="{Binding Languages}"
+                            SelectedItem="{Binding SelectedLanguage}"
+                            WidthRequest="120"/>
+                </Grid>
+            </Border>
 
-    </VerticalStackLayout>
+            <!-- Thème -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <Label Grid.Column="0" Text="{Binding Loc.SettingsTheme}"
+                           VerticalOptions="Center" FontSize="16"/>
+                    <Picker Grid.Column="1"
+                            ItemsSource="{Binding ThemeOptions}"
+                            SelectedItem="{Binding SelectedThemeOption}"
+                            WidthRequest="140"/>
+                </Grid>
+            </Border>
+
+            <!-- Palette -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{Binding Loc.SettingsPalette}" FontSize="16"/>
+                    <components:PalettePickerView
+                        SelectedPalette="{Binding SelectedPalette, Mode=TwoWay}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Buy Me a Coffee -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                        <Label Text="{Binding Loc.SettingsSupportTitle}" FontSize="16"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1"
+                           Text="{Binding Loc.SettingsSupportDesc}"
+                           TextColor="{DynamicResource AppAccent}"
+                           FontSize="14"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCoffeeTapped"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

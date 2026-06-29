@@ -51,7 +51,7 @@
                         Tooltip="{Binding Loc.MixerNextScene}" />
 
                 <components:FaIconButtonView Grid.Column="4"
-                        Icon="{x:Static icons:SolidFont.Play}"
+                        Icon="{x:Static icons:SolidFont.Clapperboard}"
                         Command="{Binding LoadSceneCommand}"
                         Tooltip="{Binding Loc.MixerLoadScene}" />
             </Grid>

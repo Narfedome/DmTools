@@ -85,8 +85,22 @@
   <data name="SpellEditTitle" xml:space="preserve"><value>Modifier le sort</value></data>
 
   <!-- Settings -->
-  <data name="SettingsTitle"    xml:space="preserve"><value>Paramètres</value></data>
-  <data name="SettingsLanguage" xml:space="preserve"><value>Langue</value></data>
+  <data name="SettingsTitle"         xml:space="preserve"><value>Paramètres</value></data>
+  <data name="SettingsLanguage"      xml:space="preserve"><value>Langue</value></data>
+  <data name="SettingsPalette"       xml:space="preserve"><value>Palette de couleurs</value></data>
+  <data name="SettingsTheme"         xml:space="preserve"><value>Thème</value></data>
+  <data name="SettingsThemeSystem"   xml:space="preserve"><value>Système</value></data>
+  <data name="SettingsThemeLight"    xml:space="preserve"><value>Clair</value></data>
+  <data name="SettingsThemeDark"     xml:space="preserve"><value>Sombre</value></data>
+  <data name="SettingsSupportTitle"  xml:space="preserve"><value>Soutenir le projet</value></data>
+  <data name="SettingsSupportDesc"   xml:space="preserve"><value>Buy me a coffee ☕</value></data>
+
+  <!-- Onboarding -->
+  <data name="OnboardingTitle"    xml:space="preserve"><value>Bienvenue dans DmTools</value></data>
+  <data name="OnboardingDesc"     xml:space="preserve"><value>Votre assistant numérique pour les maîtres du jeu. Gérez vos campagnes, pilotez vos ambiances sonores et consultez vos sorts — le tout depuis une interface sobre et thématique.</value></data>
+  <data name="OnboardingPalette"  xml:space="preserve"><value>Choisissez votre palette</value></data>
+  <data name="OnboardingLanguage" xml:space="preserve"><value>Langue</value></data>
+  <data name="OnboardingStart"    xml:space="preserve"><value>Commencer</value></data>
 
   <!-- Dialogs -->
   <data name="PromptName"              xml:space="preserve"><value>Nom :</value></data>

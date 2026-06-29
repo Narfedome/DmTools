@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Onboarding"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.Onboarding.OnboardingPage"
+             x:DataType="local:OnboardingViewModel"
+             NavigationPage.HasNavigationBar="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="32,48,32,32" Spacing="28" VerticalOptions="Center">
+
+            <!-- Title -->
+            <Label Text="{Binding Loc.OnboardingTitle}"
+                   FontSize="28" FontAttributes="Bold"
+                   TextColor="{DynamicResource AppAccent}"
+                   HorizontalTextAlignment="Center"/>
+
+            <!-- Description -->
+            <Label Text="{Binding Loc.OnboardingDesc}"
+                   FontSize="15"
+                   TextColor="{DynamicResource AppTextMuted}"
+                   HorizontalTextAlignment="Center"
+                   LineHeight="1.5"/>
+
+            <!-- Palette picker -->
+            <VerticalStackLayout Spacing="12">
+                <Label Text="{Binding Loc.OnboardingPalette}"
+                       FontSize="16" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center"/>
+                <components:PalettePickerView
+                    SelectedPalette="{Binding SelectedPalette, Mode=TwoWay}"/>
+            </VerticalStackLayout>
+
+            <!-- Language -->
+            <Border Padding="16,12" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <Label Grid.Column="0"
+                           Text="{Binding Loc.OnboardingLanguage}"
+                           VerticalOptions="Center" FontSize="16"/>
+                    <Picker Grid.Column="1"
+                            ItemsSource="{Binding Languages}"
+                            SelectedItem="{Binding SelectedLanguage}"
+                            WidthRequest="120"/>
+                </Grid>
+            </Border>
+
+            <!-- Start button -->
+            <Button Text="{Binding Loc.OnboardingStart}"
+                    Command="{Binding StartCommand}"
+                    FontSize="16"
+                    Margin="0,8,0,0"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -57,7 +57,7 @@ namespace DmToolsApp.Converters
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
             => value is bool b && b
-                ? new SolidColorBrush(Color.FromArgb("#D600AA"))
+                ? new SolidColorBrush(DmToolsApp.Services.ThemeService.Instance.CurrentAccentSecondary)
                 : new SolidColorBrush(Colors.Transparent);
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
