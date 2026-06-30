@@ -2,6 +2,20 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibraryTrackPage"
-             xmlns:views="clr-namespace:DmToolsApp.Features.Library">
-    <views:LibraryTrackView  IsCrud="True" />
+             xmlns:views="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:DataType="local:LibraryTrackViewModel">
+
+    <Shell.TitleView>
+        <Label Text="{loc:Loc TabLibrary}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
+    <components:WatermarkedLayout>
+        <views:LibraryTrackView IsCrud="True" />
+    </components:WatermarkedLayout>
 </ContentPage>

@@ -8,14 +8,10 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Library
 {
-    public partial class LibrarySpellViewModel : ObservableObject
+    public partial class LibrarySpellViewModel : BaseViewModel
     {
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
-        [ObservableProperty]
-        public bool isBusy = false;
-
         [ObservableProperty]
         public ObservableCollection<Spell> spellItems = new();
 
@@ -35,16 +31,7 @@ namespace DmToolsApp.Features.Library
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                IsBusy = true;
-
-                await LoadData();
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            await Loading.RunAsync(LoadData);
         }
 
         private async Task LoadData()

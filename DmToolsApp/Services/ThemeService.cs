@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 namespace DmToolsApp.Services
 {
     public enum AppPalette
@@ -15,7 +18,7 @@ namespace DmToolsApp.Services
         Dark = 2
     }
 
-    public class ThemeService
+    public class ThemeService : INotifyPropertyChanged
     {
         public static readonly ThemeService Instance = new();
 
@@ -26,6 +29,17 @@ namespace DmToolsApp.Services
         private AppThemePreference  _themePref;
 
         public event Action? ThemeChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        public string WatermarkIcon => _palette switch
+        {
+            AppPalette.ForetProfonde => "foret.svg",
+            AppPalette.TaverneAmbre  => "taverne.svg",
+            AppPalette.AcierBrume    => "acier.svg",
+            _                        => "nuit.svg",
+        };
 
         private ThemeService()
         {
@@ -43,6 +57,7 @@ namespace DmToolsApp.Services
                 Preferences.Default.Set(PaletteKey, (int)value);
                 Apply();
                 ThemeChanged?.Invoke();
+                OnPropertyChanged(nameof(WatermarkIcon));
             }
         }
 

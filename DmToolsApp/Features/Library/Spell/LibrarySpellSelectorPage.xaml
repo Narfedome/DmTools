@@ -3,6 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibrarySpellSelectorPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
-             Title="{Binding Loc.LibSelect}">
-    <views:LibraryTrackView IsCrud="False" />
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             Title="{loc:Loc LibSelect}">
+    <components:WatermarkedLayout>
+        <views:LibraryTrackView IsCrud="False" />
+    </components:WatermarkedLayout>
 </ContentPage>

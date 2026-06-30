@@ -5,15 +5,15 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Onboarding
 {
-    public partial class OnboardingViewModel : ObservableObject
+    public partial class OnboardingViewModel : BaseViewModel
     {
-        private readonly LocalizationService _loc = LocalizationService.Instance;
         private readonly ThemeService _theme = ThemeService.Instance;
         private readonly AppShell _shell;
 
-        public LocalizationService Loc => _loc;
+        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
 
-        public ObservableCollection<string> Languages { get; } = new() { "fr", "en" };
+        public string SelectedLanguageLabel =>
+            LocalizationService.SupportedLanguages.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage ?? "";
 
         [ObservableProperty]
         private string selectedLanguage;
@@ -24,18 +24,28 @@ namespace DmToolsApp.Features.Onboarding
         public OnboardingViewModel(AppShell shell)
         {
             _shell = shell;
-            selectedLanguage = _loc.Language;
+            selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
         }
 
         partial void OnSelectedLanguageChanged(string value)
         {
-            if (value != null) _loc.Language = value;
+            if (value != null) Loc.Language = value;
+            OnPropertyChanged(nameof(SelectedLanguageLabel));
         }
 
         partial void OnSelectedPaletteChanged(AppPalette value)
         {
             _theme.Palette = value;
+        }
+
+        [RelayCommand]
+        public async Task SelectLanguage()
+        {
+            var labels = LocalizationService.SupportedLanguages.Values.ToArray();
+            var result = await ShowActionSheetAsync(Loc["OnboardingLanguage"], labels);
+            if (result == null) return;
+            SelectedLanguage = LocalizationService.SupportedLanguages.First(kv => kv.Value == result).Key;
         }
 
         [RelayCommand]

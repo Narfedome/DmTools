@@ -4,11 +4,20 @@
              xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.SceneListPage"
              x:DataType="local:SceneListViewModel"
              Title="{Binding PageTitle}">
 
+    <Shell.TitleView>
+        <Label Text="{Binding PageTitle}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
+    <components:WatermarkedLayout>
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -17,11 +26,12 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="{Binding Loc.ScenesHeader}" FontSize="20"/>
+            <Label Text="{loc:Loc ScenesHeader}" FontSize="20"/>
         </VerticalStackLayout>
 
-        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}"
+
+        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
+                           IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
@@ -33,11 +43,6 @@
                 <DataTemplate x:DataType="models:Scene">
                     <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10"
                             MinimumHeightRequest="52">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=LaunchCommand}"
-                                CommandParameter="{Binding .}"/>
-                        </Border.GestureRecognizers>
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal">
@@ -61,7 +66,7 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=LaunchCommand}"
                                         CommandParameter="{Binding .}"/>
                                 </Grid.GestureRecognizers>
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=Loc.BtnLaunch}"
+                                <Label Text="{loc:Loc BtnLaunch}"
                                        FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
                                        TextColor="{DynamicResource AppAccent}"/>
                             </Grid>
@@ -74,15 +79,16 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{Binding Loc.BtnNewScene}"/>
+                                         Tooltip="{loc:Loc BtnNewScene}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="{Binding Loc.BtnRename}"
+                                         Tooltip="{loc:Loc BtnRename}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="{Binding Loc.BtnDelete}"
+                                         Tooltip="{loc:Loc BtnDelete}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>
+    </components:WatermarkedLayout>
 </ContentPage>

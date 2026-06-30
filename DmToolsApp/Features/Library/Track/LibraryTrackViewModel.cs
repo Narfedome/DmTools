@@ -10,16 +10,12 @@ using Track = DmToolsApp.Models.Library.Track;
 
 namespace DmToolsApp.Features.Library
 {
-    public partial class LibraryTrackViewModel : ObservableObject
+    public partial class LibraryTrackViewModel : BaseViewModel
     {
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
         private readonly AudioPlayerService _audioPlayerService;
-
-        [ObservableProperty]
-        public bool isBusy = false;
 
         [ObservableProperty]
         public ObservableCollection<Track> trackItems = new();
@@ -48,16 +44,7 @@ namespace DmToolsApp.Features.Library
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                IsBusy = true;
-
-                await LoadData();
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            await Loading.RunAsync(LoadData);
         }
 
         private async Task LoadData()
@@ -93,24 +80,13 @@ namespace DmToolsApp.Features.Library
 
             var item = SelectedTrackItem;
 
-            var loc = DmToolsApp.Services.LocalizationService.Instance;
-            bool confirm = await Shell.Current.DisplayAlertAsync(
-               loc.DialogDelete,
-               string.Format(loc.DialogDeleteTrackConfirm, item.Title),
-               loc.DialogYes,
-               loc.DialogNo);
+            if (!await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteTrackConfirm"], item.Title))) return;
 
-            if (confirm)
-            {
-                StopAudio();
-
-                await _libraryDataService.DeleteLibraryItem(item);
-
-                _fileService.DeleteTrackFromLocal(item.FilePath);
-
-                TrackItems.Remove(item);
-                SelectedTrackItem = null;
-            }          
+            StopAudio();
+            await _libraryDataService.DeleteLibraryItem(item);
+            _fileService.DeleteTrackFromLocal(item.FilePath);
+            TrackItems.Remove(item);
+            SelectedTrackItem = null;          
         }
 
         [RelayCommand]

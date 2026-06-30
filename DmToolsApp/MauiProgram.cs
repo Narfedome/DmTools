@@ -16,6 +16,8 @@ namespace DmToolsApp
 {
     public static class MauiProgram
     {
+        static readonly string dbPath = Path.Combine(FileSystem.AppDataDirectory, "dmtools.db3");
+
         public static MauiApp CreateMauiApp()
         {
             string tracksDir = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
@@ -29,13 +31,16 @@ namespace DmToolsApp
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("PirataOne-Regular.ttf", "PirataOne");
                     fonts.AddFont("Font Awesome 7 Brands-Regular-400.otf", "FontRegular");
                     fonts.AddFont("Font Awesome 7 Free-Regular-400.otf", "FontBrands");
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
+                    fonts.AddFont("rpgawesome-webfont.ttf", "RpgAwesome");
                 });
             builder.AddAudio();
             builder.Services.AddSingleton(
                 new AppDatabase(dbPath)); 
+            builder.Services.AddSingleton<LoadingService>();
             builder.Services.AddSingleton<AudioPlayerService>();
             builder.Services.AddSingleton<AudioMixerService>();
             builder.Services.AddSingleton<FileService>();
@@ -73,9 +78,6 @@ namespace DmToolsApp
             return builder.Build();
         }
 
-        static string dbPath = Path.Combine(
-    FileSystem.AppDataDirectory,
-    "dmtools.db3");
     }
 
 }

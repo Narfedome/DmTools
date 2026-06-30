@@ -5,9 +5,11 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              x:DataType="local:AudioMixerViewModel">
 
+    <components:WatermarkedLayout>
     <Grid Padding="10" RowSpacing="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -25,29 +27,33 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Picker Grid.Column="0"
-                        Title="{Binding Loc.MixerChapter}"
-                        ItemsSource="{Binding Sessions}"
-                        SelectedItem="{Binding SelectedSession}"
-                        ItemDisplayBinding="{Binding Title}" />
+                <Button Grid.Column="0"
+                        Text="{Binding SelectedSessionLabel}"
+                        Command="{Binding SelectSessionCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource AppAccent}"
+                        FontSize="14"
+                        Padding="8,4"/>
 
                 <components:FaIconButtonView Grid.Column="1"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
                         Command="{Binding PrevSceneCommand}"
                         IsEnabled="{Binding CanGoPrevScene}"
-                        Tooltip="{Binding Loc.MixerPrevScene}" />
+                        Tooltip="{loc:Loc MixerPrevScene}" />
 
-                <Picker Grid.Column="2"
-                        Title="{Binding Loc.MixerScene}"
-                        ItemsSource="{Binding Scenes}"
-                        SelectedItem="{Binding SelectedScene}"
-                        ItemDisplayBinding="{Binding Title}" />
+                <Button Grid.Column="2"
+                        Text="{Binding SelectedSceneLabel}"
+                        Command="{Binding SelectSceneCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource AppAccent}"
+                        FontSize="14"
+                        Padding="8,4"/>
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"
                         Command="{Binding NextSceneCommand}"
                         IsEnabled="{Binding CanGoNextScene}"
-                        Tooltip="{Binding Loc.MixerNextScene}" />
+                        Tooltip="{loc:Loc MixerNextScene}" />
             </Grid>
         </Border>
 
@@ -60,22 +66,22 @@
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0">
                 <HorizontalStackLayout Spacing="10" Margin="10">
-                    <Label Text="{Binding Loc.MixerGlobal}" VerticalOptions="Center"/>
+                    <Label Text="{loc:Loc MixerGlobal}" VerticalOptions="Center"/>
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
                                                  Command="{Binding PlayAllCommand}"
-                                                 Tooltip="{Binding Loc.MixerPlayAll}" />
+                                                 Tooltip="{loc:Loc MixerPlayAll}" />
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.VolumeXmark}"
                                                  Command="{Binding FadeOutAllCommand}"
-                                                 Tooltip="{Binding Loc.MixerFadeOutAll}" />
+                                                 Tooltip="{loc:Loc MixerFadeOutAll}" />
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
                                                  Command="{Binding StopAllCommand}"
-                                                 Tooltip="{Binding Loc.MixerStopAll}" />
+                                                 Tooltip="{loc:Loc MixerStopAll}" />
                 </HorizontalStackLayout>
             </Border>
             <components:FaIconButtonView Grid.Column="2"
                      Icon="{x:Static icons:SolidFont.Plus}"
                      Command="{Binding AddChannelCommand}"
-                     Tooltip="{Binding Loc.BtnAddChannel}" />
+                     Tooltip="{loc:Loc BtnAddChannel}" />
         </Grid>
 
         <!-- Channels -->
@@ -127,4 +133,5 @@
             </CollectionView>
         </Border>
     </Grid>
+    </components:WatermarkedLayout>
 </ContentPage>

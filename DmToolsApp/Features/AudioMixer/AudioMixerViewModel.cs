@@ -11,12 +11,12 @@ using System.ComponentModel;
 
 namespace DmToolsApp.Features.AudioMixer
 {
-    public partial class AudioMixerViewModel : ObservableObject
+    public partial class AudioMixerViewModel : BaseViewModel
     {
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
+        private readonly FileService _fileService;
 
         private Scene? _activeScene;
         private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
@@ -24,11 +24,13 @@ namespace DmToolsApp.Features.AudioMixer
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
             ILibraryPickerService pickerService,
-            ISceneDataService sceneDataService)
+            ISceneDataService sceneDataService,
+            FileService fileService)
         {
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
+            _fileService = fileService;
         }
 
         // ── Channels ──────────────────────────────────────────────
@@ -39,7 +41,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance.ChannelNew + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = (LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -79,12 +81,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             channel.Pause();
 
-            var loc = Services.LocalizationService.Instance;
-            bool confirm = await Shell.Current.DisplayAlertAsync(
-                loc.DialogDelete,
-                string.Format(loc.DialogRemoveChannel, channel.DisplayTrackName),
-                loc.DialogYes,
-                loc.DialogNo);
+            bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
 
             if (!confirm)
             {
@@ -105,17 +102,7 @@ namespace DmToolsApp.Features.AudioMixer
             try
             {
                 if (channel == null) return;
-                var result = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = Services.LocalizationService.Instance.TrackSelectFile,
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            { DevicePlatform.iOS, new[] { "public.audio" } },
-                            { DevicePlatform.Android, new[] { "audio/*" } },
-                            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
-                            { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
-                        })
-                });
+                var result = await _fileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
 
                 if (result != null)
                 {
@@ -127,7 +114,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await ShowErrorAsync(ex);
             }
         }
 
@@ -139,24 +126,20 @@ namespace DmToolsApp.Features.AudioMixer
                 if (channel == null) return;
                 var selectedLibraryItem = await _pickerService.PickTrackAsync();
 
-                if (selectedLibraryItem is null)
+                if (selectedLibraryItem is not Track selectedTrack || !File.Exists(selectedTrack.FilePath))
                     return;
 
-                Track selectedTrack = (Track)selectedLibraryItem;
-                if (File.Exists(selectedTrack.FilePath))
-                {
-                    var stream = File.OpenRead(selectedTrack.FilePath);
-                    channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                    channel.Track = selectedTrack;
-                    channel.DisplayTrackName = selectedTrack.Title;
-                    channel.TogglePlay();
+                var stream = File.OpenRead(selectedTrack.FilePath);
+                channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                channel.Track = selectedTrack;
+                channel.DisplayTrackName = selectedTrack.Title;
+                channel.TogglePlay();
 
-                    await SaveChannelAsSceneTrack(channel);
-                }
+                await SaveChannelAsSceneTrack(channel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await ShowErrorAsync(ex);
             }
         }
 
@@ -254,10 +237,14 @@ namespace DmToolsApp.Features.AudioMixer
         public bool CanGoPrevScene => SceneIndex > 1;
         public bool CanGoNextScene => SceneIndex < SceneCount;
 
+        public string SelectedSessionLabel => SelectedSession?.Title ?? Loc["MixerChapter"];
+        public string SelectedSceneLabel   => SelectedScene?.Title   ?? Loc["MixerScene"];
+
         private bool _suppressHandlers;
 
         partial void OnSelectedSessionChanged(Session? value)
         {
+            OnPropertyChanged(nameof(SelectedSessionLabel));
             if (_suppressHandlers) return;
             SelectedScene = null;
             Scenes.Clear();
@@ -267,6 +254,7 @@ namespace DmToolsApp.Features.AudioMixer
 
         partial void OnSelectedSceneChanged(Scene? value)
         {
+            OnPropertyChanged(nameof(SelectedSceneLabel));
             if (_suppressHandlers) return;
             SceneIndex = value != null ? Scenes.IndexOf(value) + 1 : 0;
             OnPropertyChanged(nameof(CanGoPrevScene));
@@ -322,6 +310,22 @@ namespace DmToolsApp.Features.AudioMixer
 
             _activeScene = matchedScene;
             await LoadScene();
+        }
+
+        [RelayCommand]
+        public async Task SelectSession()
+        {
+            if (!Sessions.Any()) return;
+            var result = await ShowActionSheetAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
+            if (result != null) SelectedSession = Sessions.First(s => s.Title == result);
+        }
+
+        [RelayCommand]
+        public async Task SelectScene()
+        {
+            if (!Scenes.Any()) return;
+            var result = await ShowActionSheetAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
+            if (result != null) SelectedScene = Scenes.First(s => s.Title == result);
         }
 
         [RelayCommand]

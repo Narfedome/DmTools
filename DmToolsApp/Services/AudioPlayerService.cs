@@ -1,5 +1,6 @@
-﻿using DmToolsApp.Services;
-using Plugin.Maui.Audio;
+﻿using Plugin.Maui.Audio;
+
+namespace DmToolsApp.Services;
 
 public class AudioPlayerService
 {

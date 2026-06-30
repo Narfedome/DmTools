@@ -4,10 +4,12 @@
              xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.SceneTracksPage"
              x:DataType="local:SceneTracksViewModel">
 
+    <components:WatermarkedLayout>
     <Grid RowSpacing="10" Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -16,12 +18,14 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="0">
-            <Label Text="{Binding Loc.TracksHeader}" FontSize="20" HorizontalOptions="Center"/>
+            <Label Text="{loc:Loc TracksHeader}" FontSize="20" HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
-        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}"
+
+        <ActivityIndicator Grid.Row="1" IsRunning="{Binding Loading.IsLoading}"
+                           IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
-                           WidthRequest="80" HeightRequest="80" />
+                           WidthRequest="80" HeightRequest="80"/>
 
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding SceneTracks}"
@@ -53,7 +57,7 @@
 
                             <!-- AutoPlay toggle -->
                             <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.SceneAuto}"
+                                <Label Text="{loc:Loc SceneAuto}"
                                        FontSize="10" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding AutoPlay, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
@@ -63,11 +67,11 @@
                                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FloppyDisk}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=SaveTrackCommand}"
                                                              CommandParameter="{Binding .}"
-                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.BtnSaveTrack}"/>
+                                                             Tooltip="{loc:Loc BtnSaveTrack}"/>
                                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=RemoveTrackCommand}"
                                                              CommandParameter="{Binding .}"
-                                                             Tooltip="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=Loc.BtnRemoveSceneTrack}"/>
+                                                             Tooltip="{loc:Loc BtnRemoveSceneTrack}"/>
                             </HorizontalStackLayout>
                         </Grid>
                     </Border>
@@ -78,7 +82,8 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding AddTrackCommand}"
-                                         Tooltip="{Binding Loc.BtnAddTrack}"/>
+                                         Tooltip="{loc:Loc BtnAddTrack}"/>
         </HorizontalStackLayout>
     </Grid>
+    </components:WatermarkedLayout>
 </ContentPage>

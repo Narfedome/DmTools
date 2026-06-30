@@ -2,22 +2,24 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Onboarding"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Onboarding.OnboardingPage"
              x:DataType="local:OnboardingViewModel"
              NavigationPage.HasNavigationBar="False">
 
+    <components:WatermarkedLayout>
     <ScrollView>
         <VerticalStackLayout Padding="32,48,32,32" Spacing="28" VerticalOptions="Center">
 
             <!-- Title -->
-            <Label Text="{Binding Loc.OnboardingTitle}"
+            <Label Text="{loc:Loc OnboardingTitle}"
                    FontSize="28" FontAttributes="Bold"
                    TextColor="{DynamicResource AppAccent}"
                    HorizontalTextAlignment="Center"/>
 
             <!-- Description -->
-            <Label Text="{Binding Loc.OnboardingDesc}"
+            <Label Text="{loc:Loc OnboardingDesc}"
                    FontSize="15"
                    TextColor="{DynamicResource AppTextMuted}"
                    HorizontalTextAlignment="Center"
@@ -25,7 +27,7 @@
 
             <!-- Palette picker -->
             <VerticalStackLayout Spacing="12">
-                <Label Text="{Binding Loc.OnboardingPalette}"
+                <Label Text="{loc:Loc OnboardingPalette}"
                        FontSize="16" FontAttributes="Bold"
                        HorizontalTextAlignment="Center"/>
                 <components:PalettePickerView
@@ -36,21 +38,25 @@
             <Border Padding="16,12" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0"
-                           Text="{Binding Loc.OnboardingLanguage}"
+                           Text="{loc:Loc OnboardingLanguage}"
                            VerticalOptions="Center" FontSize="16"/>
-                    <Picker Grid.Column="1"
-                            ItemsSource="{Binding Languages}"
-                            SelectedItem="{Binding SelectedLanguage}"
-                            WidthRequest="120"/>
+                    <Button Grid.Column="1"
+                            Text="{Binding SelectedLanguageLabel}"
+                            Command="{Binding SelectLanguageCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{DynamicResource AppAccent}"
+                            FontSize="15"
+                            Padding="8,4"/>
                 </Grid>
             </Border>
 
             <!-- Start button -->
-            <Button Text="{Binding Loc.OnboardingStart}"
+            <Button Text="{loc:Loc OnboardingStart}"
                     Command="{Binding StartCommand}"
                     FontSize="16"
                     Margin="0,8,0,0"/>
 
         </VerticalStackLayout>
     </ScrollView>
+    </components:WatermarkedLayout>
 </ContentPage>

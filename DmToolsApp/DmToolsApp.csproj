@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+	</PropertyGroup>
+
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
 		<TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">$(TargetFrameworks);net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
@@ -34,10 +38,12 @@
 		<ApplicationTitle>DM Tools</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.dmtoolsapp</ApplicationId>
+		<ApplicationId>com.narfedome.dmtoolsapp</ApplicationId>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<!-- Versions — patch auto-incrémenté via git au build, major/minor à la main -->
+		<AppVersionMajor>0</AppVersionMajor>
+		<AppVersionMinor>1</AppVersionMinor>
+		<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -48,15 +54,15 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<PackageIcon>image.svg</PackageIcon>
+		<PackageIcon>icon.png</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1C1A2E" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1C1A2E" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
@@ -136,20 +142,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Data\Repositories\" />
-	  <Folder Include="Features\CharacterTool\" />
-	  <Folder Include="Resources\Images\" />
-	  <Folder Include="Selectors\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="C:\Users\Cyril\Downloads\image.svg">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Compile Update="Components\TrackButton\TrackButtonView.xaml.cs">
 	    <DependentUpon>TrackButtonView.xaml</DependentUpon>
 	  </Compile>
@@ -172,5 +164,35 @@
 	    <DependentUpon>LibraryTrackView.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Resources\AppIcon\appicon.svg">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Update="Resources\Images\icon.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+
+	<!-- Auto-incrémente le patch en comptant les commits git, synchronise ApplicationDisplayVersion et BuildInfo -->
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateAndroidManifest;GetAssemblyVersion">
+		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
+			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
+		</Exec>
+		<PropertyGroup Condition="'$(_GitCommitCount)' != ''">
+			<_AppPatch>$(_GitCommitCount.Trim())</_AppPatch>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(_AppPatch)' == ''">
+			<_AppPatch>0</_AppPatch>
+		</PropertyGroup>
+		<PropertyGroup>
+			<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).$(_AppPatch)</ApplicationDisplayVersion>
+		</PropertyGroup>
+		<WriteLinesToFile File="$(MSBuildProjectDirectory)/BuildInfo.g.cs" Lines="// &lt;auto-generated/&gt;%0Anamespace DmToolsApp%3B%0Apublic static class BuildInfo { public const string Version = %22$(ApplicationDisplayVersion)%22%3B }" Overwrite="true" />
+		<Message Text="Version: $(ApplicationDisplayVersion)" Importance="high" />
+	</Target>
 
 </Project>

@@ -94,13 +94,21 @@
   <data name="SettingsThemeDark"     xml:space="preserve"><value>Sombre</value></data>
   <data name="SettingsSupportTitle"  xml:space="preserve"><value>Soutenir le projet</value></data>
   <data name="SettingsSupportDesc"   xml:space="preserve"><value>Buy me a coffee ☕</value></data>
+  <data name="SettingsVersion"       xml:space="preserve"><value>Version</value></data>
+  <data name="SettingsFont"          xml:space="preserve"><value>Police</value></data>
+  <data name="SettingsFontDefault"   xml:space="preserve"><value>Classique</value></data>
+  <data name="SettingsFontPirata"    xml:space="preserve"><value>Pirata One</value></data>
 
   <!-- Onboarding -->
   <data name="OnboardingTitle"    xml:space="preserve"><value>Bienvenue dans DmTools</value></data>
   <data name="OnboardingDesc"     xml:space="preserve"><value>Votre assistant numérique pour les maîtres du jeu. Gérez vos campagnes, pilotez vos ambiances sonores et consultez vos sorts — le tout depuis une interface sobre et thématique.</value></data>
   <data name="OnboardingPalette"  xml:space="preserve"><value>Choisissez votre palette</value></data>
   <data name="OnboardingLanguage" xml:space="preserve"><value>Langue</value></data>
+  <data name="OnboardingFont"     xml:space="preserve"><value>Police</value></data>
   <data name="OnboardingStart"    xml:space="preserve"><value>Commencer</value></data>
+
+  <!-- Errors -->
+  <data name="ErrorTitle" xml:space="preserve"><value>Erreur</value></data>
 
   <!-- Dialogs -->
   <data name="PromptName"              xml:space="preserve"><value>Nom :</value></data>

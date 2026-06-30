@@ -75,6 +75,16 @@ public partial class FaIconButtonView : ContentView
         set => SetValue(IconColorProperty, value);
     }
 
+    // ICON FONT
+    public static readonly BindableProperty IconFontProperty =
+        BindableProperty.Create(nameof(IconFont), typeof(string), typeof(FaIconButtonView), "FontSolid");
+
+    public string IconFont
+    {
+        get => (string)GetValue(IconFontProperty);
+        set => SetValue(IconFontProperty, value);
+    }
+
     // CORNER RADIUS
     public static readonly BindableProperty CornerRadiusProperty =
         BindableProperty.Create(nameof(CornerRadius), typeof(int), typeof(FaIconButtonView), 8);

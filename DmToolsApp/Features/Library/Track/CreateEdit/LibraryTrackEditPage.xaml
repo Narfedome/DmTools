@@ -3,8 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibraryTrackEditPage"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components">
 
+    <components:WatermarkedLayout>
     <Grid Padding="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -28,7 +30,7 @@
             <HorizontalStackLayout Grid.Row="2" Spacing="15">
                 <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FileImport}" Grid.Column="1"
                                   Command="{Binding PickFileCommand}"
-                                Tooltip="{Binding Loc.TrackImport}"/>
+                                Tooltip="{loc:Loc TrackImport}"/>
                 <Label  Text="{Binding ImportedFilePath}"  VerticalOptions="Center" />
             </HorizontalStackLayout>
             <Grid Grid.Row="3"  RowSpacing="15">
@@ -37,7 +39,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Entry Grid.Row="0" Text="{Binding Item.Title}"
-                       Placeholder="{Binding Loc.TrackTitlePh}"/>
+                       Placeholder="{loc:Loc TrackTitlePh}"/>
                 <Label Grid.Row="1" Text="{Binding Item.DurationFormatted}"/>
             </Grid>
         </Grid>
@@ -47,12 +49,13 @@
 
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
-                                           Tooltip="{Binding Loc.BtnSave}"/>
+                                           Tooltip="{loc:Loc BtnSave}"/>
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.Stop}"
                                            Command="{Binding CancelCommand}"
-                                           Tooltip="{Binding Loc.BtnCancel}"/>
+                                           Tooltip="{loc:Loc BtnCancel}"/>
 
         </HorizontalStackLayout>
     </Grid>
+    </components:WatermarkedLayout>
 
 </ContentPage>
