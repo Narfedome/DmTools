@@ -38,7 +38,7 @@
 
 		<!-- Versions — patch auto-incrémenté via git au build, major/minor à la main -->
 		<AppVersionMajor>0</AppVersionMajor>
-		<AppVersionMinor>0</AppVersionMinor>
+		<AppVersionMinor>1</AppVersionMinor>
 		<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
@@ -174,7 +174,7 @@
 
 
 	<!-- Auto-incrémente le patch en comptant les commits git, synchronise ApplicationDisplayVersion et BuildInfo -->
-	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile">
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateAndroidManifest;GetAssemblyVersion">
 		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
 		</Exec>
