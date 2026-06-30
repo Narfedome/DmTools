@@ -20,7 +20,7 @@ namespace DmToolsApp.Features.Settings
         [ObservableProperty]
         private string selectedLanguage;
 
-        public string SelectedLanguageLabel =>
+        public string? SelectedLanguageLabel =>
             LanguageLabels.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage;
 
         [ObservableProperty]
