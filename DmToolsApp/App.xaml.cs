@@ -18,7 +18,6 @@ namespace DmToolsApp
         protected override Window CreateWindow(IActivationState? activationState)
         {
             ThemeService.Instance.Initialize();
-            FontService.Instance.Initialize();
 
             bool hasLaunched = Preferences.Default.Get("has_launched", false);
             if (!hasLaunched)

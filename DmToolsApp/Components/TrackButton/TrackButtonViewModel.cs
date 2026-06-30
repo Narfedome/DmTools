@@ -85,12 +85,7 @@ namespace DmToolsApp.Components.TrackButton
                     return ImageSource.FromStream(() => new MemoryStream(pic.Data.Data));
                 }
             }
-            return new FontImageSource
-            {
-                Glyph = SolidFont.Music,
-                FontFamily = "FontSolid"
-            }
-            ;
+            return null;
         }
 
     }

@@ -2,6 +2,8 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibrarySpellPage"
-             xmlns:views="clr-namespace:DmToolsApp.Features.Library">
-    <views:LibrarySpellView  IsCrud="True" />
+             xmlns:views="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Library"
+             x:DataType="local:LibrarySpellViewModel">
+    <views:LibrarySpellView IsCrud="True" />
 </ContentPage>

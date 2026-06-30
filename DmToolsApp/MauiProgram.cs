@@ -33,6 +33,7 @@ namespace DmToolsApp
                     fonts.AddFont("Font Awesome 7 Brands-Regular-400.otf", "FontRegular");
                     fonts.AddFont("Font Awesome 7 Free-Regular-400.otf", "FontBrands");
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
+                    fonts.AddFont("rpgawesome-webfont.ttf", "RpgAwesome");
                 });
             builder.AddAudio();
             builder.Services.AddSingleton(

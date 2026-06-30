@@ -179,16 +179,22 @@
 	</ItemGroup>
 
 
-	<!-- Auto-incrémente le patch en comptant les commits git sur la branche courante -->
-	<Target Name="SetVersionFromGit" BeforeTargets="Build">
+	<!-- Auto-incrémente le patch en comptant les commits git, écrit la version dans un fichier C# généré -->
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile">
 		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
 		</Exec>
 		<PropertyGroup Condition="'$(_GitCommitCount)' != ''">
-			<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).$(_GitCommitCount.Trim())</ApplicationDisplayVersion>
-			<ApplicationVersion>$(_GitCommitCount.Trim())</ApplicationVersion>
+			<_AppPatch>$(_GitCommitCount.Trim())</_AppPatch>
 		</PropertyGroup>
-		<Message Text="Version: $(ApplicationDisplayVersion)" Importance="high" />
+		<PropertyGroup Condition="'$(_AppPatch)' == ''">
+			<_AppPatch>0</_AppPatch>
+		</PropertyGroup>
+		<WriteLinesToFile
+			File="$(MSBuildProjectDirectory)/BuildInfo.g.cs"
+			Lines="// &lt;auto-generated/&gt;%0Anamespace DmToolsApp%3B%0Apublic static class BuildInfo { public const string Version = %22$(AppVersionMajor).$(AppVersionMinor).$(_AppPatch)%22%3B }"
+			Overwrite="true" />
+		<Message Text="Version: $(AppVersionMajor).$(AppVersionMinor).$(_AppPatch)" Importance="high" />
 	</Target>
 
 </Project>

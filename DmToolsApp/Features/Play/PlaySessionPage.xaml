@@ -9,7 +9,6 @@
 
     <Shell.TitleView>
         <Label Text="{Binding Campaign.Title}"
-               FontFamily="{DynamicResource AppFontFamily}"
                FontSize="18" FontAttributes="Bold"
                VerticalOptions="Center"
                TextColor="{DynamicResource AppTextPrimary}"/>
