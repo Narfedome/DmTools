@@ -4,9 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DmToolsApp.Features.Library
 {
@@ -18,7 +15,7 @@ namespace DmToolsApp.Features.Library
         private readonly FileService _trackFileService;
 
 
-        public DmToolsApp.Services.LocalizationService Loc => DmToolsApp.Services.LocalizationService.Instance;
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public LibraryTrackEditViewModel(AudioPlayerService audioPlayerService, ILibraryDataService libraryDataService,
                                         FileService trackFileService)
@@ -43,7 +40,7 @@ namespace DmToolsApp.Features.Library
            value is Track item)
             {
                 Item = item;
-                var loc = DmToolsApp.Services.LocalizationService.Instance;
+                var loc = LocalizationService.Instance;
                 Title = Item.Id != 0 ? loc["TrackEditTitle"] : loc["TrackCreateTitle"];
 
             }
@@ -58,17 +55,7 @@ namespace DmToolsApp.Features.Library
         {
             try
             {
-                var result = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["TrackSelectFile"],
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            { DevicePlatform.iOS, new[] { "public.audio" } },
-                            { DevicePlatform.Android, new[] { "audio/*" } },
-                            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
-                            { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
-                        })
-                });
+                var result = await _trackFileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
 
                 if (result != null)
                 {
@@ -78,11 +65,10 @@ namespace DmToolsApp.Features.Library
                     Item.Duration = tagfile.Properties.Duration;
                     ImportedFilePath = result.FullPath;
                 }
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
             }
         }
 

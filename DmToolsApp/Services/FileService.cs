@@ -1,9 +1,4 @@
-﻿using DmToolsApp.Models.Library;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DmToolsApp.Services
+﻿namespace DmToolsApp.Services
 {
     public class FileService
     {
@@ -52,6 +47,21 @@ namespace DmToolsApp.Services
                 throw new FileNotFoundException("Le fichier source est introuvable", filePath);
 
             File.Delete(filePath);
-        }   
+        }
+
+        public async Task<FileResult?> PickAudioFileAsync(string pickerTitle)
+        {
+            return await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = pickerTitle,
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.iOS, new[] { "public.audio" } },
+                    { DevicePlatform.Android, new[] { "audio/*" } },
+                    { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
+                    { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
+                })
+            });
+        }
     }
 }

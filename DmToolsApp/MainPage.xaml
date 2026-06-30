@@ -1,45 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:DmToolsApp.Features.Play"
-             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
-             xmlns:models="clr-namespace:DmToolsApp.Models"
-             x:Class="DmToolsApp.MainPage"
-             x:DataType="local:PlayCampaignViewModel"
-             Title="{loc:Loc MainTitle}">
-
-    <Grid Padding="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Label Grid.Row="0" Text="{loc:Loc MainChooseCampaign}" FontSize="20" Margin="0,0,0,16"/>
-
-        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                           VerticalOptions="Center" HorizontalOptions="Center"
-                           WidthRequest="80" HeightRequest="80"/>
-
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Campaigns}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Campaign">
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10" Stroke="Grey">
-                        <Grid ColumnDefinitions="*,auto">
-                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="18" VerticalOptions="Center"/>
-                            <Label Grid.Column="1"
-                                   Text="{loc:Loc BtnPlay}"
-                                   FontSize="14" VerticalOptions="Center"
-                                   TextColor="LightSkyBlue" Margin="8,0,0,0">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:PlayCampaignViewModel}}, Path=PlayCommand}"
-                                        CommandParameter="{Binding .}"/>
-                                </Label.GestureRecognizers>
-                            </Label>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </Grid>
+             x:Class="DmToolsApp.MainPage">
 </ContentPage>

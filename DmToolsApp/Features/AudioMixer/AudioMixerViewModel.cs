@@ -13,10 +13,11 @@ namespace DmToolsApp.Features.AudioMixer
 {
     public partial class AudioMixerViewModel : ObservableObject
     {
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
+        public LocalizationService Loc => LocalizationService.Instance;
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
+        private readonly FileService _fileService;
 
         private Scene? _activeScene;
         private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
@@ -24,11 +25,13 @@ namespace DmToolsApp.Features.AudioMixer
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
             ILibraryPickerService pickerService,
-            ISceneDataService sceneDataService)
+            ISceneDataService sceneDataService,
+            FileService fileService)
         {
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
+            _fileService = fileService;
         }
 
         // ── Channels ──────────────────────────────────────────────
@@ -39,7 +42,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = (LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -79,7 +82,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             channel.Pause();
 
-            var loc = Services.LocalizationService.Instance;
+            var loc = LocalizationService.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
                 loc["DialogDelete"],
                 string.Format(loc["DialogRemoveChannel"], channel.DisplayTrackName),
@@ -105,17 +108,7 @@ namespace DmToolsApp.Features.AudioMixer
             try
             {
                 if (channel == null) return;
-                var result = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = Services.LocalizationService.Instance["TrackSelectFile"],
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            { DevicePlatform.iOS, new[] { "public.audio" } },
-                            { DevicePlatform.Android, new[] { "audio/*" } },
-                            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
-                            { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
-                        })
-                });
+                var result = await _fileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
 
                 if (result != null)
                 {
@@ -127,7 +120,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
             }
         }
 
@@ -139,24 +132,20 @@ namespace DmToolsApp.Features.AudioMixer
                 if (channel == null) return;
                 var selectedLibraryItem = await _pickerService.PickTrackAsync();
 
-                if (selectedLibraryItem is null)
+                if (selectedLibraryItem is not Track selectedTrack || !File.Exists(selectedTrack.FilePath))
                     return;
 
-                Track selectedTrack = (Track)selectedLibraryItem;
-                if (File.Exists(selectedTrack.FilePath))
-                {
-                    var stream = File.OpenRead(selectedTrack.FilePath);
-                    channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                    channel.Track = selectedTrack;
-                    channel.DisplayTrackName = selectedTrack.Title;
-                    channel.TogglePlay();
+                var stream = File.OpenRead(selectedTrack.FilePath);
+                channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                channel.Track = selectedTrack;
+                channel.DisplayTrackName = selectedTrack.Title;
+                channel.TogglePlay();
 
-                    await SaveChannelAsSceneTrack(channel);
-                }
+                await SaveChannelAsSceneTrack(channel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
             }
         }
 

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
@@ -11,6 +12,16 @@ namespace DmToolsApp.Features.Settings
 
         public LocalizationService Loc => _loc;
         public string AppVersion => BuildInfo.Version;
+
+        [ObservableProperty] private bool isBusy;
+
+        [RelayCommand]
+        public async Task TestLoading()
+        {
+            IsBusy = true;
+            await Task.Delay(3000);
+            IsBusy = false;
+        }
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 

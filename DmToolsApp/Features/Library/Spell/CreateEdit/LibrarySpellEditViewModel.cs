@@ -4,9 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DmToolsApp.Features.Library
 {
@@ -16,7 +13,7 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
 
-        public DmToolsApp.Services.LocalizationService Loc => DmToolsApp.Services.LocalizationService.Instance;
+        public LocalizationService Loc => LocalizationService.Instance;
 
         public LibrarySpellEditViewModel(ILibraryDataService libraryDataService,
                                         FileService fileService)
@@ -42,26 +39,15 @@ namespace DmToolsApp.Features.Library
         {
             try
             {
-                var result = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = DmToolsApp.Services.LocalizationService.Instance["TrackSelectFile"],
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            { DevicePlatform.iOS, new[] { "public.audio" } },
-                            { DevicePlatform.Android, new[] { "audio/*" } },
-                            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
-                            { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
-                        })
-                });
+                var result = await _fileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
 
                 if (result != null)
                 {
                 }
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
             }
         }
 

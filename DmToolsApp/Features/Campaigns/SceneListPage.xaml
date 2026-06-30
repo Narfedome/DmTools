@@ -64,7 +64,7 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=LaunchCommand}"
                                         CommandParameter="{Binding .}"/>
                                 </Grid.GestureRecognizers>
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=Loc.BtnLaunch}"
+                                <Label Text="{loc:Loc BtnLaunch}"
                                        FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
                                        TextColor="{DynamicResource AppAccent}"/>
                             </Grid>

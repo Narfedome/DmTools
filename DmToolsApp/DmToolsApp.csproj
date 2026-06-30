@@ -138,12 +138,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Data\Repositories\" />
-	  <Folder Include="Features\CharacterTool\" />
-	  <Folder Include="Selectors\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <Compile Update="Components\TrackButton\TrackButtonView.xaml.cs">
 	    <DependentUpon>TrackButtonView.xaml</DependentUpon>
 	  </Compile>

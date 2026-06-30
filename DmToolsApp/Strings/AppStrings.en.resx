@@ -107,6 +107,9 @@
   <data name="OnboardingFont"     xml:space="preserve"><value>Font</value></data>
   <data name="OnboardingStart"    xml:space="preserve"><value>Get started</value></data>
 
+  <!-- Errors -->
+  <data name="ErrorTitle" xml:space="preserve"><value>Error</value></data>
+
   <!-- Dialogs -->
   <data name="PromptName"              xml:space="preserve"><value>Name:</value></data>
   <data name="DialogRename"            xml:space="preserve"><value>Rename</value></data>
