@@ -5,5 +5,13 @@
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
              x:DataType="local:LibrarySpellViewModel">
+
+    <Shell.TitleView>
+        <Label Text="{Binding Loc.TabLibrary}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
     <views:LibrarySpellView IsCrud="True" />
 </ContentPage>

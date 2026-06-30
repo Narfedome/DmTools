@@ -26,8 +26,8 @@
         <Tab x:Name="LibraryTab"
              Title="Bibliothèque"
              Icon="{extensions:FaIcon Glyph={x:Static icons:SolidFont.BookOpen}}">
-            <ShellContent x:Name="TracksContent" Title="Pistes" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
-            <ShellContent x:Name="SpellsContent" Title="Sorts" ContentTemplate="{DataTemplate library:LibrarySpellPage}" />
+            <ShellContent x:Name="TracksContent" Title="{Binding Loc.TabLibrary}" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
+            <ShellContent x:Name="SpellsContent" Title="{Binding Loc.TabLibrary}" ContentTemplate="{DataTemplate library:LibrarySpellPage}" />
             <ShellContent Route="LibrarySpellEditPage" ContentTemplate="{DataTemplate library:LibrarySpellEditPage}" IsVisible="False" />
             <ShellContent Route="LibraryTrackEditPage" ContentTemplate="{DataTemplate library:LibraryTrackEditPage}" IsVisible="False" />
         </Tab>

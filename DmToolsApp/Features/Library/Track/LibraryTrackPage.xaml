@@ -5,5 +5,13 @@
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
              x:DataType="local:LibraryTrackViewModel">
+
+    <Shell.TitleView>
+        <Label Text="{Binding Loc.TabLibrary}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
     <views:LibraryTrackView IsCrud="True" />
 </ContentPage>

@@ -13,7 +13,10 @@ namespace DmToolsApp.Features.Onboarding
 
         public LocalizationService Loc => _loc;
 
-        public ObservableCollection<string> Languages { get; } = new() { "fr", "en" };
+        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
+
+        public string SelectedLanguageLabel =>
+            LocalizationService.SupportedLanguages.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage;
 
         [ObservableProperty]
         private string selectedLanguage;
@@ -31,6 +34,7 @@ namespace DmToolsApp.Features.Onboarding
         partial void OnSelectedLanguageChanged(string value)
         {
             if (value != null) _loc.Language = value;
+            OnPropertyChanged(nameof(SelectedLanguageLabel));
         }
 
         partial void OnSelectedPaletteChanged(AppPalette value)

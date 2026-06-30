@@ -25,11 +25,13 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Picker Grid.Column="0"
-                        Title="{Binding Loc.MixerChapter}"
-                        ItemsSource="{Binding Sessions}"
-                        SelectedItem="{Binding SelectedSession}"
-                        ItemDisplayBinding="{Binding Title}" />
+                <Button Grid.Column="0"
+                        Text="{Binding SelectedSessionLabel}"
+                        Clicked="OnSessionClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource AppAccent}"
+                        FontSize="14"
+                        Padding="8,4"/>
 
                 <components:FaIconButtonView Grid.Column="1"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
@@ -37,11 +39,13 @@
                         IsEnabled="{Binding CanGoPrevScene}"
                         Tooltip="{Binding Loc.MixerPrevScene}" />
 
-                <Picker Grid.Column="2"
-                        Title="{Binding Loc.MixerScene}"
-                        ItemsSource="{Binding Scenes}"
-                        SelectedItem="{Binding SelectedScene}"
-                        ItemDisplayBinding="{Binding Title}" />
+                <Button Grid.Column="2"
+                        Text="{Binding SelectedSceneLabel}"
+                        Clicked="OnSceneClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource AppAccent}"
+                        FontSize="14"
+                        Padding="8,4"/>
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"

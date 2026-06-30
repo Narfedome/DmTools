@@ -6,7 +6,11 @@ namespace DmToolsApp.Services
 {
     public class LocalizationService : INotifyPropertyChanged
     {
-        public static readonly LocalizationService Instance = new();
+        public static readonly Dictionary<string, string> SupportedLanguages = new()
+        {
+            { "fr", "Français" },
+            { "en", "English" },
+        };
 
         private static readonly ResourceManager _rm = new(
             "DmToolsApp.Strings.AppStrings",
@@ -14,9 +18,13 @@ namespace DmToolsApp.Services
 
         private CultureInfo _culture;
 
+        public static readonly LocalizationService Instance = new();
+
         private LocalizationService()
         {
-            _culture = new CultureInfo(Preferences.Default.Get("app_lang", "fr"));
+            var deviceLang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+            var defaultLang = SupportedLanguages.ContainsKey(deviceLang) ? deviceLang : "fr";
+            _culture = new CultureInfo(Preferences.Default.Get("app_lang", defaultLang));
         }
 
         public string this[string key] => _rm.GetString(key, _culture) ?? key;

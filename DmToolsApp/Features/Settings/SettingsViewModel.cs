@@ -12,11 +12,16 @@ namespace DmToolsApp.Features.Settings
         public LocalizationService Loc => _loc;
         public string AppVersion => BuildInfo.Version;
 
-        public ObservableCollection<string> Languages { get; } = new() { "fr", "en" };
+        public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
+
+        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
         public ObservableCollection<string> ThemeOptions { get; } = new();
 
         [ObservableProperty]
         private string selectedLanguage;
+
+        public string SelectedLanguageLabel =>
+            LanguageLabels.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage;
 
         [ObservableProperty]
         private AppPalette selectedPalette;
@@ -55,6 +60,7 @@ namespace DmToolsApp.Features.Settings
         partial void OnSelectedLanguageChanged(string value)
         {
             if (value != null) _loc.Language = value;
+            OnPropertyChanged(nameof(SelectedLanguageLabel));
         }
 
         partial void OnSelectedPaletteChanged(AppPalette value)

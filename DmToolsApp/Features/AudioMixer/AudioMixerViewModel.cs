@@ -254,10 +254,14 @@ namespace DmToolsApp.Features.AudioMixer
         public bool CanGoPrevScene => SceneIndex > 1;
         public bool CanGoNextScene => SceneIndex < SceneCount;
 
+        public string SelectedSessionLabel => SelectedSession?.Title ?? Loc.MixerChapter;
+        public string SelectedSceneLabel   => SelectedScene?.Title   ?? Loc.MixerScene;
+
         private bool _suppressHandlers;
 
         partial void OnSelectedSessionChanged(Session? value)
         {
+            OnPropertyChanged(nameof(SelectedSessionLabel));
             if (_suppressHandlers) return;
             SelectedScene = null;
             Scenes.Clear();
@@ -267,6 +271,7 @@ namespace DmToolsApp.Features.AudioMixer
 
         partial void OnSelectedSceneChanged(Scene? value)
         {
+            OnPropertyChanged(nameof(SelectedSceneLabel));
             if (_suppressHandlers) return;
             SceneIndex = value != null ? Scenes.IndexOf(value) + 1 : 0;
             OnPropertyChanged(nameof(CanGoPrevScene));
