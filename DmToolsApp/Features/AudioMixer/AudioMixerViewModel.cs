@@ -11,9 +11,8 @@ using System.ComponentModel;
 
 namespace DmToolsApp.Features.AudioMixer
 {
-    public partial class AudioMixerViewModel : ObservableObject
+    public partial class AudioMixerViewModel : BaseViewModel
     {
-        public LocalizationService Loc => LocalizationService.Instance;
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;

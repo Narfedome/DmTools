@@ -7,26 +7,23 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Campaigns
 {
-    public partial class SessionListViewModel : ObservableObject, IQueryAttributable
+    public partial class SessionListViewModel : BaseViewModel, IQueryAttributable
     {
         private readonly ISceneDataService _sceneDataService;
-        private readonly LocalizationService _loc = LocalizationService.Instance;
-        public LocalizationService Loc => _loc;
 
         public SessionListViewModel(ISceneDataService sceneDataService)
         {
             _sceneDataService = sceneDataService;
-            _loc.LanguageChanged += () => OnPropertyChanged(nameof(PageTitle));
+            Loc.LanguageChanged += () => OnPropertyChanged(nameof(PageTitle));
         }
 
         [ObservableProperty] private Campaign? campaign;
         [ObservableProperty] private ObservableCollection<Session> sessions = new();
         [ObservableProperty] private Session? selectedSession;
-        [ObservableProperty] private bool isBusy;
 
         public string PageTitle => Campaign != null
-            ? $"{_loc["NavCampaign"]} · {Campaign.Title}"
-            : _loc["ChaptersHeader"];
+            ? $"{Loc["NavCampaign"]} · {Campaign.Title}"
+            : Loc["ChaptersHeader"];
 
         partial void OnCampaignChanged(Campaign? value) => OnPropertyChanged(nameof(PageTitle));
 
@@ -42,20 +39,18 @@ namespace DmToolsApp.Features.Campaigns
         private async Task LoadAsync()
         {
             if (Campaign == null) return;
-            IsBusy = true;
-            try
+            await Loading.RunAsync(async () =>
             {
                 var list = await _sceneDataService.GetSessionsAsync(Campaign.Id);
                 Sessions = new ObservableCollection<Session>(list);
-            }
-            finally { IsBusy = false; }
+            });
         }
 
         [RelayCommand]
         public async Task Create()
         {
             if (Campaign == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogNewChapter"], _loc["PromptName"]);
+            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogNewChapter"], Loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var session = new Session { CampaignId = Campaign.Id, Title = name.CapitalizeFirst() };
@@ -67,7 +62,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedSession == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogRename"], _loc["PromptName"], initialValue: SelectedSession.Title);
+            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedSession.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedSession.Title = name.CapitalizeFirst();
@@ -79,10 +74,10 @@ namespace DmToolsApp.Features.Campaigns
         {
             if (SelectedSession == null) return;
             bool ok = await Shell.Current.DisplayAlertAsync(
-                _loc["DialogDelete"],
-                string.Format(_loc["DialogDeleteConfirm"], SelectedSession.Title),
-                _loc["DialogYes"],
-                _loc["DialogNo"]);
+                Loc["DialogDelete"],
+                string.Format(Loc["DialogDeleteConfirm"], SelectedSession.Title),
+                Loc["DialogYes"],
+                Loc["DialogNo"]);
             if (!ok) return;
 
             await _sceneDataService.DeleteSessionAsync(SelectedSession);

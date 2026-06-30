@@ -7,9 +7,8 @@ using Plugin.Maui.Audio;
 
 namespace DmToolsApp.Components
 {
-    public partial class ChannelStripViewModel : ObservableObject
+    public partial class ChannelStripViewModel : BaseViewModel
     {
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
         private static readonly TimeSpan FadeDuration = TimeSpan.FromMilliseconds(1500);
         private static readonly int FadeSteps = 30;
 

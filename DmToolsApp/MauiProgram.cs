@@ -38,6 +38,7 @@ namespace DmToolsApp
             builder.AddAudio();
             builder.Services.AddSingleton(
                 new AppDatabase(dbPath)); 
+            builder.Services.AddSingleton<LoadingService>();
             builder.Services.AddSingleton<AudioPlayerService>();
             builder.Services.AddSingleton<AudioMixerService>();
             builder.Services.AddSingleton<FileService>();

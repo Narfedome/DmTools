@@ -20,9 +20,11 @@
             <Label Text="{loc:Loc TracksHeader}" FontSize="20" HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
-        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}"
+
+        <ActivityIndicator Grid.Row="1" IsRunning="{Binding Loading.IsLoading}"
+                           IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
-                           WidthRequest="80" HeightRequest="80" />
+                           WidthRequest="80" HeightRequest="80"/>
 
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding SceneTracks}"

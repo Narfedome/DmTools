@@ -6,11 +6,10 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Campaigns
 {
-    public partial class SceneTracksViewModel : ObservableObject, IQueryAttributable
+    public partial class SceneTracksViewModel : BaseViewModel, IQueryAttributable
     {
         private readonly ISceneDataService _sceneDataService;
         private readonly ILibraryPickerService _pickerService;
-        public Services.LocalizationService Loc => Services.LocalizationService.Instance;
 
         public SceneTracksViewModel(ISceneDataService sceneDataService, ILibraryPickerService pickerService)
         {
@@ -21,7 +20,6 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private Scene? scene;
         [ObservableProperty] private ObservableCollection<SceneTrack> sceneTracks = new();
         [ObservableProperty] private SceneTrack? selectedTrack;
-        [ObservableProperty] private bool isBusy;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -35,13 +33,11 @@ namespace DmToolsApp.Features.Campaigns
         private async Task LoadAsync()
         {
             if (Scene == null) return;
-            IsBusy = true;
-            try
+            await Loading.RunAsync(async () =>
             {
                 var list = await _sceneDataService.GetSceneTracksAsync(Scene.Id);
                 SceneTracks = new ObservableCollection<SceneTrack>(list);
-            }
-            finally { IsBusy = false; }
+            });
         }
 
         [RelayCommand]

@@ -5,13 +5,10 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Onboarding
 {
-    public partial class OnboardingViewModel : ObservableObject
+    public partial class OnboardingViewModel : BaseViewModel
     {
-        private readonly LocalizationService _loc = LocalizationService.Instance;
         private readonly ThemeService _theme = ThemeService.Instance;
         private readonly AppShell _shell;
-
-        public LocalizationService Loc => _loc;
 
         public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
 
@@ -27,13 +24,13 @@ namespace DmToolsApp.Features.Onboarding
         public OnboardingViewModel(AppShell shell)
         {
             _shell = shell;
-            selectedLanguage = _loc.Language;
+            selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
         }
 
         partial void OnSelectedLanguageChanged(string value)
         {
-            if (value != null) _loc.Language = value;
+            if (value != null) Loc.Language = value;
             OnPropertyChanged(nameof(SelectedLanguageLabel));
         }
 

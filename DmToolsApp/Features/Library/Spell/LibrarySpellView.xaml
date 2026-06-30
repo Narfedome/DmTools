@@ -14,7 +14,10 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <ActivityIndicator IsRunning="{Binding IsBusy}" VerticalOptions="Center"  HorizontalOptions="Center" WidthRequest="120" HeightRequest="120" />
+        <ActivityIndicator IsRunning="{Binding Loading.IsLoading}" IsVisible="{Binding Loading.IsLoading}"
+                           VerticalOptions="Center" HorizontalOptions="Center"
+                           WidthRequest="120" HeightRequest="120"/>
+
         <CollectionView
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding SpellItems}"

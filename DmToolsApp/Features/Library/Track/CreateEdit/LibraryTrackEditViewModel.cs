@@ -8,14 +8,12 @@ using DmToolsApp.Services;
 namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackEditViewModel
-    : ObservableObject, IQueryAttributable
+    : BaseViewModel, IQueryAttributable
     {
         private readonly AudioPlayerService _audioPlayerService;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _trackFileService;
 
-
-        public LocalizationService Loc => LocalizationService.Instance;
 
         public LibraryTrackEditViewModel(AudioPlayerService audioPlayerService, ILibraryDataService libraryDataService,
                                         FileService trackFileService)

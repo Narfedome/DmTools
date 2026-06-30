@@ -5,22 +5,18 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Settings
 {
-    public partial class SettingsViewModel : ObservableObject
+    public partial class SettingsViewModel : BaseViewModel
     {
-        private readonly LocalizationService _loc = LocalizationService.Instance;
         private readonly ThemeService _theme = ThemeService.Instance;
 
-        public LocalizationService Loc => _loc;
         public string AppVersion => BuildInfo.Version;
-
-        [ObservableProperty] private bool isBusy;
 
         [RelayCommand]
         public async Task TestLoading()
         {
-            IsBusy = true;
+            Loading.Show();
             await Task.Delay(3000);
-            IsBusy = false;
+            Loading.Hide();
         }
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
@@ -42,19 +38,19 @@ namespace DmToolsApp.Features.Settings
 
         public SettingsViewModel()
         {
-            selectedLanguage = _loc.Language;
+            selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
             RebuildThemeOptions();
             selectedThemeOption = ThemeOptions[(int)_theme.ThemePreference];
 
-            _loc.LanguageChanged += RebuildThemeOptions;
+            Loc.LanguageChanged += RebuildThemeOptions;
         }
 
         private void RebuildThemeOptions()
         {
             var current = _theme.ThemePreference;
 
-            string[] labels = [_loc["SettingsThemeSystem"], _loc["SettingsThemeLight"], _loc["SettingsThemeDark"]];
+            string[] labels = [Loc["SettingsThemeSystem"], Loc["SettingsThemeLight"], Loc["SettingsThemeDark"]];
             for (int i = 0; i < labels.Length; i++)
             {
                 if (i < ThemeOptions.Count) ThemeOptions[i] = labels[i];
@@ -70,7 +66,7 @@ namespace DmToolsApp.Features.Settings
 
         partial void OnSelectedLanguageChanged(string value)
         {
-            if (value != null) _loc.Language = value;
+            if (value != null) Loc.Language = value;
             OnPropertyChanged(nameof(SelectedLanguageLabel));
         }
 

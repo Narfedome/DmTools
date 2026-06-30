@@ -7,11 +7,9 @@ using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Campaigns
 {
-    public partial class CampaignViewModel : ObservableObject
+    public partial class CampaignViewModel : BaseViewModel
     {
         private readonly ISceneDataService _sceneDataService;
-        private readonly LocalizationService _loc = LocalizationService.Instance;
-        public LocalizationService Loc => _loc;
 
         public CampaignViewModel(ISceneDataService sceneDataService)
         {
@@ -20,23 +18,20 @@ namespace DmToolsApp.Features.Campaigns
 
         [ObservableProperty] private ObservableCollection<Campaign> campaigns = new();
         [ObservableProperty] private Campaign? selectedCampaign;
-        [ObservableProperty] private bool isBusy;
 
         public async Task InitializeAsync()
         {
-            IsBusy = true;
-            try
+            await Loading.RunAsync(async () =>
             {
                 var list = await _sceneDataService.GetCampaignsAsync();
                 Campaigns = new ObservableCollection<Campaign>(list);
-            }
-            finally { IsBusy = false; }
+            });
         }
 
         [RelayCommand]
         public async Task Create()
         {
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogNewCampaign"], _loc["PromptName"]);
+            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogNewCampaign"], Loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var campaign = new Campaign { Title = name.CapitalizeFirst() };
@@ -48,7 +43,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedCampaign == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogRename"], _loc["PromptName"], initialValue: SelectedCampaign.Title);
+            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedCampaign.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedCampaign.Title = name.CapitalizeFirst();
@@ -60,10 +55,10 @@ namespace DmToolsApp.Features.Campaigns
         {
             if (SelectedCampaign == null) return;
             bool ok = await Shell.Current.DisplayAlertAsync(
-                _loc["DialogDelete"],
-                string.Format(_loc["DialogDeleteConfirm"], SelectedCampaign.Title),
-                _loc["DialogYes"],
-                _loc["DialogNo"]);
+                Loc["DialogDelete"],
+                string.Format(Loc["DialogDeleteConfirm"], SelectedCampaign.Title),
+                Loc["DialogYes"],
+                Loc["DialogNo"]);
             if (!ok) return;
 
             await _sceneDataService.DeleteCampaignAsync(SelectedCampaign);

@@ -8,12 +8,10 @@ using DmToolsApp.Services;
 namespace DmToolsApp.Features.Library
 {
     public partial class LibrarySpellEditViewModel
-    : ObservableObject, IQueryAttributable
+    : BaseViewModel, IQueryAttributable
     {
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
-
-        public LocalizationService Loc => LocalizationService.Instance;
 
         public LibrarySpellEditViewModel(ILibraryDataService libraryDataService,
                                         FileService fileService)

@@ -28,8 +28,9 @@
             <Label Text="{loc:Loc ScenesHeader}" FontSize="20"/>
         </VerticalStackLayout>
 
-        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
-                           IsVisible="{Binding IsBusy}"
+
+        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
+                           IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 

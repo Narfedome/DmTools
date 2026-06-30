@@ -83,9 +83,6 @@
                 </Grid>
             </Border>
 
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center" WidthRequest="60" HeightRequest="60"/>
-
             <!-- Buy Me a Coffee -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
