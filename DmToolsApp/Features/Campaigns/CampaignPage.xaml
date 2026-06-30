@@ -6,8 +6,15 @@
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.CampaignPage"
-             x:DataType="local:CampaignViewModel"
-             Title="{Binding Loc.TabCampaigns}">
+             x:DataType="local:CampaignViewModel">
+
+    <Shell.TitleView>
+        <Label Text="{Binding Loc.CampaignsHeader}"
+               FontFamily="{DynamicResource AppFontFamily}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
 
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
@@ -16,7 +23,6 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Text="{Binding Loc.CampaignsHeader}" FontSize="20" Margin="0,0,0,8"/>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
                            IsVisible="{Binding IsBusy}"

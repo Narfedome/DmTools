@@ -7,6 +7,14 @@
              x:DataType="local:PlaySceneViewModel"
              Title="{Binding Session.Title}">
 
+    <Shell.TitleView>
+        <Label Text="{Binding Session.Title}"
+               FontFamily="{DynamicResource AppFontFamily}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
     <Grid Padding="10">
         <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
                            VerticalOptions="Center" HorizontalOptions="Center"

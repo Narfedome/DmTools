@@ -9,6 +9,14 @@
              x:DataType="local:SessionListViewModel"
              Title="{Binding PageTitle}">
 
+    <Shell.TitleView>
+        <Label Text="{Binding PageTitle}"
+               FontFamily="{DynamicResource AppFontFamily}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>

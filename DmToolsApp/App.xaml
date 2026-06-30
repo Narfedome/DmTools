@@ -6,6 +6,7 @@
              x:Class="DmToolsApp.App">
     <Application.Resources>
         <ResourceDictionary>
+            <x:String x:Key="AppFontFamily">OpenSansRegular</x:String>
             <converters:BoolToPlayPauseConverter x:Key="BoolToPlayPauseConverter"/>
             <converters:BoolToTooltipPlayPauseConverter x:Key="BoolToTooltipPlayPauseConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />

@@ -95,12 +95,16 @@
   <data name="SettingsSupportTitle"  xml:space="preserve"><value>Support the project</value></data>
   <data name="SettingsSupportDesc"   xml:space="preserve"><value>Buy me a coffee ☕</value></data>
   <data name="SettingsVersion"       xml:space="preserve"><value>Version</value></data>
+  <data name="SettingsFont"          xml:space="preserve"><value>Font</value></data>
+  <data name="SettingsFontDefault"   xml:space="preserve"><value>Classic</value></data>
+  <data name="SettingsFontPirata"    xml:space="preserve"><value>Pirata One</value></data>
 
   <!-- Onboarding -->
   <data name="OnboardingTitle"    xml:space="preserve"><value>Welcome to DmTools</value></data>
   <data name="OnboardingDesc"     xml:space="preserve"><value>Your digital assistant for game masters. Manage your campaigns, control your soundscapes, and look up your spells — all from a clean, themed interface.</value></data>
   <data name="OnboardingPalette"  xml:space="preserve"><value>Choose your palette</value></data>
   <data name="OnboardingLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="OnboardingFont"     xml:space="preserve"><value>Font</value></data>
   <data name="OnboardingStart"    xml:space="preserve"><value>Get started</value></data>
 
   <!-- Dialogs -->

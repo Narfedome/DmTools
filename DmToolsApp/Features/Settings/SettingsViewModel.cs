@@ -8,6 +8,7 @@ namespace DmToolsApp.Features.Settings
     {
         private readonly LocalizationService _loc = LocalizationService.Instance;
         private readonly ThemeService _theme = ThemeService.Instance;
+        private readonly FontService _font = FontService.Instance;
 
         public LocalizationService Loc => _loc;
         public string AppVersion => AppInfo.VersionString;
@@ -15,6 +16,7 @@ namespace DmToolsApp.Features.Settings
         public ObservableCollection<string> Languages { get; } = new() { "fr", "en" };
 
         public ObservableCollection<string> ThemeOptions { get; } = new();
+        public ObservableCollection<string> FontOptions  { get; } = new();
 
         [ObservableProperty]
         private string selectedLanguage;
@@ -25,14 +27,20 @@ namespace DmToolsApp.Features.Settings
         [ObservableProperty]
         private string selectedThemeOption;
 
+        [ObservableProperty]
+        private string selectedFontOption;
+
         public SettingsViewModel()
         {
             selectedLanguage = _loc.Language;
             selectedPalette  = _theme.Palette;
             RebuildThemeOptions();
             selectedThemeOption = ThemeOptions[(int)_theme.ThemePreference];
+            RebuildFontOptions();
+            selectedFontOption = FontOptions[(int)_font.Font];
 
             _loc.LanguageChanged += RebuildThemeOptions;
+            _loc.LanguageChanged += RebuildFontOptions;
         }
 
         private void RebuildThemeOptions()
@@ -54,6 +62,24 @@ namespace DmToolsApp.Features.Settings
         }
 
         private bool _rebuildingOptions;
+
+        private void RebuildFontOptions()
+        {
+            string[] labels = [_loc.SettingsFontDefault, _loc.SettingsFontPirata];
+            for (int i = 0; i < labels.Length; i++)
+            {
+                if (i < FontOptions.Count) FontOptions[i] = labels[i];
+                else FontOptions.Add(labels[i]);
+            }
+            SelectedFontOption = FontOptions[(int)_font.Font];
+        }
+
+        partial void OnSelectedFontOptionChanged(string value)
+        {
+            if (value is null) return;
+            int idx = FontOptions.IndexOf(value);
+            if (idx >= 0) _font.Font = (AppFont)idx;
+        }
 
         partial void OnSelectedLanguageChanged(string value)
         {

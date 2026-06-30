@@ -102,10 +102,14 @@ namespace DmToolsApp.Services
         public string SettingsSupportTitle  => this["SettingsSupportTitle"];
         public string SettingsSupportDesc   => this["SettingsSupportDesc"];
         public string SettingsVersion       => this["SettingsVersion"];
+        public string SettingsFont          => this["SettingsFont"];
+        public string SettingsFontDefault   => this["SettingsFontDefault"];
+        public string SettingsFontPirata    => this["SettingsFontPirata"];
         public string OnboardingTitle       => this["OnboardingTitle"];
         public string OnboardingDesc        => this["OnboardingDesc"];
         public string OnboardingPalette     => this["OnboardingPalette"];
         public string OnboardingLanguage    => this["OnboardingLanguage"];
+        public string OnboardingFont        => this["OnboardingFont"];
         public string OnboardingStart       => this["OnboardingStart"];
         public string PromptName          => this["PromptName"];
         public string DialogRename        => this["DialogRename"];
