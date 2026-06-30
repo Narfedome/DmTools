@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Components.ChannelStripView"
              xmlns:components ="clr-namespace:DmToolsApp.Components"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="50">
     <VerticalStackLayout Spacing="8">
         <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
@@ -11,11 +12,11 @@
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
                                      Command="{Binding FadeOutCommand}"
-                                     Tooltip="{Binding Loc.ChannelFadeOut}"
+                                     Tooltip="{loc:Loc ChannelFadeOut}"
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
                                      Command="{Binding ToggleLoopCommand}"
-                                     Tooltip="{Binding Loc.ChannelLoop}"
+                                     Tooltip="{loc:Loc ChannelLoop}"
                                      Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}"
                                      HorizontalOptions="Center" />
         <Grid HeightRequest="150" WidthRequest="50">

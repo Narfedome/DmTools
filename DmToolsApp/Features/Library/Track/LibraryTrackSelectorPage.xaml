@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibraryTrackSelectorPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
-             Title="{Binding Loc.LibSelect}">
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             Title="{loc:Loc LibSelect}">
     <views:LibraryTrackView IsCrud="False" />
 </ContentPage>

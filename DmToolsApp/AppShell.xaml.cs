@@ -35,12 +35,12 @@ namespace DmToolsApp
 
         private void UpdateTabTitles()
         {
-            CampaignsTab.Title    = _loc.TabCampaigns;
-            AudioMixerTab.Title   = _loc.TabAudiomixer;
-            LibraryTab.Title      = _loc.TabLibrary;
-            TracksContent.Title   = _loc.TabTracks;
-            SpellsContent.Title   = _loc.TabSpells;
-            SettingsTab.Title     = _loc.TabSettings;
+            CampaignsTab.Title    = _loc["TabCampaigns"];
+            AudioMixerTab.Title   = _loc["TabAudiomixer"];
+            LibraryTab.Title      = _loc["TabLibrary"];
+            TracksContent.Title   = _loc["TabTracks"];
+            SpellsContent.Title   = _loc["TabSpells"];
+            SettingsTab.Title     = _loc["TabSettings"];
         }
     }
 }

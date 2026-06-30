@@ -20,8 +20,8 @@ public partial class AudioMixerPage : ContentPage
     {
         if (!_vm.Sessions.Any()) return;
         var titles = _vm.Sessions.Select(s => s.Title).ToArray();
-        var result = await DisplayActionSheet(_vm.Loc.MixerChapter, _vm.Loc.BtnCancel, null, titles);
-        if (result is null || result == _vm.Loc.BtnCancel) return;
+        var result = await DisplayActionSheet(_vm.Loc["MixerChapter"], _vm.Loc["BtnCancel"], null, titles);
+        if (result is null || result == _vm.Loc["BtnCancel"]) return;
         _vm.SelectedSession = _vm.Sessions.First(s => s.Title == result);
     }
 
@@ -29,8 +29,8 @@ public partial class AudioMixerPage : ContentPage
     {
         if (!_vm.Scenes.Any()) return;
         var titles = _vm.Scenes.Select(s => s.Title).ToArray();
-        var result = await DisplayActionSheet(_vm.Loc.MixerScene, _vm.Loc.BtnCancel, null, titles);
-        if (result is null || result == _vm.Loc.BtnCancel) return;
+        var result = await DisplayActionSheet(_vm.Loc["MixerScene"], _vm.Loc["BtnCancel"], null, titles);
+        if (result is null || result == _vm.Loc["BtnCancel"]) return;
         _vm.SelectedScene = _vm.Scenes.First(s => s.Title == result);
     }
 }

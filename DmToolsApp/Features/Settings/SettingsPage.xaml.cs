@@ -15,8 +15,8 @@ namespace DmToolsApp.Features.Settings
         {
             var vm = (SettingsViewModel)BindingContext;
             var options = vm.ThemeOptions.ToArray();
-            var result = await DisplayActionSheet(vm.Loc.SettingsTheme, vm.Loc.BtnCancel, null, options);
-            if (result is null || result == vm.Loc.BtnCancel) return;
+            var result = await DisplayActionSheet(vm.Loc["SettingsTheme"], vm.Loc["BtnCancel"], null, options);
+            if (result is null || result == vm.Loc["BtnCancel"]) return;
             vm.SelectedThemeOption = result;
         }
 
@@ -24,8 +24,8 @@ namespace DmToolsApp.Features.Settings
         {
             var vm = (SettingsViewModel)BindingContext;
             var labels = SettingsViewModel.LanguageLabels.Values.ToArray();
-            var result = await DisplayActionSheet(vm.Loc.SettingsLanguage, vm.Loc.BtnCancel, null, labels);
-            if (result is null || result == vm.Loc.BtnCancel) return;
+            var result = await DisplayActionSheet(vm.Loc["SettingsLanguage"], vm.Loc["BtnCancel"], null, labels);
+            if (result is null || result == vm.Loc["BtnCancel"]) return;
             var code = SettingsViewModel.LanguageLabels.First(kv => kv.Value == result).Key;
             vm.SelectedLanguage = code;
         }

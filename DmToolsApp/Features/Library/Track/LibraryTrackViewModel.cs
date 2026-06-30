@@ -95,10 +95,10 @@ namespace DmToolsApp.Features.Library
 
             var loc = DmToolsApp.Services.LocalizationService.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
-               loc.DialogDelete,
-               string.Format(loc.DialogDeleteTrackConfirm, item.Title),
-               loc.DialogYes,
-               loc.DialogNo);
+               loc["DialogDelete"],
+               string.Format(loc["DialogDeleteTrackConfirm"], item.Title),
+               loc["DialogYes"],
+               loc["DialogNo"]);
 
             if (confirm)
             {

@@ -14,8 +14,8 @@ namespace DmToolsApp.Features.Onboarding
         {
             var vm = (OnboardingViewModel)BindingContext;
             var labels = LocalizationService.SupportedLanguages.Values.ToArray();
-            var result = await DisplayActionSheet(vm.Loc.OnboardingLanguage, vm.Loc.BtnCancel, null, labels);
-            if (result is null || result == vm.Loc.BtnCancel) return;
+            var result = await DisplayActionSheet(vm.Loc["OnboardingLanguage"], vm.Loc["BtnCancel"], null, labels);
+            if (result is null || result == vm.Loc["BtnCancel"]) return;
             var code = LocalizationService.SupportedLanguages.First(kv => kv.Value == result).Key;
             vm.SelectedLanguage = code;
         }

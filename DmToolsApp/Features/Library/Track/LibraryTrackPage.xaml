@@ -4,10 +4,11 @@
              x:Class="DmToolsApp.Features.Library.LibraryTrackPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              x:DataType="local:LibraryTrackViewModel">
 
     <Shell.TitleView>
-        <Label Text="{Binding Loc.TabLibrary}"
+        <Label Text="{loc:Loc TabLibrary}"
                FontSize="18" FontAttributes="Bold"
                VerticalOptions="Center"
                TextColor="{DynamicResource AppTextPrimary}"/>

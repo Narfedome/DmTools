@@ -39,7 +39,7 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task AddChannel()
         {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance.ChannelNew + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
+            var channel = new ChannelStripViewModel() { DisplayTrackName = (Services.LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
         }
 
@@ -81,10 +81,10 @@ namespace DmToolsApp.Features.AudioMixer
 
             var loc = Services.LocalizationService.Instance;
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                loc.DialogDelete,
-                string.Format(loc.DialogRemoveChannel, channel.DisplayTrackName),
-                loc.DialogYes,
-                loc.DialogNo);
+                loc["DialogDelete"],
+                string.Format(loc["DialogRemoveChannel"], channel.DisplayTrackName),
+                loc["DialogYes"],
+                loc["DialogNo"]);
 
             if (!confirm)
             {
@@ -107,7 +107,7 @@ namespace DmToolsApp.Features.AudioMixer
                 if (channel == null) return;
                 var result = await FilePicker.Default.PickAsync(new PickOptions
                 {
-                    PickerTitle = Services.LocalizationService.Instance.TrackSelectFile,
+                    PickerTitle = Services.LocalizationService.Instance["TrackSelectFile"],
                     FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                         {
                             { DevicePlatform.iOS, new[] { "public.audio" } },
@@ -254,8 +254,8 @@ namespace DmToolsApp.Features.AudioMixer
         public bool CanGoPrevScene => SceneIndex > 1;
         public bool CanGoNextScene => SceneIndex < SceneCount;
 
-        public string SelectedSessionLabel => SelectedSession?.Title ?? Loc.MixerChapter;
-        public string SelectedSceneLabel   => SelectedScene?.Title   ?? Loc.MixerScene;
+        public string SelectedSessionLabel => SelectedSession?.Title ?? Loc["MixerChapter"];
+        public string SelectedSceneLabel   => SelectedScene?.Title   ?? Loc["MixerScene"];
 
         private bool _suppressHandlers;
 

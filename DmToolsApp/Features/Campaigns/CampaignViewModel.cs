@@ -36,7 +36,7 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Create()
         {
-            string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogNewCampaign, _loc.PromptName);
+            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogNewCampaign"], _loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var campaign = new Campaign { Title = name.CapitalizeFirst() };
@@ -48,7 +48,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedCampaign == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(_loc.DialogRename, _loc.PromptName, initialValue: SelectedCampaign.Title);
+            string? name = await Shell.Current.DisplayPromptAsync(_loc["DialogRename"], _loc["PromptName"], initialValue: SelectedCampaign.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedCampaign.Title = name.CapitalizeFirst();
@@ -60,10 +60,10 @@ namespace DmToolsApp.Features.Campaigns
         {
             if (SelectedCampaign == null) return;
             bool ok = await Shell.Current.DisplayAlertAsync(
-                _loc.DialogDelete,
-                string.Format(_loc.DialogDeleteConfirm, SelectedCampaign.Title),
-                _loc.DialogYes,
-                _loc.DialogNo);
+                _loc["DialogDelete"],
+                string.Format(_loc["DialogDeleteConfirm"], SelectedCampaign.Title),
+                _loc["DialogYes"],
+                _loc["DialogNo"]);
             if (!ok) return;
 
             await _sceneDataService.DeleteCampaignAsync(SelectedCampaign);

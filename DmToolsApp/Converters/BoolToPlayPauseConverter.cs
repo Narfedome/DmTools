@@ -29,16 +29,16 @@ namespace DmToolsApp.Converters
         {
             var loc = DmToolsApp.Services.LocalizationService.Instance;
             if (value is bool isPlaying)
-                return isPlaying ? loc.ChannelPause : loc.ChannelPlay;
+                return isPlaying ? loc["ChannelPause"] : loc["ChannelPlay"];
 
-            return loc.ChannelPlay;
+            return loc["ChannelPlay"];
         }
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             var loc = DmToolsApp.Services.LocalizationService.Instance;
             if (value is string str)
-                return str.Equals(loc.ChannelPause, StringComparison.OrdinalIgnoreCase);
+                return str.Equals(loc["ChannelPause"], StringComparison.OrdinalIgnoreCase);
 
             return false;
         }

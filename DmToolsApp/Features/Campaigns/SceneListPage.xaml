@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Campaigns.SceneListPage"
              x:DataType="local:SceneListViewModel"
@@ -24,7 +25,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="{Binding Loc.ScenesHeader}" FontSize="20"/>
+            <Label Text="{loc:Loc ScenesHeader}" FontSize="20"/>
         </VerticalStackLayout>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding IsBusy}"
@@ -76,14 +77,14 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{Binding Loc.BtnNewScene}"/>
+                                         Tooltip="{loc:Loc BtnNewScene}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
-                                         Tooltip="{Binding Loc.BtnRename}"
+                                         Tooltip="{loc:Loc BtnRename}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
-                                         Tooltip="{Binding Loc.BtnDelete}"
+                                         Tooltip="{loc:Loc BtnDelete}"
                                          IsEnabled="{Binding SelectedScene, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

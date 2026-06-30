@@ -43,7 +43,7 @@ namespace DmToolsApp.Features.Settings
         {
             var current = _theme.ThemePreference;
 
-            string[] labels = [_loc.SettingsThemeSystem, _loc.SettingsThemeLight, _loc.SettingsThemeDark];
+            string[] labels = [_loc["SettingsThemeSystem"], _loc["SettingsThemeLight"], _loc["SettingsThemeDark"]];
             for (int i = 0; i < labels.Length; i++)
             {
                 if (i < ThemeOptions.Count) ThemeOptions[i] = labels[i];

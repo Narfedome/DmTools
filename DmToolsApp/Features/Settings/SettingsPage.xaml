@@ -2,13 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Settings"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Settings.SettingsPage"
              x:DataType="local:SettingsViewModel"
-             Title="{Binding Loc.SettingsTitle}">
+             Title="{loc:Loc SettingsTitle}">
 
     <Shell.TitleView>
-        <Label Text="{Binding Loc.SettingsTitle}"
+        <Label Text="{loc:Loc SettingsTitle}"
                FontSize="18" FontAttributes="Bold"
                VerticalOptions="Center"
                TextColor="{DynamicResource AppTextPrimary}"/>
@@ -20,7 +21,7 @@
             <!-- Langue -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
-                    <Label Grid.Column="0" Text="{Binding Loc.SettingsLanguage}"
+                    <Label Grid.Column="0" Text="{loc:Loc SettingsLanguage}"
                            VerticalOptions="Center" FontSize="16"/>
                     <Button Grid.Column="1"
                             x:Name="LanguageButton"
@@ -36,7 +37,7 @@
             <!-- Thème -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
-                    <Label Grid.Column="0" Text="{Binding Loc.SettingsTheme}"
+                    <Label Grid.Column="0" Text="{loc:Loc SettingsTheme}"
                            VerticalOptions="Center" FontSize="16"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedThemeOption}"
@@ -51,7 +52,7 @@
             <!-- Palette -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="{Binding Loc.SettingsPalette}" FontSize="16"/>
+                    <Label Text="{loc:Loc SettingsPalette}" FontSize="16"/>
                     <components:PalettePickerView
                         SelectedPalette="{Binding SelectedPalette, Mode=TwoWay}"/>
                 </VerticalStackLayout>
@@ -60,7 +61,7 @@
             <!-- Version -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
-                    <Label Grid.Column="0" Text="{Binding Loc.SettingsVersion}"
+                    <Label Grid.Column="0" Text="{loc:Loc SettingsVersion}"
                            VerticalOptions="Center" FontSize="16"/>
                     <Label Grid.Column="1" Text="{Binding AppVersion}"
                            VerticalOptions="Center" FontSize="14"
@@ -72,10 +73,10 @@
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                        <Label Text="{Binding Loc.SettingsSupportTitle}" FontSize="16"/>
+                        <Label Text="{loc:Loc SettingsSupportTitle}" FontSize="16"/>
                     </VerticalStackLayout>
                     <Label Grid.Column="1"
-                           Text="{Binding Loc.SettingsSupportDesc}"
+                           Text="{loc:Loc SettingsSupportDesc}"
                            TextColor="{DynamicResource AppAccent}"
                            FontSize="14"
                            VerticalOptions="Center">
