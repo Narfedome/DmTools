@@ -48,6 +48,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<PackageIcon>image.svg</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -59,7 +60,6 @@
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 		
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
@@ -138,7 +138,15 @@
 	<ItemGroup>
 	  <Folder Include="Data\Repositories\" />
 	  <Folder Include="Features\CharacterTool\" />
+	  <Folder Include="Resources\Images\" />
 	  <Folder Include="Selectors\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="C:\Users\Cyril\Downloads\image.svg">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 	<ItemGroup>
