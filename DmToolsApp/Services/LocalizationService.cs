@@ -101,6 +101,7 @@ namespace DmToolsApp.Services
         public string SettingsThemeDark     => this["SettingsThemeDark"];
         public string SettingsSupportTitle  => this["SettingsSupportTitle"];
         public string SettingsSupportDesc   => this["SettingsSupportDesc"];
+        public string SettingsVersion       => this["SettingsVersion"];
         public string OnboardingTitle       => this["OnboardingTitle"];
         public string OnboardingDesc        => this["OnboardingDesc"];
         public string OnboardingPalette     => this["OnboardingPalette"];

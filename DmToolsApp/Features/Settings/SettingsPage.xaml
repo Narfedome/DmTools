@@ -45,6 +45,17 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- Version -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <Label Grid.Column="0" Text="{Binding Loc.SettingsVersion}"
+                           VerticalOptions="Center" FontSize="16"/>
+                    <Label Grid.Column="1" Text="{Binding AppVersion}"
+                           VerticalOptions="Center" FontSize="14"
+                           TextColor="{DynamicResource AppSecondary}"/>
+                </Grid>
+            </Border>
+
             <!-- Buy Me a Coffee -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">

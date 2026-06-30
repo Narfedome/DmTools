@@ -94,6 +94,7 @@
   <data name="SettingsThemeDark"     xml:space="preserve"><value>Sombre</value></data>
   <data name="SettingsSupportTitle"  xml:space="preserve"><value>Soutenir le projet</value></data>
   <data name="SettingsSupportDesc"   xml:space="preserve"><value>Buy me a coffee ☕</value></data>
+  <data name="SettingsVersion"       xml:space="preserve"><value>Version</value></data>
 
   <!-- Onboarding -->
   <data name="OnboardingTitle"    xml:space="preserve"><value>Bienvenue dans DmTools</value></data>

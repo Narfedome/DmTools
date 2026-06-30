@@ -10,6 +10,7 @@ namespace DmToolsApp.Features.Settings
         private readonly ThemeService _theme = ThemeService.Instance;
 
         public LocalizationService Loc => _loc;
+        public string AppVersion => AppInfo.VersionString;
 
         public ObservableCollection<string> Languages { get; } = new() { "fr", "en" };
 
