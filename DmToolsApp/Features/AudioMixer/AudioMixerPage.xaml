@@ -29,7 +29,7 @@
 
                 <Button Grid.Column="0"
                         Text="{Binding SelectedSessionLabel}"
-                        Clicked="OnSessionClicked"
+                        Command="{Binding SelectSessionCommand}"
                         BackgroundColor="Transparent"
                         TextColor="{DynamicResource AppAccent}"
                         FontSize="14"
@@ -43,7 +43,7 @@
 
                 <Button Grid.Column="2"
                         Text="{Binding SelectedSceneLabel}"
-                        Clicked="OnSceneClicked"
+                        Command="{Binding SelectSceneCommand}"
                         BackgroundColor="Transparent"
                         TextColor="{DynamicResource AppAccent}"
                         FontSize="14"

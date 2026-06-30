@@ -1,8 +1,6 @@
 using DmToolsApp.Components.TrackButton;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using Microsoft.Maui.Controls;
-using System;
 using System.Windows.Input;
 
 namespace DmToolsApp.Components;
@@ -66,24 +64,8 @@ public partial class TrackButtonView : ContentView
             // Create a composite command: toggle play then notify parent selection command (if any)
             IconBtn.Command = new Command(() =>
             {
-                // Trigger VM play toggle
-                try
-                {
-                    ViewModel?.TogglePlayCommand.Execute(null);
-                }
-                catch (Exception)
-                {
-                }
-
-                // Notify parent that this item should be selected
-                try
-                {
-                    SelectCommand?.Execute(CurrentTrack);
-                }
-                catch (Exception)
-                {
-                }
-
+                ViewModel?.TogglePlayCommand.Execute(null);
+                SelectCommand?.Execute(CurrentTrack);
             });
         }
 

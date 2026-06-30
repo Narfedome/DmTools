@@ -25,9 +25,8 @@
                     <Label Grid.Column="0" Text="{loc:Loc SettingsLanguage}"
                            VerticalOptions="Center" FontSize="16"/>
                     <Button Grid.Column="1"
-                            x:Name="LanguageButton"
                             Text="{Binding SelectedLanguageLabel}"
-                            Clicked="OnLanguageClicked"
+                            Command="{Binding SelectLanguageCommand}"
                             BackgroundColor="Transparent"
                             TextColor="{DynamicResource AppAccent}"
                             FontSize="15"
@@ -42,7 +41,7 @@
                            VerticalOptions="Center" FontSize="16"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedThemeOption}"
-                            Clicked="OnThemeClicked"
+                            Command="{Binding SelectThemeCommand}"
                             BackgroundColor="Transparent"
                             TextColor="{DynamicResource AppAccent}"
                             FontSize="15"
@@ -96,7 +95,7 @@
                            FontSize="14"
                            VerticalOptions="Center">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnCoffeeTapped"/>
+                            <TapGestureRecognizer Command="{Binding OpenCoffeeLinkCommand}"/>
                         </Label.GestureRecognizers>
                     </Label>
                 </Grid>

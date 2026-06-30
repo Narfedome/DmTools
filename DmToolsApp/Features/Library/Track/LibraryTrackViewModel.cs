@@ -80,24 +80,13 @@ namespace DmToolsApp.Features.Library
 
             var item = SelectedTrackItem;
 
-            var loc = Loc;
-            bool confirm = await Shell.Current.DisplayAlertAsync(
-               loc["DialogDelete"],
-               string.Format(loc["DialogDeleteTrackConfirm"], item.Title),
-               loc["DialogYes"],
-               loc["DialogNo"]);
+            if (!await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteTrackConfirm"], item.Title))) return;
 
-            if (confirm)
-            {
-                StopAudio();
-
-                await _libraryDataService.DeleteLibraryItem(item);
-
-                _fileService.DeleteTrackFromLocal(item.FilePath);
-
-                TrackItems.Remove(item);
-                SelectedTrackItem = null;
-            }          
+            StopAudio();
+            await _libraryDataService.DeleteLibraryItem(item);
+            _fileService.DeleteTrackFromLocal(item.FilePath);
+            TrackItems.Remove(item);
+            SelectedTrackItem = null;          
         }
 
         [RelayCommand]

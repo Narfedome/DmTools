@@ -73,12 +73,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Delete()
         {
             if (SelectedSession == null) return;
-            bool ok = await Shell.Current.DisplayAlertAsync(
-                Loc["DialogDelete"],
-                string.Format(Loc["DialogDeleteConfirm"], SelectedSession.Title),
-                Loc["DialogYes"],
-                Loc["DialogNo"]);
-            if (!ok) return;
+            if (!await ConfirmDeleteAsync(SelectedSession.Title)) return;
 
             await _sceneDataService.DeleteSessionAsync(SelectedSession);
             Sessions.Remove(SelectedSession);

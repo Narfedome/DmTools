@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 
@@ -11,13 +10,10 @@ namespace DmToolsApp.Features.Library
     : BaseViewModel, IQueryAttributable
     {
         private readonly ILibraryDataService _libraryDataService;
-        private readonly FileService _fileService;
 
-        public LibrarySpellEditViewModel(ILibraryDataService libraryDataService,
-                                        FileService fileService)
+        public LibrarySpellEditViewModel(ILibraryDataService libraryDataService)
         {
             _libraryDataService = libraryDataService;
-            _fileService = fileService;
         }
 
         [ObservableProperty]
@@ -32,24 +28,6 @@ namespace DmToolsApp.Features.Library
                 Item = item;
             }
         }
-        [RelayCommand]
-        public async Task PickFile()
-        {
-            try
-            {
-                var result = await _fileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
-
-                if (result != null)
-                {
-                }
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
-            }
-        }
-
-
         [RelayCommand]
         public async Task Save()
         {

@@ -1,15 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Models.Library;
-using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
 using System.ComponentModel;
-using System.IO;
-using System.Threading.Tasks;
+using DmToolsApp;
 
 namespace DmToolsApp.Components.TrackButton
 {
-    public partial class TrackButtonViewModel : ObservableObject
+    public partial class TrackButtonViewModel : BaseViewModel
     {
 
 

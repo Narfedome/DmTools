@@ -81,12 +81,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             channel.Pause();
 
-            var loc = LocalizationService.Instance;
-            bool confirm = await Shell.Current.DisplayAlertAsync(
-                loc["DialogDelete"],
-                string.Format(loc["DialogRemoveChannel"], channel.DisplayTrackName),
-                loc["DialogYes"],
-                loc["DialogNo"]);
+            bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
 
             if (!confirm)
             {
@@ -119,7 +114,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
+                await ShowErrorAsync(ex);
             }
         }
 
@@ -144,7 +139,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
+                await ShowErrorAsync(ex);
             }
         }
 
@@ -315,6 +310,22 @@ namespace DmToolsApp.Features.AudioMixer
 
             _activeScene = matchedScene;
             await LoadScene();
+        }
+
+        [RelayCommand]
+        public async Task SelectSession()
+        {
+            if (!Sessions.Any()) return;
+            var result = await ShowActionSheetAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
+            if (result != null) SelectedSession = Sessions.First(s => s.Title == result);
+        }
+
+        [RelayCommand]
+        public async Task SelectScene()
+        {
+            if (!Scenes.Any()) return;
+            var result = await ShowActionSheetAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
+            if (result != null) SelectedScene = Scenes.First(s => s.Title == result);
         }
 
         [RelayCommand]

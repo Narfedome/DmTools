@@ -40,6 +40,15 @@ namespace DmToolsApp.Features.Onboarding
         }
 
         [RelayCommand]
+        public async Task SelectLanguage()
+        {
+            var labels = LocalizationService.SupportedLanguages.Values.ToArray();
+            var result = await ShowActionSheetAsync(Loc["OnboardingLanguage"], labels);
+            if (result == null) return;
+            SelectedLanguage = LocalizationService.SupportedLanguages.First(kv => kv.Value == result).Key;
+        }
+
+        [RelayCommand]
         private void Start()
         {
             Preferences.Default.Set("has_launched", true);

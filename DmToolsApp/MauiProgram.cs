@@ -16,6 +16,8 @@ namespace DmToolsApp
 {
     public static class MauiProgram
     {
+        static readonly string dbPath = Path.Combine(FileSystem.AppDataDirectory, "dmtools.db3");
+
         public static MauiApp CreateMauiApp()
         {
             string tracksDir = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
@@ -76,9 +78,6 @@ namespace DmToolsApp
             return builder.Build();
         }
 
-        static string dbPath = Path.Combine(
-    FileSystem.AppDataDirectory,
-    "dmtools.db3");
     }
 
 }

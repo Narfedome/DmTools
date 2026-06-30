@@ -46,12 +46,12 @@ namespace DmToolsApp.Features.Campaigns
             if (Scene == null) return;
 
             var picked = await _pickerService.PickTrackAsync();
-            if (picked == null) return;
+            if (picked is not Models.Library.Track track) return;
 
             var sceneTrack = new SceneTrack
             {
                 SceneId = Scene.Id,
-                Track = (Models.Library.Track)picked,
+                Track = track,
                 Volume = 1.0,
                 Position = SceneTracks.Count,
                 AutoPlay = false

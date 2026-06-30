@@ -12,6 +12,26 @@ namespace DmToolsApp.Features.Settings
         public string AppVersion => BuildInfo.Version;
 
         [RelayCommand]
+        public async Task SelectLanguage()
+        {
+            var labels = LanguageLabels.Values.ToArray();
+            var result = await ShowActionSheetAsync(Loc["SettingsLanguage"], labels);
+            if (result == null) return;
+            SelectedLanguage = LanguageLabels.First(kv => kv.Value == result).Key;
+        }
+
+        [RelayCommand]
+        public async Task SelectTheme()
+        {
+            var result = await ShowActionSheetAsync(Loc["SettingsTheme"], ThemeOptions.ToArray());
+            if (result != null) SelectedThemeOption = result;
+        }
+
+        [RelayCommand]
+        public async Task OpenCoffeeLink() =>
+            await Launcher.OpenAsync(new Uri("https://buymeacoffee.com/narfedome"));
+
+        [RelayCommand]
         public async Task TestLoading()
         {
             Loading.Show();

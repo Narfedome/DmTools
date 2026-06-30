@@ -7,7 +7,6 @@ public partial class LibrarySpellSelectorPage : ContentPage
 {
     private readonly LibrarySpellViewModel viewModel;
 
-    public Type? LibraryType { get; set; }
     public LibrarySpellSelectorPage(LibrarySpellViewModel vm)
     {
         InitializeComponent();

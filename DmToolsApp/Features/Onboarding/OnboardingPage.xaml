@@ -42,7 +42,7 @@
                            VerticalOptions="Center" FontSize="16"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedLanguageLabel}"
-                            Clicked="OnLanguageClicked"
+                            Command="{Binding SelectLanguageCommand}"
                             BackgroundColor="Transparent"
                             TextColor="{DynamicResource AppAccent}"
                             FontSize="15"

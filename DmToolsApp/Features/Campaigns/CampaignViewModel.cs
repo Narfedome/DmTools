@@ -54,12 +54,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Delete()
         {
             if (SelectedCampaign == null) return;
-            bool ok = await Shell.Current.DisplayAlertAsync(
-                Loc["DialogDelete"],
-                string.Format(Loc["DialogDeleteConfirm"], SelectedCampaign.Title),
-                Loc["DialogYes"],
-                Loc["DialogNo"]);
-            if (!ok) return;
+            if (!await ConfirmDeleteAsync(SelectedCampaign.Title)) return;
 
             await _sceneDataService.DeleteCampaignAsync(SelectedCampaign);
             Campaigns.Remove(SelectedCampaign);
