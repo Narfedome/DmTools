@@ -15,6 +15,7 @@
                TextColor="{DynamicResource AppTextPrimary}"/>
     </Shell.TitleView>
 
+    <components:WatermarkedLayout>
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="16">
 
@@ -103,4 +104,5 @@
 
         </VerticalStackLayout>
     </ScrollView>
+    </components:WatermarkedLayout>
 </ContentPage>

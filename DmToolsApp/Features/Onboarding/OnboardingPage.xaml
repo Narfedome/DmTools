@@ -8,6 +8,7 @@
              x:DataType="local:OnboardingViewModel"
              NavigationPage.HasNavigationBar="False">
 
+    <components:WatermarkedLayout>
     <ScrollView>
         <VerticalStackLayout Padding="32,48,32,32" Spacing="28" VerticalOptions="Center">
 
@@ -57,4 +58,5 @@
 
         </VerticalStackLayout>
     </ScrollView>
+    </components:WatermarkedLayout>
 </ContentPage>

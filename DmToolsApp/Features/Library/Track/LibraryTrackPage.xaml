@@ -5,6 +5,7 @@
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
              x:DataType="local:LibraryTrackViewModel">
 
     <Shell.TitleView>
@@ -14,5 +15,7 @@
                TextColor="{DynamicResource AppTextPrimary}"/>
     </Shell.TitleView>
 
-    <views:LibraryTrackView IsCrud="True" />
+    <components:WatermarkedLayout>
+        <views:LibraryTrackView IsCrud="True" />
+    </components:WatermarkedLayout>
 </ContentPage>

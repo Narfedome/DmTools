@@ -9,6 +9,7 @@
              x:Class="DmToolsApp.Features.Campaigns.SceneTracksPage"
              x:DataType="local:SceneTracksViewModel">
 
+    <components:WatermarkedLayout>
     <Grid RowSpacing="10" Padding="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -84,4 +85,5 @@
                                          Tooltip="{loc:Loc BtnAddTrack}"/>
         </HorizontalStackLayout>
     </Grid>
+    </components:WatermarkedLayout>
 </ContentPage>

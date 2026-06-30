@@ -6,6 +6,7 @@
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components">
 
+    <components:WatermarkedLayout>
     <Grid Padding="20" RowSpacing="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -45,5 +46,6 @@
 
         </HorizontalStackLayout>
     </Grid>
+    </components:WatermarkedLayout>
 
 </ContentPage>

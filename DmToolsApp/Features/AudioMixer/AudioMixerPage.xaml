@@ -9,6 +9,7 @@
              x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              x:DataType="local:AudioMixerViewModel">
 
+    <components:WatermarkedLayout>
     <Grid Padding="10" RowSpacing="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -132,4 +133,5 @@
             </CollectionView>
         </Border>
     </Grid>
+    </components:WatermarkedLayout>
 </ContentPage>

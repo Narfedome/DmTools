@@ -4,6 +4,9 @@
              x:Class="DmToolsApp.Features.Library.LibraryTrackSelectorPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
              Title="{loc:Loc LibSelect}">
-    <views:LibraryTrackView IsCrud="False" />
+    <components:WatermarkedLayout>
+        <views:LibraryTrackView IsCrud="False" />
+    </components:WatermarkedLayout>
 </ContentPage>
