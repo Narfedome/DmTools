@@ -22,7 +22,7 @@ public abstract partial class BaseViewModel : ObservableObject
 
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
     {
-        var result = await Shell.Current.DisplayActionSheet(title, Loc["BtnCancel"], null, options);
+        var result = await Shell.Current.DisplayActionSheetAsync(title, Loc["BtnCancel"], null, options);
         return result == null || result == Loc["BtnCancel"] ? null : result;
     }
 }

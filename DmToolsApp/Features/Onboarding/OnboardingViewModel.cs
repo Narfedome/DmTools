@@ -13,7 +13,7 @@ namespace DmToolsApp.Features.Onboarding
         public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
 
         public string SelectedLanguageLabel =>
-            LocalizationService.SupportedLanguages.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage;
+            LocalizationService.SupportedLanguages.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage ?? "";
 
         [ObservableProperty]
         private string selectedLanguage;
