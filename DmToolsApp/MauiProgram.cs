@@ -32,8 +32,8 @@ namespace DmToolsApp
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                     fonts.AddFont("PirataOne-Regular.ttf", "PirataOne");
-                    fonts.AddFont("Font Awesome 7 Brands-Regular-400.otf", "FontRegular");
-                    fonts.AddFont("Font Awesome 7 Free-Regular-400.otf", "FontBrands");
+                    fonts.AddFont("Font Awesome 7 Free-Regular-400.otf", "FontRegular");
+                    fonts.AddFont("Font Awesome 7 Brands-Regular-400.otf", "FontBrands");
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
                     fonts.AddFont("rpgawesome-webfont.ttf", "RpgAwesome");
                 });
