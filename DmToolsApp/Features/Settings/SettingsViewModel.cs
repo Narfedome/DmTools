@@ -9,7 +9,7 @@ namespace DmToolsApp.Features.Settings
     {
         private readonly ThemeService _theme = ThemeService.Instance;
 
-        public string AppVersion => BuildInfo.Version;
+        public string AppVersion => AppInfo.Current.VersionString;
 
         [RelayCommand]
         public async Task SelectLanguage()
@@ -30,14 +30,6 @@ namespace DmToolsApp.Features.Settings
         [RelayCommand]
         public async Task OpenCoffeeLink() =>
             await Launcher.OpenAsync(new Uri("https://buymeacoffee.com/narfedome"));
-
-        [RelayCommand]
-        public async Task TestLoading()
-        {
-            Loading.Show();
-            await Task.Delay(3000);
-            Loading.Hide();
-        }
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 

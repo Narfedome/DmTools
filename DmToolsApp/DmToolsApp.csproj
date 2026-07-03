@@ -201,8 +201,14 @@
 	</ItemGroup>
 
 
-	<!-- Auto-incrémente le patch en comptant les commits git, synchronise ApplicationDisplayVersion et BuildInfo -->
-	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion">
+	<!-- Auto-incrémente le patch en comptant les commits git et fixe ApplicationDisplayVersion.
+	     L'app lit sa version au runtime via AppInfo.Current.VersionString, qui reflète exactement
+	     ce qui a été packagé (AndroidManifest/Info.plist/Package.appxmanifest) : plus de fichier
+	     généré séparément à garder en synchro.
+	     _GetAndroidPackageName est la cible qui fige _AndroidVersionName = $(ApplicationDisplayVersion)
+	     pour le manifeste Android ; elle tourne très tôt (via AndroidPrepareForBuild, avant CoreCompile),
+	     donc on doit y accrocher ce calcul explicitement sous peine de packager la version statique. -->
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion;_GetAndroidPackageName">
 		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
 		</Exec>
@@ -215,7 +221,6 @@
 		<PropertyGroup>
 			<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).$(_AppPatch)</ApplicationDisplayVersion>
 		</PropertyGroup>
-		<WriteLinesToFile File="$(MSBuildProjectDirectory)/BuildInfo.g.cs" Lines="// &lt;auto-generated/&gt;%0Anamespace DmToolsApp%3B%0Apublic static class BuildInfo { public const string Version = %22$(ApplicationDisplayVersion)%22%3B }" Overwrite="true" />
 		<Message Text="Version: $(ApplicationDisplayVersion)" Importance="high" />
 
 		<!-- Le manifeste Android est régénéré par une cible incrémentale (_GenerateJavaStubs) qui ne

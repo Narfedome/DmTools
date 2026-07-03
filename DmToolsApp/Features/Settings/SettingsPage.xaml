@@ -69,20 +69,6 @@
                 </Grid>
             </Border>
 
-            <!-- Test loading indicator -->
-            <Border Padding="16" StrokeShape="RoundRectangle 8">
-                <Grid ColumnDefinitions="*,auto">
-                    <Label Grid.Column="0" Text="Test loading indicator"
-                           VerticalOptions="Center" FontSize="16"
-                           TextColor="{DynamicResource AppSecondary}"/>
-                    <Button Grid.Column="1" Text="⏳ Test"
-                            Command="{Binding TestLoadingCommand}"
-                            BackgroundColor="Transparent"
-                            TextColor="{DynamicResource AppAccent}"
-                            FontSize="15" Padding="8,4"/>
-                </Grid>
-            </Border>
-
             <!-- Buy Me a Coffee -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">
