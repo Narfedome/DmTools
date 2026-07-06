@@ -27,6 +27,9 @@ public abstract partial class BaseViewModel : ObservableObject
     protected Task ShowInfoAsync(string title, string message) =>
         CurrentPage.DisplayAlertAsync(title, message, "OK");
 
+    protected Task<string?> ShowPromptAsync(string title, string message, string placeholder = "") =>
+        CurrentPage.DisplayPromptAsync(title, message, Loc["DialogYes"], Loc["DialogNo"], placeholder);
+
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
     {
         var result = await CurrentPage.DisplayActionSheetAsync(title, Loc["BtnCancel"], null, options);

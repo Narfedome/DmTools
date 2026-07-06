@@ -56,14 +56,15 @@
                         </VisualStateManager.VisualStateGroups>
                         <Grid ColumnDefinitions="*,56">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Grid Grid.Column="1">
+                            <Grid Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center">
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=NavigateCommand}"
                                         CommandParameter="{Binding .}"/>
                                 </Grid.GestureRecognizers>
-                                <Label Text="{loc:Loc NavNext}"
-                                       FontSize="22" HorizontalOptions="Center" VerticalOptions="Center"
+                                <Label Text="{x:Static icons:SolidFont.ChevronRight}"
+                                       FontFamily="FontSolid"
+                                       FontSize="18"
                                        TextColor="{DynamicResource AppTextMuted}"/>
                             </Grid>
                         </Grid>

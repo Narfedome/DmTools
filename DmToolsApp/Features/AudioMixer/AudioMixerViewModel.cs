@@ -16,7 +16,6 @@ namespace DmToolsApp.Features.AudioMixer
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
-        private readonly FileService _fileService;
 
         private Scene? _activeScene;
         private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
@@ -24,13 +23,11 @@ namespace DmToolsApp.Features.AudioMixer
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
             ILibraryPickerService pickerService,
-            ISceneDataService sceneDataService,
-            FileService fileService)
+            ISceneDataService sceneDataService)
         {
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
-            _fileService = fileService;
         }
 
         // ── Channels ──────────────────────────────────────────────
@@ -97,28 +94,6 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
         [RelayCommand(AllowConcurrentExecutions = true)]
-        public async Task PickFile(ChannelStripViewModel channel)
-        {
-            try
-            {
-                if (channel == null) return;
-                var result = await _fileService.PickAudioFileAsync(LocalizationService.Instance["TrackSelectFile"]);
-
-                if (result != null)
-                {
-                    var stream = await result.OpenReadAsync();
-                    channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                    channel.DisplayTrackName = result.FileName;
-                    channel.TogglePlay();
-                }
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorAsync(ex);
-            }
-        }
-
-        [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task PickLibraryItem(ChannelStripViewModel channel)
         {
             try
@@ -130,7 +105,7 @@ namespace DmToolsApp.Features.AudioMixer
                     return;
 
                 var stream = File.OpenRead(selectedTrack.FilePath);
-                channel.Player = _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
                 channel.Track = selectedTrack;
                 channel.DisplayTrackName = selectedTrack.Title;
                 channel.TogglePlay();
@@ -366,6 +341,7 @@ namespace DmToolsApp.Features.AudioMixer
                 if (!File.Exists(st.Track.FilePath)) continue;
 
                 var stream = File.OpenRead(st.Track.FilePath);
+                var player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
                 var channel = new ChannelStripViewModel
                 {
                     SceneTrackId = st.Id,
@@ -373,7 +349,7 @@ namespace DmToolsApp.Features.AudioMixer
                     DisplayTrackName = st.Track.Title,
                     Volume = st.Volume,
                     IsLooping = st.IsLooping,
-                    Player = _audioMixerService.CreatePlayerFromSelectedFile(stream)
+                    Player = player
                 };
 
                 SubscribeChannel(channel);

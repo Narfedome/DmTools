@@ -12,5 +12,7 @@ namespace DmToolsApp.Data.Entities
         public double DefaultVolume { get; set; }
 
         public string Hash { get; set; } = string.Empty;
+
+        public string Category { get; set; } = string.Empty;
     }
 }

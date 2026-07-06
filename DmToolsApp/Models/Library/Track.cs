@@ -21,5 +21,8 @@ namespace DmToolsApp.Models.Library
 
         [ObservableProperty]
         private string hash = string.Empty;
+
+        [ObservableProperty]
+        private string category = string.Empty;
     }
 }

@@ -35,9 +35,12 @@ namespace DmToolsApp.Services
             Channels.Add(channel);
             return channel;
         }
-        public IAudioPlayer CreatePlayerFromSelectedFile(Stream fileStream)
+
+        public Task<IAudioPlayer> CreatePlayerFromSelectedFile(Stream fileStream)
         {
-            return audioManager.CreatePlayer(fileStream);
+            // CreatePlayer décode/bufferise le flux de façon synchrone : on le sort du thread UI
+            // pour éviter un freeze/saccade sur les fichiers volumineux.
+            return Task.Run(() => audioManager.CreatePlayer(fileStream));
         }
 
         public async Task<IAudioPlayer> PlayLoop(string file, double volume = 1)

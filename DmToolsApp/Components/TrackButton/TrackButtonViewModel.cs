@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using DmToolsApp;
 
@@ -9,7 +10,8 @@ namespace DmToolsApp.Components.TrackButton
 {
     public partial class TrackButtonViewModel : BaseViewModel
     {
-
+        // Evite de re-parser le fichier (TagLib) à chaque affichage/scroll de la même track
+        private static readonly ConcurrentDictionary<string, ImageSource?> CoverImageCache = new();
 
         private readonly AudioPlayerService _audioService;
 
@@ -51,8 +53,28 @@ namespace DmToolsApp.Components.TrackButton
                 return;
             }
 
-            CoverImage = GetCoverImage(value.FilePath);
             IsPlaying = _audioService.CurrentFile == value.FilePath;
+
+            if (CoverImageCache.TryGetValue(value.FilePath, out var cached))
+            {
+                CoverImage = cached;
+                return;
+            }
+
+            CoverImage = null;
+            _ = LoadCoverImageAsync(value);
+        }
+
+        private async Task LoadCoverImageAsync(Track track)
+        {
+            var image = await Task.Run(() => GetCoverImage(track.FilePath));
+            CoverImageCache[track.FilePath] = image;
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (CurrentTrack == track)
+                    CoverImage = image;
+            });
         }
 
         [ObservableProperty]

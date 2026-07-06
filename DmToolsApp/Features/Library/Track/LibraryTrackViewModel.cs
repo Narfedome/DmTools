@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Models.Library;
@@ -12,10 +14,21 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackViewModel : BaseViewModel
     {
+        private const int PageSize = 9;
+        private readonly string[] DefaultCategories;
+
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
         private readonly AudioPlayerService _audioPlayerService;
+
+        private int _loadedCount;
+        private bool _hasMoreItems = true;
+        private bool _isLoadingMore;
+        private bool _suppressCategoryReload;
+        private string? _categoryFilter;
+
+        private string AllCategoriesLabel => Loc["LibAllCategories"];
 
         [ObservableProperty]
         public ObservableCollection<Track> trackItems = new();
@@ -23,16 +36,37 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private Track? selectedTrackItem;
 
+        [ObservableProperty]
+        private bool isLoadingMore;
+
+        [ObservableProperty]
+        private ObservableCollection<string> categories = new();
+
+        [ObservableProperty]
+        private string selectedCategory = string.Empty;
+
+        partial void OnSelectedCategoryChanged(string value)
+        {
+            if (_suppressCategoryReload)
+                return;
+
+            _ = ReloadAsync();
+        }
+
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
-            _navigation = navigation;
-            _libraryDataService = libraryDataService;
-            _audioPlayerService  = audioPlayerService;
+            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySFX"] };  
+            _libraryDataService = libraryDataService;     
+            _audioPlayerService = audioPlayerService;
             _fileService = fileService;
             WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
             async (r, m) =>
             {
-                await MainThread.InvokeOnMainThreadAsync(LoadData);
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await RefreshCategoriesAsync();
+                    await ReloadAsync();
+                });
             });
         }
 
@@ -44,19 +78,74 @@ namespace DmToolsApp.Features.Library
 
         public async Task InitializeAsync()
         {
-            await Loading.RunAsync(LoadData);
+            await Loading.RunAsync(async () =>
+            {
+                await RefreshCategoriesAsync();
+                await ReloadAsync();
+            });
         }
 
-        private async Task LoadData()
+        private async Task RefreshCategoriesAsync()
         {
-            var items = await _libraryDataService.GetAllItemsTypeAsync(typeof(Track));
+            var existing = await _libraryDataService.GetDistinctTrackCategoriesAsync();
+            var previousSelection = string.IsNullOrEmpty(SelectedCategory) ? AllCategoriesLabel : SelectedCategory;
+
+            _suppressCategoryReload = true;
+
+            Categories.Clear();
+            Categories.Add(AllCategoriesLabel);
+            foreach (var c in existing)
+                Categories.Add(c);
+
+            SelectedCategory = Categories.Contains(previousSelection) ? previousSelection : AllCategoriesLabel;
+
+            _suppressCategoryReload = false;
+        }
+
+        private async Task ReloadAsync()
+        {
+            _categoryFilter = SelectedCategory == AllCategoriesLabel ? null : SelectedCategory;
 
             TrackItems.Clear();
+            _loadedCount = 0;
+            _hasMoreItems = true;
+            SelectedTrackItem = null;
 
-            foreach (var item in items)
-                TrackItems.Add((Track)item);
+            await LoadNextPageAsync();
+        }
 
-            SelectedTrackItem = TrackItems.FirstOrDefault();
+        private async Task LoadNextPageAsync()
+        {
+            if (_isLoadingMore || !_hasMoreItems)
+                return;
+
+            _isLoadingMore = true;
+            IsLoadingMore = true;
+
+            try
+            {
+                var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
+
+                foreach (var item in items)
+                    TrackItems.Add((Track)item);
+
+                _loadedCount += items.Count;
+                _hasMoreItems = items.Count == PageSize;
+
+                if (SelectedTrackItem == null)
+                    SelectedTrackItem = TrackItems.FirstOrDefault();
+            }
+            finally
+            {
+                _isLoadingMore = false;
+                IsLoadingMore = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task LoadMoreTracks()
+        {
+            await LoadNextPageAsync();
         }
 
         [RelayCommand]
@@ -91,7 +180,8 @@ namespace DmToolsApp.Features.Library
                 _fileService.DeleteTrackFromLocal(item.FilePath);
 
             TrackItems.Remove(item);
-            SelectedTrackItem = null;          
+            _loadedCount--;
+            SelectedTrackItem = null;
         }
 
         [RelayCommand]
@@ -105,7 +195,7 @@ namespace DmToolsApp.Features.Library
             new Dictionary<string, object>
             {
                  { "Item", copy }
-            });                    
+            });
         }
 
         [RelayCommand]
@@ -133,48 +223,105 @@ namespace DmToolsApp.Features.Library
             if (files == null || files.Count == 0)
                 return;
 
+            var category = await PickImportCategoryAsync();
+
             int imported = 0;
             int duplicates = 0;
 
-            await Loading.RunAsync(async () =>
+            var popupView = new ImportProgressPopupView();
+            popupView.ViewModel.Title = Loc["LibImportInProgress"];
+            popupView.ViewModel.TotalCount = files.Count;
+
+            var page = Shell.Current.CurrentPage;
+            page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
+
+            try
             {
                 foreach (var file in files)
                 {
+                    popupView.ViewModel.CurrentFileName = file.FileName;
+
                     try
                     {
-                        var hash = FileService.ComputeSha256(file.FullPath);
+                        var hash = await Task.Run(() => FileService.ComputeSha256(file.FullPath));
                         var existing = await _libraryDataService.FindTrackByHashAsync(hash, 0);
 
-                        var filePath = existing != null ? existing.FilePath : _fileService.CopyTrackToLocal(file.FullPath);
-                        if (existing != null) duplicates++;
+                        string filePath;
+                        if (existing != null)
+                        {
+                            filePath = existing.FilePath;
+                            duplicates++;
+                        }
+                        else
+                        {
+                            filePath = await Task.Run(() => _fileService.CopyTrackToLocal(file.FullPath));
+                        }
 
                         var title = file.FileName;
                         var duration = TimeSpan.Zero;
                         try
                         {
-                            var tagfile = TagLib.File.Create(file.FullPath);
-                            title = string.IsNullOrEmpty(tagfile.Tag.Title) ? file.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title}";
-                            duration = tagfile.Properties.Duration;
+                            var (tagTitle, tagDuration) = await Task.Run(() =>
+                            {
+                                var tagfile = TagLib.File.Create(file.FullPath);
+                                var t = string.IsNullOrEmpty(tagfile.Tag.Title) ? file.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title}";
+                                return (t, tagfile.Properties.Duration);
+                            });
+                            title = tagTitle;
+                            duration = tagDuration;
                         }
                         catch { /* tags illisibles, on garde le nom de fichier */ }
 
-                        await _libraryDataService.SaveLibraryItemAsync(new Track
+                        var track = new Track
                         {
                             Title = title,
                             FilePath = filePath,
                             Duration = duration,
-                            Hash = hash
-                        });
+                            Hash = hash,
+                            Category = category
+                        };
+                        await _libraryDataService.SaveLibraryItemAsync(track);
+
+                        // N'affiche la nouvelle track dans la liste que si elle correspond au filtre actif
+                        if (_categoryFilter == null || string.Equals(track.Category, _categoryFilter, StringComparison.OrdinalIgnoreCase))
+                        {
+                            TrackItems.Add(track);
+                            _loadedCount++;
+                        }
 
                         imported++;
                     }
                     catch { /* fichier invalide, on passe au suivant */ }
+
+                    popupView.ViewModel.ProcessedCount++;
                 }
+            }
+            finally
+            {
+                await page.ClosePopupAsync();
+            }
 
-                await LoadData();
-            });
-
+            await RefreshCategoriesAsync();
             await ShowInfoAsync(Loc["LibImport"], string.Format(Loc["LibImportResult"], imported, duplicates));
+        }
+
+        private async Task<string> PickImportCategoryAsync()
+        {
+            var existing = await _libraryDataService.GetDistinctTrackCategoriesAsync();
+            var options = DefaultCategories
+                .Union(existing, StringComparer.OrdinalIgnoreCase)
+                .Append(Loc["LibImportNewCategory"])
+                .ToArray();
+
+            var choice = await ShowActionSheetAsync(Loc["LibImportCategoryTitle"], options);
+            if (choice == null)
+                return string.Empty;
+
+            if (choice != Loc["LibImportNewCategory"])
+                return choice;
+
+            var newCategory = await ShowPromptAsync(Loc["LibImportNewCategory"], Loc["LibImportNewCategoryPrompt"]);
+            return string.IsNullOrWhiteSpace(newCategory) ? string.Empty : newCategory.Trim();
         }
     }
 }

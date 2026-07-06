@@ -40,6 +40,14 @@ namespace DmToolsApp.Data
                     "ALTER TABLE TrackEntity ADD COLUMN Hash TEXT NOT NULL DEFAULT ''");
             }
             catch { /* colonne déjà présente */ }
+
+            // Migration : ajout de Category sur les DB existantes
+            try
+            {
+                await _db.ExecuteAsync(
+                    "ALTER TABLE TrackEntity ADD COLUMN Category TEXT NOT NULL DEFAULT ''");
+            }
+            catch { /* colonne déjà présente */ }
         }
     }
 }

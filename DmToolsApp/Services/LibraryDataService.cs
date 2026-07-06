@@ -34,7 +34,8 @@ namespace DmToolsApp.Services
                     FilePath = t.FilePath,
                     Duration = t.Duration,
                     Volume = t.DefaultVolume,
-                    Hash = t.Hash
+                    Hash = t.Hash,
+                    Category = t.Category
                 }));
             }
 
@@ -80,7 +81,8 @@ namespace DmToolsApp.Services
                 FilePath = oldTrack.FilePath,
                 Duration = oldTrack.Duration,
                 DefaultVolume = oldTrack.Volume,
-                Hash = oldTrack.Hash
+                Hash = oldTrack.Hash,
+                Category = oldTrack.Category
             };
 
             if (entity.Id == 0)
@@ -128,6 +130,57 @@ namespace DmToolsApp.Services
                 await _db.Connection.UpdateAsync(entity);
             }
         }
+        public async Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null)
+        {
+            var result = new List<LibraryItem>();
+
+            if (currentLibraryType == typeof(Track))
+            {
+                var query = _db.Connection.Table<TrackEntity>();
+
+                if (!string.IsNullOrEmpty(category))
+                    query = query.Where(t => t.Category == category);
+
+                var tracks = await query
+                    .OrderBy(t => t.Id)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+
+                result.AddRange(tracks.Select(t => new Track
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    ImagePath = t.ImagePath,
+                    FilePath = t.FilePath,
+                    Duration = t.Duration,
+                    Volume = t.DefaultVolume,
+                    Hash = t.Hash,
+                    Category = t.Category
+                }));
+            }
+
+            if (currentLibraryType == typeof(Spell))
+            {
+                var spells = await _db.Connection.Table<SpellEntity>()
+                    .OrderBy(s => s.Id)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+
+                result.AddRange(spells.Select(s => new Spell
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    ImagePath = s.ImagePath,
+                    FilePath = s.FilePath,
+                    Description = s.Description
+                }));
+            }
+
+            return result;
+        }
+
         public async Task<Track?> FindTrackByHashAsync(string hash, int excludeId)
         {
             if (string.IsNullOrEmpty(hash))
@@ -148,8 +201,21 @@ namespace DmToolsApp.Services
                 FilePath = entity.FilePath,
                 Duration = entity.Duration,
                 Volume = entity.DefaultVolume,
-                Hash = entity.Hash
+                Hash = entity.Hash,
+                Category = entity.Category
             };
+        }
+
+        public async Task<List<string>> GetDistinctTrackCategoriesAsync()
+        {
+            var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
+
+            return tracks
+                .Select(t => t.Category)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(c => c)
+                .ToList();
         }
 
         public Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId)
@@ -185,8 +251,10 @@ namespace DmToolsApp.Services
         Task SaveLibraryItemAsync(LibraryItem item);
         Task DeleteLibraryItem(LibraryItem item);
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
+        Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null);
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);
         Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId);
         Task<HashSet<string>> GetAllReferencedFilePathsAsync();
+        Task<List<string>> GetDistinctTrackCategoriesAsync();
     }
 }
