@@ -125,5 +125,56 @@ namespace DmToolsApp.Features.Library
         {
             SelectedTrackItem = track;
         }
+
+        [RelayCommand]
+        public async Task ImportMultipleTracks()
+        {
+            var files = (await _fileService.PickAudioFilesAsync(Loc["TrackSelectFiles"]))?.ToList();
+            if (files == null || files.Count == 0)
+                return;
+
+            int imported = 0;
+            int duplicates = 0;
+
+            await Loading.RunAsync(async () =>
+            {
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var hash = FileService.ComputeSha256(file.FullPath);
+                        var existing = await _libraryDataService.FindTrackByHashAsync(hash, 0);
+
+                        var filePath = existing != null ? existing.FilePath : _fileService.CopyTrackToLocal(file.FullPath);
+                        if (existing != null) duplicates++;
+
+                        var title = file.FileName;
+                        var duration = TimeSpan.Zero;
+                        try
+                        {
+                            var tagfile = TagLib.File.Create(file.FullPath);
+                            title = string.IsNullOrEmpty(tagfile.Tag.Title) ? file.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title}";
+                            duration = tagfile.Properties.Duration;
+                        }
+                        catch { /* tags illisibles, on garde le nom de fichier */ }
+
+                        await _libraryDataService.SaveLibraryItemAsync(new Track
+                        {
+                            Title = title,
+                            FilePath = filePath,
+                            Duration = duration,
+                            Hash = hash
+                        });
+
+                        imported++;
+                    }
+                    catch { /* fichier invalide, on passe au suivant */ }
+                }
+
+                await LoadData();
+            });
+
+            await ShowInfoAsync(Loc["LibImport"], string.Format(Loc["LibImportResult"], imported, duplicates));
+        }
     }
 }

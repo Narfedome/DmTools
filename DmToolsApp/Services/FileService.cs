@@ -59,18 +59,29 @@
             return Convert.ToHexString(sha.ComputeHash(stream));
         }
 
+        private static readonly FilePickerFileType AudioFileTypes = new(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.iOS, new[] { "public.audio" } },
+            { DevicePlatform.Android, new[] { "audio/*" } },
+            { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a", ".opus" } },
+            { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
+        });
+
         public async Task<FileResult?> PickAudioFileAsync(string pickerTitle)
         {
             return await FilePicker.Default.PickAsync(new PickOptions
             {
                 PickerTitle = pickerTitle,
-                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                {
-                    { DevicePlatform.iOS, new[] { "public.audio" } },
-                    { DevicePlatform.Android, new[] { "audio/*" } },
-                    { DevicePlatform.WinUI, new[] { ".mp3", ".wav", ".m4a" } },
-                    { DevicePlatform.MacCatalyst, new[] { "public.audio" } }
-                })
+                FileTypes = AudioFileTypes
+            });
+        }
+
+        public async Task<IEnumerable<FileResult>?> PickAudioFilesAsync(string pickerTitle)
+        {
+            return await FilePicker.Default.PickMultipleAsync(new PickOptions
+            {
+                PickerTitle = pickerTitle,
+                FileTypes = AudioFileTypes
             });
         }
     }

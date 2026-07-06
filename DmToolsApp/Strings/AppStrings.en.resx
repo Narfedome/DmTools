@@ -70,6 +70,8 @@
   <data name="LibDelete"  xml:space="preserve"><value>Delete</value></data>
   <data name="LibConfirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="LibCancel"  xml:space="preserve"><value>Cancel</value></data>
+  <data name="LibImport"  xml:space="preserve"><value>Import multiple</value></data>
+  <data name="LibImportResult" xml:space="preserve"><value>{0} track(s) imported ({1} duplicate(s) reused)</value></data>
   <data name="LibSelect"  xml:space="preserve"><value>Select</value></data>
 
   <!-- Track edit -->
@@ -78,6 +80,7 @@
   <data name="TrackCreateTitle" xml:space="preserve"><value>Create Track</value></data>
   <data name="TrackImport"     xml:space="preserve"><value>Import</value></data>
   <data name="TrackSelectFile" xml:space="preserve"><value>Select audio file</value></data>
+  <data name="TrackSelectFiles" xml:space="preserve"><value>Select audio files</value></data>
 
   <!-- Spell edit -->
   <data name="SpellTitlePh"  xml:space="preserve"><value>Title</value></data>

@@ -67,6 +67,9 @@
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateItemCommand}"
                                          Tooltip="{loc:Loc LibAdd}"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileImport}"
+                                         Command="{Binding ImportMultipleTracksCommand}"
+                                         Tooltip="{loc:Loc LibImport}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding EditItemCommand}"
                                          Tooltip="{loc:Loc LibEdit}"
