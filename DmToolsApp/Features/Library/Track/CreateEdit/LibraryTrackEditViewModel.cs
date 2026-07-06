@@ -80,8 +80,14 @@ namespace DmToolsApp.Features.Library
             // Si c'est un Track et que le fichier a été choisi par l'utilisateur
             if (!string.IsNullOrEmpty(ImportedFilePath))
             {
-                // Copie le fichier dans le dossier privé
-                Item.FilePath = _trackFileService.CopyTrackToLocal(ImportedFilePath);
+                // Déduplication par hash : réutilise le fichier existant si le contenu est déjà en librairie
+                var hash = FileService.ComputeSha256(ImportedFilePath);
+                var existing = await _libraryDataService.FindTrackByHashAsync(hash, Item.Id);
+
+                Item.FilePath = existing != null
+                    ? existing.FilePath
+                    : _trackFileService.CopyTrackToLocal(ImportedFilePath);
+                Item.Hash = hash;
             }
 
             await _libraryDataService.SaveLibraryItemAsync(Item);

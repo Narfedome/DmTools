@@ -10,5 +10,7 @@ namespace DmToolsApp.Data.Entities
         public TimeSpan Duration { get; set; }
 
         public double DefaultVolume { get; set; }
+
+        public string Hash { get; set; } = string.Empty;
     }
 }

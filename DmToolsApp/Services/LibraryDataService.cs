@@ -33,7 +33,8 @@ namespace DmToolsApp.Services
                     ImagePath = t.ImagePath,
                     FilePath = t.FilePath,
                     Duration = t.Duration,
-                    Volume = t.DefaultVolume
+                    Volume = t.DefaultVolume,
+                    Hash = t.Hash
                 }));
             }
 
@@ -78,7 +79,8 @@ namespace DmToolsApp.Services
                 ImagePath = oldTrack.ImagePath,
                 FilePath = oldTrack.FilePath,
                 Duration = oldTrack.Duration,
-                DefaultVolume = oldTrack.Volume
+                DefaultVolume = oldTrack.Volume,
+                Hash = oldTrack.Hash
             };
 
             if (entity.Id == 0)
@@ -126,11 +128,65 @@ namespace DmToolsApp.Services
                 await _db.Connection.UpdateAsync(entity);
             }
         }
+        public async Task<Track?> FindTrackByHashAsync(string hash, int excludeId)
+        {
+            if (string.IsNullOrEmpty(hash))
+                return null;
+
+            var entity = await _db.Connection.Table<TrackEntity>()
+                .Where(t => t.Hash == hash && t.Id != excludeId)
+                .FirstOrDefaultAsync();
+
+            if (entity == null)
+                return null;
+
+            return new Track
+            {
+                Id = entity.Id,
+                Title = entity.Title,
+                ImagePath = entity.ImagePath,
+                FilePath = entity.FilePath,
+                Duration = entity.Duration,
+                Volume = entity.DefaultVolume,
+                Hash = entity.Hash
+            };
+        }
+
+        public Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId)
+        {
+            return _db.Connection.Table<TrackEntity>()
+                .Where(t => t.FilePath == filePath && t.Id != excludeId)
+                .CountAsync();
+        }
+
+        public async Task<HashSet<string>> GetAllReferencedFilePathsAsync()
+        {
+            var paths = new HashSet<string>();
+
+            var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
+            foreach (var track in tracks)
+            {
+                if (!string.IsNullOrEmpty(track.FilePath)) paths.Add(track.FilePath);
+                if (!string.IsNullOrEmpty(track.ImagePath)) paths.Add(track.ImagePath);
+            }
+
+            var spells = await _db.Connection.Table<SpellEntity>().ToListAsync();
+            foreach (var spell in spells)
+            {
+                if (!string.IsNullOrEmpty(spell.FilePath)) paths.Add(spell.FilePath);
+                if (!string.IsNullOrEmpty(spell.ImagePath)) paths.Add(spell.ImagePath);
+            }
+
+            return paths;
+        }
     }
     public interface ILibraryDataService
     {
         Task SaveLibraryItemAsync(LibraryItem item);
         Task DeleteLibraryItem(LibraryItem item);
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
+        Task<Track?> FindTrackByHashAsync(string hash, int excludeId);
+        Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId);
+        Task<HashSet<string>> GetAllReferencedFilePathsAsync();
     }
 }

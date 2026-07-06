@@ -8,8 +8,60 @@ namespace DmToolsApp.Features.Settings
     public partial class SettingsViewModel : BaseViewModel
     {
         private readonly ThemeService _theme = ThemeService.Instance;
+        private readonly IStorageService _storageService;
 
         public string AppVersion => AppInfo.Current.VersionString;
+
+        [ObservableProperty]
+        private string storageUsedText = string.Empty;
+
+        public async Task InitializeAsync()
+        {
+            var totalBytes = await _storageService.GetTotalLibrarySizeAsync();
+            StorageUsedText = FormatSize(totalBytes);
+        }
+
+        [RelayCommand]
+        public async Task CleanupStorage()
+        {
+            var scan = await _storageService.ScanOrphansAsync();
+
+            if (scan.OrphanedFiles.Count == 0)
+            {
+                await ShowInfoAsync(Loc["SettingsStorageTitle"], Loc["SettingsStorageNothingToClean"]);
+                return;
+            }
+
+            var message = string.Format(Loc["SettingsStorageCleanupConfirmMessage"], scan.OrphanedFiles.Count, FormatSize(scan.TotalOrphanBytes));
+            if (!await ConfirmAsync(Loc["SettingsStorageCleanupConfirmTitle"], message))
+                return;
+
+            try
+            {
+                var freed = await _storageService.DeleteOrphansAsync(scan);
+                await InitializeAsync();
+                await ShowInfoAsync(Loc["SettingsStorageTitle"], string.Format(Loc["SettingsStorageCleanupResult"], FormatSize(freed)));
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
+        }
+
+        private static string FormatSize(long bytes)
+        {
+            string[] units = ["o", "Ko", "Mo", "Go"];
+            double size = bytes;
+            int unitIndex = 0;
+
+            while (size >= 1024 && unitIndex < units.Length - 1)
+            {
+                size /= 1024;
+                unitIndex++;
+            }
+
+            return $"{size:0.#} {units[unitIndex]}";
+        }
 
         [RelayCommand]
         public async Task SelectLanguage()
@@ -48,8 +100,9 @@ namespace DmToolsApp.Features.Settings
         [ObservableProperty]
         private string selectedThemeOption;
 
-        public SettingsViewModel()
+        public SettingsViewModel(IStorageService storageService)
         {
+            _storageService = storageService;
             selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
             RebuildThemeOptions();

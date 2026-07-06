@@ -18,5 +18,8 @@ namespace DmToolsApp.Models.Library
 
         [ObservableProperty]
         private double volume = 1.0;
+
+        [ObservableProperty]
+        private string hash = string.Empty;
     }
 }

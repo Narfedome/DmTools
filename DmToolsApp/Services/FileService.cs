@@ -5,6 +5,9 @@
         private readonly string _tracksDirectory;
         private readonly string _assetsDirectory;
 
+        public string TracksDirectory => _tracksDirectory;
+        public string AssetsDirectory => _assetsDirectory;
+
         public FileService()
         {
             _assetsDirectory = Path.Combine(FileSystem.AppDataDirectory, "Assets");
@@ -47,6 +50,13 @@
                 throw new FileNotFoundException("Le fichier source est introuvable", filePath);
 
             File.Delete(filePath);
+        }
+
+        public static string ComputeSha256(string filePath)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            using var stream = File.OpenRead(filePath);
+            return Convert.ToHexString(sha.ComputeHash(stream));
         }
 
         public async Task<FileResult?> PickAudioFileAsync(string pickerTitle)

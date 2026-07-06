@@ -32,6 +32,14 @@ namespace DmToolsApp.Data
                     "ALTER TABLE SceneTrackEntity ADD COLUMN IsLooping INTEGER NOT NULL DEFAULT 1");
             }
             catch { /* colonne déjà présente */ }
+
+            // Migration : ajout de Hash sur les DB existantes
+            try
+            {
+                await _db.ExecuteAsync(
+                    "ALTER TABLE TrackEntity ADD COLUMN Hash TEXT NOT NULL DEFAULT ''");
+            }
+            catch { /* colonne déjà présente */ }
         }
     }
 }

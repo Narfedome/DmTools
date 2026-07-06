@@ -84,7 +84,12 @@ namespace DmToolsApp.Features.Library
 
             StopAudio();
             await _libraryDataService.DeleteLibraryItem(item);
-            _fileService.DeleteTrackFromLocal(item.FilePath);
+
+            // Ne supprime le fichier physique que si aucune autre track ne le référence encore (dédup)
+            var remainingRefs = await _libraryDataService.CountTracksWithFilePathAsync(item.FilePath, item.Id);
+            if (remainingRefs == 0)
+                _fileService.DeleteTrackFromLocal(item.FilePath);
+
             TrackItems.Remove(item);
             SelectedTrackItem = null;          
         }

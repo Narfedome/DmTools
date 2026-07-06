@@ -98,6 +98,12 @@
   <data name="SettingsFont"          xml:space="preserve"><value>Font</value></data>
   <data name="SettingsFontDefault"   xml:space="preserve"><value>Classic</value></data>
   <data name="SettingsFontPirata"    xml:space="preserve"><value>Pirata One</value></data>
+  <data name="SettingsStorageTitle"                 xml:space="preserve"><value>Storage</value></data>
+  <data name="SettingsStorageCleanupButton"         xml:space="preserve"><value>Clean up</value></data>
+  <data name="SettingsStorageCleanupConfirmTitle"   xml:space="preserve"><value>Clean up orphaned files</value></data>
+  <data name="SettingsStorageCleanupConfirmMessage" xml:space="preserve"><value>Found {0} unused file(s), totaling {1}. Delete them?</value></data>
+  <data name="SettingsStorageCleanupResult"         xml:space="preserve"><value>{0} freed</value></data>
+  <data name="SettingsStorageNothingToClean"        xml:space="preserve"><value>No orphaned files to clean up</value></data>
 
   <!-- Onboarding -->
   <data name="OnboardingTitle"    xml:space="preserve"><value>Welcome to DmTools</value></data>
