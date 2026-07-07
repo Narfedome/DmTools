@@ -14,7 +14,7 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackViewModel : BaseViewModel
     {
-        private const int PageSize = 9;
+        private const int PageSize = 12;
         private readonly string[] DefaultCategories;
 
         private readonly ILibraryPickerNavigationService _navigation;
@@ -55,7 +55,7 @@ namespace DmToolsApp.Features.Library
 
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
-            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySFX"] };  
+            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySoundEffect"] };  
             _libraryDataService = libraryDataService;     
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
@@ -224,6 +224,8 @@ namespace DmToolsApp.Features.Library
                 return;
 
             var category = await PickImportCategoryAsync();
+            if (category == null)
+                return;
 
             int imported = 0;
             int duplicates = 0;
@@ -233,7 +235,7 @@ namespace DmToolsApp.Features.Library
             popupView.ViewModel.TotalCount = files.Count;
 
             var page = Shell.Current.CurrentPage;
-            page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
+            page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false, Shape = null, Shadow = null });
 
             try
             {
@@ -305,16 +307,24 @@ namespace DmToolsApp.Features.Library
             await ShowInfoAsync(Loc["LibImport"], string.Format(Loc["LibImportResult"], imported, duplicates));
         }
 
-        private async Task<string> PickImportCategoryAsync()
+        /// <summary>
+        /// Retourne null si l'utilisateur annule (l'import complet doit alors être abandonné),
+        /// ou la catégorie choisie (chaîne vide si "Aucun dossier").
+        /// </summary>
+        private async Task<string?> PickImportCategoryAsync()
         {
             var existing = await _libraryDataService.GetDistinctTrackCategoriesAsync();
-            var options = DefaultCategories
+            var options = new[] { Loc["LibImportNoCategory"] }
+                .Concat(DefaultCategories)
                 .Union(existing, StringComparer.OrdinalIgnoreCase)
                 .Append(Loc["LibImportNewCategory"])
                 .ToArray();
 
             var choice = await ShowActionSheetAsync(Loc["LibImportCategoryTitle"], options);
             if (choice == null)
+                return null;
+
+            if (choice == Loc["LibImportNoCategory"])
                 return string.Empty;
 
             if (choice != Loc["LibImportNewCategory"])

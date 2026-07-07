@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
              x:Class="DmToolsApp.Features.Library.ImportProgressPopupView"
-             x:DataType="local:ImportProgressViewModel">
+             x:DataType="local:ImportProgressViewModel"
+             BackgroundColor="Transparent">
     <Border BackgroundColor="{DynamicResource AppSurface}"
             Stroke="{DynamicResource AppBorder}"
             StrokeThickness="1"

@@ -29,8 +29,7 @@
                  ItemsSource="{Binding TrackItems}"
                  SelectionMode="Single"
                  SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
-                 RemainingItemsThreshold="3"
-                 RemainingItemsThresholdReachedCommand="{Binding LoadMoreTracksCommand}"
+                 Scrolled="OnCollectionViewScrolled"
                  ItemsUpdatingScrollMode="KeepScrollOffset">
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Span="3" VerticalItemSpacing="5" HorizontalItemSpacing="5" Orientation="Vertical"/>

@@ -270,6 +270,9 @@
   <data name="LibImportCategoryTitle" xml:space="preserve">
     <value>Choose a folder</value>
   </data>
+  <data name="LibImportNoCategory" xml:space="preserve">
+    <value>No folder</value>
+  </data>
   <data name="LibImportNewCategory" xml:space="preserve">
     <value>+ New folder</value>
   </data>
