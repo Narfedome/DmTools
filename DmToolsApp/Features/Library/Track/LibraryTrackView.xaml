@@ -66,6 +66,11 @@
                             </Grid.RowDefinitions>
                             <components:TrackButtonView    CurrentTrack="{Binding .}"
                                                            SelectCommand="{Binding Source={x:Reference root}, Path=BindingContext.SelectItemCommand}" />
+                            <!-- Case à cocher pour la sélection multiple (visible uniquement en mode CRUD) -->
+                            <CheckBox Grid.Row="0"
+                                      IsChecked="{Binding IsSelected}"
+                                      IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}"
+                                      HorizontalOptions="Start" VerticalOptions="Start"/>
                             <!-- Label au lieu de l'image -->
                             <Label Text="{Binding Title}"
                         HorizontalOptions="Center"
@@ -90,10 +95,14 @@
                                          Command="{Binding EditItemCommand}"
                                          Tooltip="{loc:Loc LibEdit}"
                                          IsEnabled="{Binding SelectedTrackItem, Converter={StaticResource IsNotNullConverter}}"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.CheckDouble}"
+                                         Command="{Binding SelectAllCommand}"
+                                         Tooltip="{loc:Loc LibSelectAll}"
+                                         IsEnabled="{Binding HasTrackItems}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
-                                         Command="{Binding DeleteItemCommand}"
-                                         Tooltip="{loc:Loc LibDelete}"
-                                         IsEnabled="{Binding SelectedTrackItem, Converter={StaticResource IsNotNullConverter}}"/>
+                                         Command="{Binding DeleteSelectedItemsCommand}"
+                                         Tooltip="{Binding DeleteTooltip}"
+                                         IsEnabled="{Binding CanDelete}"/>
         </HorizontalStackLayout>
         <Grid  Grid.Row="2" HorizontalOptions="Center" IsVisible="{Binding Source={x:Reference root}, Path=IsCrud,  Converter={StaticResource InverseBoolConverter}}" Margin="10">
             <Grid.ColumnDefinitions>

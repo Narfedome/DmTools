@@ -261,6 +261,15 @@
   <data name="LibImport" xml:space="preserve">
     <value>Import multiple</value>
   </data>
+  <data name="LibSelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="LibSelectedCount" xml:space="preserve">
+    <value>Delete ({0} selected)</value>
+  </data>
+  <data name="LibDeleteSelectedConfirm" xml:space="preserve">
+    <value>{0} track(s) will be permanently deleted, including their files. Confirm?</value>
+  </data>
   <data name="LibImportResult" xml:space="preserve">
     <value>{0} track(s) imported ({1} duplicate(s) reused)</value>
   </data>

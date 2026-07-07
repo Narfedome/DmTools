@@ -29,13 +29,31 @@ namespace DmToolsApp.Features.Library
         private bool _suppressCategoryReload;
         private string? _categoryFilter;
 
+        public LibraryMultiSelection<Track> Selection { get; } = new();
+
+        public bool HasSelection => Selection.HasSelection;
+
+        public string SelectedCountLabel => string.Format(Loc["LibSelectedCount"], Selection.SelectedCount);
+
+        public bool CanDelete => HasSelection || SelectedTrackItem != null;
+
+        public string DeleteTooltip => HasSelection ? SelectedCountLabel : Loc["LibDelete"];
+
         private string AllCategoriesLabel => Loc["LibAllCategories"];
 
         [ObservableProperty]
         public ObservableCollection<Track> trackItems = new();
 
+        public bool HasTrackItems => TrackItems.Count > 0;
+
         [ObservableProperty]
         private Track? selectedTrackItem;
+
+        partial void OnSelectedTrackItemChanged(Track? value)
+        {
+            OnPropertyChanged(nameof(CanDelete));
+            OnPropertyChanged(nameof(DeleteTooltip));
+        }
 
         [ObservableProperty]
         private bool isLoadingMore;
@@ -56,10 +74,21 @@ namespace DmToolsApp.Features.Library
 
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
-            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySoundEffect"] };  
-            _libraryDataService = libraryDataService;     
+            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySoundEffect"] };
+            _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
+            TrackItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasTrackItems));
+            Selection.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(Selection.SelectedCount))
+                {
+                    OnPropertyChanged(nameof(HasSelection));
+                    OnPropertyChanged(nameof(SelectedCountLabel));
+                    OnPropertyChanged(nameof(CanDelete));
+                    OnPropertyChanged(nameof(DeleteTooltip));
+                }
+            };
             WeakReferenceMessenger.Default.Register<LibraryUpdatedMessage>(this,
             async (r, m) =>
             {
@@ -107,12 +136,24 @@ namespace DmToolsApp.Features.Library
         {
             _categoryFilter = SelectedCategory == AllCategoriesLabel ? null : SelectedCategory;
 
-            TrackItems.Clear();
+            ClearTrackItems();
             _loadedCount = 0;
             _hasMoreItems = true;
             SelectedTrackItem = null;
 
+            // Changer de catégorie change le contexte de sélection multiple : on repart de zéro
+            // pour éviter de supprimer par erreur des pistes qu'on ne voit plus.
+            Selection.Clear();
+
             await LoadNextPageAsync();
+        }
+
+        private void ClearTrackItems()
+        {
+            foreach (var t in TrackItems)
+                Selection.Untrack(t);
+
+            TrackItems.Clear();
         }
 
         private async Task LoadNextPageAsync()
@@ -128,7 +169,11 @@ namespace DmToolsApp.Features.Library
                 var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
 
                 foreach (var item in items)
-                    TrackItems.Add((Track)item);
+                {
+                    var track = (Track)item;
+                    Selection.Track(track);
+                    TrackItems.Add(track);
+                }
 
                 _loadedCount += items.Count;
                 _hasMoreItems = items.Count == PageSize;
@@ -163,26 +208,63 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task DeleteItem()
+        public async Task SelectAll()
         {
-            if (SelectedTrackItem == null)
+            var ids = await _libraryDataService.GetItemIdsAsync(typeof(Track), _categoryFilter);
+
+            // Bascule : si tout est déjà sélectionné, un nouvel appui tout désélectionne.
+            if (ids.Count > 0 && Selection.ContainsAll(ids))
+                Selection.DeselectAll(TrackItems);
+            else
+                Selection.SelectIds(ids, TrackItems);
+        }
+
+        /// <summary>
+        /// Supprime la sélection multiple (cases cochées) si elle existe, sinon la piste actuellement
+        /// tapée - un seul bouton couvre donc la suppression individuelle et la suppression multiple.
+        /// </summary>
+        [RelayCommand]
+        public async Task DeleteSelectedItems()
+        {
+            var ids = Selection.HasSelection
+                ? Selection.SelectedIds.ToList()
+                : SelectedTrackItem != null ? new List<int> { SelectedTrackItem.Id } : new List<int>();
+
+            if (ids.Count == 0)
                 return;
 
-            var item = SelectedTrackItem;
+            // Une seule piste ciblée (que ce soit via une case cochée ou l'item tapé) : même message
+            // que la suppression individuelle, avec son titre plutôt qu'un simple compteur.
+            var message = ids.Count == 1
+                ? string.Format(Loc["DialogDeleteTrackConfirm"], (TrackItems.FirstOrDefault(t => t.Id == ids[0]) ?? SelectedTrackItem)?.Title)
+                : string.Format(Loc["LibDeleteSelectedConfirm"], ids.Count);
 
-            if (!await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteTrackConfirm"], item.Title))) return;
+            if (!await ConfirmAsync(Loc["DialogDelete"], message))
+                return;
 
             StopAudio();
-            await _libraryDataService.DeleteLibraryItem(item);
 
-            // Ne supprime le fichier physique que si aucune autre track ne le référence encore (dédup)
-            var remainingRefs = await _libraryDataService.CountTracksWithFilePathAsync(item.FilePath, item.Id);
-            if (remainingRefs == 0)
-                _fileService.DeleteTrackFromLocal(item.FilePath);
+            var deleted = await _libraryDataService.DeleteItemsAsync(typeof(Track), ids);
 
-            TrackItems.Remove(item);
-            _loadedCount--;
-            SelectedTrackItem = null;
+            foreach (var track in deleted.OfType<Track>())
+            {
+                // Ne supprime le fichier physique que si aucune autre track ne le référence encore (dédup)
+                var remainingRefs = await _libraryDataService.CountTracksWithFilePathAsync(track.FilePath, track.Id);
+                if (remainingRefs == 0)
+                    _fileService.DeleteTrackFromLocal(track.FilePath);
+            }
+
+            foreach (var item in TrackItems.Where(t => ids.Contains(t.Id)).ToList())
+            {
+                Selection.Untrack(item);
+                TrackItems.Remove(item);
+                _loadedCount--;
+            }
+
+            Selection.Clear();
+            SelectedTrackItem = TrackItems.FirstOrDefault();
+
+            await RefreshCategoriesAsync();
         }
 
         [RelayCommand]
@@ -288,6 +370,7 @@ namespace DmToolsApp.Features.Library
                         // N'affiche la nouvelle track dans la liste que si elle correspond au filtre actif
                         if (_categoryFilter == null || string.Equals(track.Category, _categoryFilter, StringComparison.OrdinalIgnoreCase))
                         {
+                            Selection.Track(track);
                             TrackItems.Add(track);
                             _loadedCount++;
                         }

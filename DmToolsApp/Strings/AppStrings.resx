@@ -261,6 +261,15 @@
   <data name="LibImport" xml:space="preserve">
     <value>Importer plusieurs</value>
   </data>
+  <data name="LibSelectAll" xml:space="preserve">
+    <value>Tout sélectionner</value>
+  </data>
+  <data name="LibSelectedCount" xml:space="preserve">
+    <value>Supprimer ({0} sélectionnée(s))</value>
+  </data>
+  <data name="LibDeleteSelectedConfirm" xml:space="preserve">
+    <value>{0} piste(s) seront supprimée(s) définitivement, fichiers compris. Confirmer ?</value>
+  </data>
   <data name="LibImportResult" xml:space="preserve">
     <value>{0} piste(s) importée(s) ({1} doublon(s) réutilisé(s))</value>
   </data>

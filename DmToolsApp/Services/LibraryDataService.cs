@@ -130,6 +130,91 @@ namespace DmToolsApp.Services
             }).ToList();
         }
 
+        /// <summary>
+        /// Ids de tous les éléments d'un type de bibliothèque (utilisé par "Tout sélectionner", y compris
+        /// les éléments non encore chargés à cause de la pagination). Le filtre par catégorie ne s'applique
+        /// qu'aux Track (seul type qui a des catégories pour l'instant).
+        /// </summary>
+        public async Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category)
+        {
+            if (currentLibraryType == typeof(Track))
+            {
+                var query = _db.Connection.Table<TrackEntity>();
+                if (!string.IsNullOrEmpty(category))
+                    query = query.Where(t => t.Category == category);
+
+                var tracks = await query.ToListAsync();
+                return tracks.Select(t => t.Id).ToList();
+            }
+
+            if (currentLibraryType == typeof(Spell))
+            {
+                var spells = await _db.Connection.Table<SpellEntity>().ToListAsync();
+                return spells.Select(s => s.Id).ToList();
+            }
+
+            return new List<int>();
+        }
+
+        /// <summary>
+        /// Supprime plusieurs éléments de bibliothèque d'un coup (BD + liaisons associées), utilisé par la
+        /// suppression multiple. Retourne les éléments supprimés (Title/FilePath...) pour le nettoyage des
+        /// fichiers physiques par l'appelant.
+        /// </summary>
+        public async Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids)
+        {
+            var deleted = new List<LibraryItem>();
+
+            foreach (var id in ids)
+            {
+                if (currentLibraryType == typeof(Track))
+                {
+                    var entity = await _db.Connection.FindAsync<TrackEntity>(id);
+                    if (entity == null) continue;
+
+                    await _db.Connection.DeleteAsync<TrackEntity>(id);
+
+                    var sceneTracks = await _db.Connection.Table<SceneTrackEntity>().Where(st => st.TrackId == id).ToListAsync();
+                    foreach (var sceneTrack in sceneTracks)
+                        await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
+
+                    deleted.Add(new Track
+                    {
+                        Id = entity.Id,
+                        Title = entity.Title,
+                        ImagePath = entity.ImagePath,
+                        FilePath = entity.FilePath,
+                        Duration = entity.Duration,
+                        Volume = entity.DefaultVolume,
+                        Hash = entity.Hash,
+                        Category = entity.Category
+                    });
+                }
+                else if (currentLibraryType == typeof(Spell))
+                {
+                    var entity = await _db.Connection.FindAsync<SpellEntity>(id);
+                    if (entity == null) continue;
+
+                    await _db.Connection.DeleteAsync<SpellEntity>(id);
+
+                    var characterSpells = await _db.Connection.Table<CharacterSpellEntity>().Where(cs => cs.SpellId == id).ToListAsync();
+                    foreach (var characterSpell in characterSpells)
+                        await _db.Connection.DeleteAsync<CharacterSpellEntity>(characterSpell.Id);
+
+                    deleted.Add(new Spell
+                    {
+                        Id = entity.Id,
+                        Title = entity.Title,
+                        ImagePath = entity.ImagePath,
+                        FilePath = entity.FilePath,
+                        Description = entity.Description
+                    });
+                }
+            }
+
+            return deleted;
+        }
+
         private async Task SaveSpell(Spell oldSpell)
         {
             var entity = new SpellEntity
@@ -271,6 +356,8 @@ namespace DmToolsApp.Services
         Task SaveLibraryItemAsync(LibraryItem item);
         Task DeleteLibraryItem(LibraryItem item);
         Task<List<Track>> DeleteAllTracksAsync();
+        Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category);
+        Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids);
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
         Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null);
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);

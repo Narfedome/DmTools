@@ -16,6 +16,11 @@ namespace DmToolsApp.Models.Library
 
         [ObservableProperty]
         private string filePath  ="";
+
+        // État UI uniquement (sélection multiple dans la bibliothèque) - non persisté en BD.
+        [ObservableProperty]
+        private bool isSelected;
+
         public LibraryItem Clone()
         {
             return (LibraryItem)this.MemberwiseClone();
