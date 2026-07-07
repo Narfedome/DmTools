@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Plugin.Maui.Audio;
@@ -235,7 +236,7 @@ namespace DmToolsApp.Features.Library
             popupView.ViewModel.TotalCount = files.Count;
 
             var page = Shell.Current.CurrentPage;
-            page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false, Shape = null, Shadow = null });
+            page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
 
             try
             {

@@ -46,8 +46,10 @@
         }
         public void DeleteTrackFromLocal(string filePath)
         {
+            // Suppression "best effort" : une track peut ne pas avoir de fichier associé (FilePath vide)
+            // ou pointer vers un fichier déjà supprimé — dans ce cas il n'y a simplement rien à faire.
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
-                throw new FileNotFoundException("Le fichier source est introuvable", filePath);
+                return;
 
             File.Delete(filePath);
         }

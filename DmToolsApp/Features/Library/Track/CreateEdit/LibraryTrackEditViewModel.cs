@@ -66,7 +66,7 @@ namespace DmToolsApp.Features.Library
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
+                await ShowErrorAsync(ex);
             }
         }
 

@@ -18,6 +18,43 @@
         <Setter Property="StrokeThickness" Value="1"/>
     </Style>
 
+    <!-- Carte utilisée par les popups thémées (dialogues de confirmation/saisie/choix, import) -->
+    <Style TargetType="Border" x:Key="DialogCardBorder">
+        <Setter Property="BackgroundColor" Value="{DynamicResource AppSurface}" />
+        <Setter Property="Stroke" Value="{DynamicResource AppBorder}" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
+        <Setter Property="StrokeThickness" Value="1"/>
+        <Setter Property="Padding" Value="20"/>
+    </Style>
+
+    <!-- Bouton secondaire (Annuler/Non) pour les popups thémées : contour au lieu du fond plein accent -->
+    <Style TargetType="Button" x:Key="DialogSecondaryButton">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{DynamicResource AppAccent}" />
+        <Setter Property="BorderColor" Value="{DynamicResource AppAccent}" />
+        <Setter Property="BorderWidth" Value="1"/>
+        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+    </Style>
+
+    <!-- Bouton d'option (liste de choix) pour ActionSheetDialog -->
+    <Style TargetType="Button" x:Key="DialogOptionButton">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{DynamicResource AppText}" />
+        <Setter Property="BorderColor" Value="{DynamicResource AppBorder}" />
+        <Setter Property="BorderWidth" Value="1"/>
+        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+    </Style>
+
     <Style TargetType="BoxView">
         <Setter Property="BackgroundColor" Value="{DynamicResource AppText}" />
     </Style>

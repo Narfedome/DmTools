@@ -1,4 +1,8 @@
+using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
+using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Services;
 
 namespace DmToolsApp;
@@ -16,23 +20,38 @@ public abstract partial class BaseViewModel : ObservableObject
     private static Page CurrentPage => Application.Current!.Windows[0].Page!;
 
     protected Task<bool> ConfirmDeleteAsync(string itemName) =>
-        CurrentPage.DisplayAlertAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteConfirm"], itemName), Loc["DialogYes"], Loc["DialogNo"]);
+        ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteConfirm"], itemName));
 
-    protected Task<bool> ConfirmAsync(string title, string message) =>
-        CurrentPage.DisplayAlertAsync(title, message, Loc["DialogYes"], Loc["DialogNo"]);
+    protected async Task<bool> ConfirmAsync(string title, string message)
+    {
+        var popup = new ConfirmDialog(title, message, Loc["DialogYes"], Loc["DialogNo"]);
+        var result = await CurrentPage.ShowPopupAsync<bool>(popup, PopupOptions.Empty, CancellationToken.None);
+        return result.Result is true;
+    }
 
-    protected Task ShowErrorAsync(Exception ex) =>
-        CurrentPage.DisplayAlertAsync(Loc["ErrorTitle"], ex.Message, "OK");
+    protected Task ShowErrorAsync(Exception ex)
+    {
+        var popup = new ConfirmDialog(Loc["ErrorTitle"], ex.Message, Loc["DialogOk"], null);
+        return CurrentPage.ShowPopupAsync<bool>(popup, PopupOptions.Empty, CancellationToken.None);
+    }
 
-    protected Task ShowInfoAsync(string title, string message) =>
-        CurrentPage.DisplayAlertAsync(title, message, "OK");
+    protected Task ShowInfoAsync(string title, string message)
+    {
+        var popup = new ConfirmDialog(title, message, Loc["DialogOk"], null);
+        return CurrentPage.ShowPopupAsync<bool>(popup, PopupOptions.Empty, CancellationToken.None);
+    }
 
-    protected Task<string?> ShowPromptAsync(string title, string message, string placeholder = "") =>
-        CurrentPage.DisplayPromptAsync(title, message, Loc["DialogYes"], Loc["DialogNo"], placeholder);
+    protected async Task<string?> ShowPromptAsync(string title, string message, string placeholder = "", string initialValue = "")
+    {
+        var popup = new PromptDialog(title, message, placeholder, initialValue, Loc["DialogYes"], Loc["DialogNo"]);
+        var result = await CurrentPage.ShowPopupAsync<string?>(popup, PopupOptions.Empty, CancellationToken.None);
+        return result.Result;
+    }
 
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
     {
-        var result = await CurrentPage.DisplayActionSheetAsync(title, Loc["BtnCancel"], null, options);
-        return result == null || result == Loc["BtnCancel"] ? null : result;
+        var popup = new ActionSheetDialog(title, options, Loc["BtnCancel"]);
+        var result = await CurrentPage.ShowPopupAsync<string?>(popup, PopupOptions.Empty, CancellationToken.None);
+        return result.Result;
     }
 }

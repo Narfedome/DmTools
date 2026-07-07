@@ -1,3 +1,5 @@
+using CommunityToolkit.Maui.Extensions;
+
 namespace DmToolsApp.Features.Library;
 
 public partial class LibraryTrackPage : ContentPage
@@ -7,9 +9,16 @@ public partial class LibraryTrackPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
-    protected override async void OnAppearing()
+
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        base.OnAppearing();
+        base.OnNavigatedTo(args);
+
+        // Fermer une popup thémée (confirmation, saisie...) redéclenche aussi la navigation sur cette
+        // page : dans ce cas le ViewModel a déjà mis à jour TrackItems localement, un rechargement complet
+        // ferait doublon et pourrait entrer en collision avec cette mise à jour (liste qui clignote/se perd).
+        if (args.WasPreviousPageACommunityToolkitPopupPage())
+            return;
 
         if (BindingContext is LibraryTrackViewModel vm)
             await vm.InitializeAsync();

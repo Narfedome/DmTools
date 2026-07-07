@@ -426,6 +426,9 @@
   <data name="DialogNo" xml:space="preserve">
     <value>No</value>
   </data>
+  <data name="DialogOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
   <data name="DialogDeleteConfirm" xml:space="preserve">
     <value>Delete "{0}"?</value>
   </data>

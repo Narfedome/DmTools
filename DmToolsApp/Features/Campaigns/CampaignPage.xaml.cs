@@ -1,3 +1,5 @@
+using CommunityToolkit.Maui.Extensions;
+
 namespace DmToolsApp.Features.Campaigns;
 
 public partial class CampaignPage : ContentPage
@@ -11,9 +13,15 @@ public partial class CampaignPage : ContentPage
         BindingContext = vm;
     }
 
-    protected override async void OnAppearing()
+    protected override async void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        base.OnAppearing();
+        base.OnNavigatedTo(args);
+
+        // Cf. LibraryTrackPage : une popup thémée qui se ferme redéclenche la navigation, mais le
+        // ViewModel a déjà mis à jour Campaigns localement (Create/Rename/Delete) — pas besoin de tout recharger.
+        if (args.WasPreviousPageACommunityToolkitPopupPage())
+            return;
+
         await _vm.InitializeAsync();
     }
 }

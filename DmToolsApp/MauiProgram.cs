@@ -25,7 +25,17 @@ namespace DmToolsApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseMauiCommunityToolkit()
+                .UseMauiCommunityToolkit(options =>
+                {
+                    // Toutes les popups de l'app (dialogues thémés, import) dessinent leur propre
+                    // carte (Border) : on désactive le cadre/l'ombre par défaut du toolkit pour éviter
+                    // un double contour (bug connu de bordure blanche sur Windows).
+                    options.SetPopupOptionsDefaults(new DefaultPopupOptionsSettings
+                    {
+                        Shape = null,
+                        Shadow = null
+                    });
+                })
                 .UseMauiCommunityToolkitCore()
                 .ConfigureFonts(fonts =>
                 {

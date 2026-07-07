@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:system="clr-namespace:System;assembly=mscorlib"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:TypeArguments="system:String"
+               x:Class="DmToolsApp.Components.Dialogs.ActionSheetDialog"
+               BackgroundColor="Transparent"
+               Padding="0">
+    <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+        <VerticalStackLayout Spacing="16">
+            <Label x:Name="TitleLabel"
+                   FontAttributes="Bold" FontSize="16"
+                   TextColor="{DynamicResource AppText}"/>
+            <ScrollView MaximumHeightRequest="320">
+                <VerticalStackLayout x:Name="OptionsStack" Spacing="8"/>
+            </ScrollView>
+            <Button x:Name="CancelButton"
+                    Style="{StaticResource DialogSecondaryButton}"
+                    Clicked="OnCancelClicked"/>
+        </VerticalStackLayout>
+    </Border>
+</toolkit:Popup>

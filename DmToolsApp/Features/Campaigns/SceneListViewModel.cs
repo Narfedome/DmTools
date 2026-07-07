@@ -61,7 +61,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Create()
         {
             if (Session == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogNewScene"], Loc["PromptName"]);
+            string? name = await ShowPromptAsync(Loc["DialogNewScene"], Loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var scene = new Scene { SessionId = Session.Id, Title = name.CapitalizeFirst() };
@@ -73,7 +73,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedScene == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedScene.Title);
+            string? name = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedScene.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedScene.Title = name.CapitalizeFirst();

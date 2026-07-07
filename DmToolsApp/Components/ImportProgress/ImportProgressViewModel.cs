@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace DmToolsApp.Features.Library
+namespace DmToolsApp.Components
 {
     public partial class ImportProgressViewModel : ObservableObject
     {

@@ -31,7 +31,7 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Create()
         {
-            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogNewCampaign"], Loc["PromptName"]);
+            string? name = await ShowPromptAsync(Loc["DialogNewCampaign"], Loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             var campaign = new Campaign { Title = name.CapitalizeFirst() };
@@ -43,7 +43,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Rename()
         {
             if (SelectedCampaign == null) return;
-            string? name = await Shell.Current.DisplayPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedCampaign.Title);
+            string? name = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedCampaign.Title);
             if (string.IsNullOrWhiteSpace(name)) return;
 
             SelectedCampaign.Title = name.CapitalizeFirst();

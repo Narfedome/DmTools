@@ -1,4 +1,4 @@
-namespace DmToolsApp.Features.Library
+namespace DmToolsApp.Components
 {
     public partial class ImportProgressPopupView : ContentView
     {

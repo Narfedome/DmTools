@@ -103,13 +103,7 @@ namespace DmToolsApp.Services
             var deletedTracks = await _libraryDataService.DeleteAllTracksAsync();
 
             foreach (var track in deletedTracks)
-            {
-                try
-                {
-                    _fileService.DeleteTrackFromLocal(track.FilePath);
-                }
-                catch (FileNotFoundException) { /* fichier déjà supprimé, on continue */ }
-            }
+                _fileService.DeleteTrackFromLocal(track.FilePath);
 
             return deletedTracks.Count;
         }
