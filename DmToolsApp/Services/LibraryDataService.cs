@@ -110,6 +110,26 @@ namespace DmToolsApp.Services
             }
         }
 
+        public async Task<List<Track>> DeleteAllTracksAsync()
+        {
+            var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
+
+            await _db.Connection.DeleteAllAsync<SceneTrackEntity>();
+            await _db.Connection.DeleteAllAsync<TrackEntity>();
+
+            return tracks.Select(t => new Track
+            {
+                Id = t.Id,
+                Title = t.Title,
+                ImagePath = t.ImagePath,
+                FilePath = t.FilePath,
+                Duration = t.Duration,
+                Volume = t.DefaultVolume,
+                Hash = t.Hash,
+                Category = t.Category
+            }).ToList();
+        }
+
         private async Task SaveSpell(Spell oldSpell)
         {
             var entity = new SpellEntity
@@ -250,6 +270,7 @@ namespace DmToolsApp.Services
     {
         Task SaveLibraryItemAsync(LibraryItem item);
         Task DeleteLibraryItem(LibraryItem item);
+        Task<List<Track>> DeleteAllTracksAsync();
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
         Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null);
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);

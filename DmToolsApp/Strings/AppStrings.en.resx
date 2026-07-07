@@ -366,6 +366,27 @@
   <data name="SettingsStorageNothingToClean" xml:space="preserve">
     <value>No orphaned files to clean up</value>
   </data>
+  <data name="SettingsStorageDeleteAllTracksDesc" xml:space="preserve">
+    <value>Permanently deletes all audio tracks</value>
+  </data>
+  <data name="SettingsStorageDeleteAllButton" xml:space="preserve">
+    <value>Delete all</value>
+  </data>
+  <data name="SettingsStorageDeleteAllConfirmTitle" xml:space="preserve">
+    <value>Permanent deletion</value>
+  </data>
+  <data name="SettingsStorageDeleteAllConfirmMessage" xml:space="preserve">
+    <value>This will permanently delete {0} audio track(s) ({1}) along with their files. This action is irreversible.</value>
+  </data>
+  <data name="SettingsStorageDeleteAllFinalConfirmMessage" xml:space="preserve">
+    <value>Final confirmation: do you really want to delete everything? There is no way back.</value>
+  </data>
+  <data name="SettingsStorageDeleteAllNothingToDelete" xml:space="preserve">
+    <value>No tracks to delete</value>
+  </data>
+  <data name="SettingsStorageDeleteAllResult" xml:space="preserve">
+    <value>{0} track(s) permanently deleted</value>
+  </data>
   <data name="OnboardingTitle" xml:space="preserve">
     <value>Welcome to DmTools</value>
   </data>

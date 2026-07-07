@@ -48,6 +48,36 @@ namespace DmToolsApp.Features.Settings
             }
         }
 
+        [RelayCommand]
+        public async Task DeleteAllTracks()
+        {
+            var (count, totalBytes) = await _storageService.GetTracksSummaryAsync();
+
+            if (count == 0)
+            {
+                await ShowInfoAsync(Loc["SettingsStorageTitle"], Loc["SettingsStorageDeleteAllNothingToDelete"]);
+                return;
+            }
+
+            var message = string.Format(Loc["SettingsStorageDeleteAllConfirmMessage"], count, FormatSize(totalBytes));
+            if (!await ConfirmAsync(Loc["SettingsStorageDeleteAllConfirmTitle"], message))
+                return;
+
+            if (!await ConfirmAsync(Loc["SettingsStorageDeleteAllConfirmTitle"], Loc["SettingsStorageDeleteAllFinalConfirmMessage"]))
+                return;
+
+            try
+            {
+                var deleted = await _storageService.DeleteAllTracksAsync();
+                await InitializeAsync();
+                await ShowInfoAsync(Loc["SettingsStorageTitle"], string.Format(Loc["SettingsStorageDeleteAllResult"], deleted));
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
+        }
+
         private static string FormatSize(long bytes)
         {
             string[] units = ["o", "Ko", "Mo", "Go"];

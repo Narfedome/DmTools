@@ -85,6 +85,34 @@ namespace DmToolsApp.Services
 
             return Task.FromResult(freed);
         }
+
+        public async Task<(int Count, long TotalBytes)> GetTracksSummaryAsync()
+        {
+            var items = await _libraryDataService.GetAllItemsTypeAsync(typeof(Track));
+            var tracks = items.OfType<Track>().ToList();
+
+            long total = tracks
+                .Where(t => File.Exists(t.FilePath))
+                .Sum(t => new FileInfo(t.FilePath).Length);
+
+            return (tracks.Count, total);
+        }
+
+        public async Task<int> DeleteAllTracksAsync()
+        {
+            var deletedTracks = await _libraryDataService.DeleteAllTracksAsync();
+
+            foreach (var track in deletedTracks)
+            {
+                try
+                {
+                    _fileService.DeleteTrackFromLocal(track.FilePath);
+                }
+                catch (FileNotFoundException) { /* fichier déjà supprimé, on continue */ }
+            }
+
+            return deletedTracks.Count;
+        }
     }
 
     public interface IStorageService
@@ -93,5 +121,7 @@ namespace DmToolsApp.Services
         Task<List<(string Title, long SizeBytes)>> GetLargestTracksAsync(int count);
         Task<OrphanScanResult> ScanOrphansAsync();
         Task<long> DeleteOrphansAsync(OrphanScanResult scan);
+        Task<(int Count, long TotalBytes)> GetTracksSummaryAsync();
+        Task<int> DeleteAllTracksAsync();
     }
 }

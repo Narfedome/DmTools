@@ -366,6 +366,27 @@
   <data name="SettingsStorageNothingToClean" xml:space="preserve">
     <value>Aucun fichier orphelin à nettoyer</value>
   </data>
+  <data name="SettingsStorageDeleteAllTracksDesc" xml:space="preserve">
+    <value>Supprime définitivement toutes les pistes audio</value>
+  </data>
+  <data name="SettingsStorageDeleteAllButton" xml:space="preserve">
+    <value>Supprimer tout</value>
+  </data>
+  <data name="SettingsStorageDeleteAllConfirmTitle" xml:space="preserve">
+    <value>Suppression définitive</value>
+  </data>
+  <data name="SettingsStorageDeleteAllConfirmMessage" xml:space="preserve">
+    <value>Ceci supprimera définitivement {0} piste(s) audio ({1}) ainsi que leurs fichiers. Cette action est irréversible.</value>
+  </data>
+  <data name="SettingsStorageDeleteAllFinalConfirmMessage" xml:space="preserve">
+    <value>Dernière confirmation : voulez-vous vraiment tout supprimer ? Il n'y a aucun moyen de revenir en arrière.</value>
+  </data>
+  <data name="SettingsStorageDeleteAllNothingToDelete" xml:space="preserve">
+    <value>Aucune piste à supprimer</value>
+  </data>
+  <data name="SettingsStorageDeleteAllResult" xml:space="preserve">
+    <value>{0} piste(s) supprimée(s) définitivement</value>
+  </data>
   <data name="OnboardingTitle" xml:space="preserve">
     <value>Bienvenue dans DmTools</value>
   </data>

@@ -71,21 +71,38 @@
 
             <!-- Stockage -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
-                <Grid ColumnDefinitions="*,auto">
-                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                        <Label Text="{loc:Loc SettingsStorageTitle}" FontSize="16"/>
-                        <Label Text="{Binding StorageUsedText}"
-                               FontSize="14"
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,auto">
+                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                            <Label Text="{loc:Loc SettingsStorageTitle}" FontSize="16"/>
+                            <Label Text="{Binding StorageUsedText}"
+                                   FontSize="14"
+                                   TextColor="{DynamicResource AppSecondary}"/>
+                        </VerticalStackLayout>
+                        <Button Grid.Column="1"
+                                Text="{loc:Loc SettingsStorageCleanupButton}"
+                                Command="{Binding CleanupStorageCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{DynamicResource AppAccent}"
+                                FontSize="15"
+                                Padding="8,4"/>
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
+
+                    <Grid ColumnDefinitions="*,auto">
+                        <Label Grid.Column="0" Text="{loc:Loc SettingsStorageDeleteAllTracksDesc}"
+                               VerticalOptions="Center" FontSize="13"
                                TextColor="{DynamicResource AppSecondary}"/>
-                    </VerticalStackLayout>
-                    <Button Grid.Column="1"
-                            Text="{loc:Loc SettingsStorageCleanupButton}"
-                            Command="{Binding CleanupStorageCommand}"
-                            BackgroundColor="Transparent"
-                            TextColor="{DynamicResource AppAccent}"
-                            FontSize="15"
-                            Padding="8,4"/>
-                </Grid>
+                        <Button Grid.Column="1"
+                                Text="{loc:Loc SettingsStorageDeleteAllButton}"
+                                Command="{Binding DeleteAllTracksCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="#C0392B"
+                                FontSize="15"
+                                Padding="8,4"/>
+                    </Grid>
+                </VerticalStackLayout>
             </Border>
 
             <!-- Buy Me a Coffee -->
