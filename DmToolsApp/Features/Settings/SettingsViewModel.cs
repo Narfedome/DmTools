@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
@@ -138,7 +139,8 @@ namespace DmToolsApp.Features.Settings
             RebuildThemeOptions();
             selectedThemeOption = ThemeOptions[(int)_theme.ThemePreference];
 
-            Loc.LanguageChanged += RebuildThemeOptions;
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
+                (r, m) => ((SettingsViewModel)r).RebuildThemeOptions());
         }
 
         private void RebuildThemeOptions()

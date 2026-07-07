@@ -75,7 +75,7 @@ namespace DmToolsApp.Features.Library
                 {
                     var tagfile = TagLib.File.Create(result.FullPath);
                     Item.FilePath = result.FullPath;
-                    Item.Title = FileService.ExtractTitle(tagfile.Tag, result.FileName);
+                    Item.Title = TrackTagHelper.ExtractTitle(tagfile.Tag, result.FileName);
                     Item.Duration = tagfile.Properties.Duration;
                     ImportedFilePath = result.FullPath;
                 }
@@ -97,7 +97,7 @@ namespace DmToolsApp.Features.Library
             if (!string.IsNullOrEmpty(ImportedFilePath))
             {
                 // Déduplication par hash : réutilise le fichier existant si le contenu est déjà en librairie
-                var hash = FileService.ComputeSha256(ImportedFilePath);
+                var hash = TrackTagHelper.ComputeSha256(ImportedFilePath);
                 var existing = await _libraryDataService.FindTrackByHashAsync(hash, Item.Id);
 
                 Item.FilePath = existing != null

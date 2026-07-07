@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Extensions;
 using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
@@ -30,7 +31,8 @@ namespace DmToolsApp
                         .ProvideValue(null!);
             };
 
-            _loc.LanguageChanged += UpdateTabTitles;
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
+                (r, m) => ((AppShell)r).UpdateTabTitles());
             UpdateTabTitles();
         }
 

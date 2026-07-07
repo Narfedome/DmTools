@@ -334,7 +334,7 @@ namespace DmToolsApp.Features.Library
 
                     try
                     {
-                        var hash = await Task.Run(() => FileService.ComputeSha256(file.FullPath));
+                        var hash = await Task.Run(() => TrackTagHelper.ComputeSha256(file.FullPath));
                         var existing = await _libraryDataService.FindTrackByHashAsync(hash, 0);
 
                         string filePath;
@@ -355,7 +355,7 @@ namespace DmToolsApp.Features.Library
                             var (tagTitle, tagDuration) = await Task.Run(() =>
                             {
                                 var tagfile = TagLib.File.Create(file.FullPath);
-                                var t = FileService.ExtractTitle(tagfile.Tag, file.FileName);
+                                var t = TrackTagHelper.ExtractTitle(tagfile.Tag, file.FileName);
                                 return (t, tagfile.Properties.Duration);
                             });
                             title = tagTitle;

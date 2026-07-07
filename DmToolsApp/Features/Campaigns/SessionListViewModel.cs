@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Extensions;
 using DmToolsApp.Models;
 using DmToolsApp.Services;
@@ -14,7 +15,8 @@ namespace DmToolsApp.Features.Campaigns
         public SessionListViewModel(ISceneDataService sceneDataService)
         {
             _sceneDataService = sceneDataService;
-            Loc.LanguageChanged += () => OnPropertyChanged(nameof(PageTitle));
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
+                (r, m) => ((SessionListViewModel)r).OnPropertyChanged(nameof(PageTitle)));
         }
 
         [ObservableProperty] private Campaign? campaign;

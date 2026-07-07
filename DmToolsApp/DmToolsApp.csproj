@@ -200,6 +200,10 @@
 	  </None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\DmToolsApp.Core\DmToolsApp.Core.csproj" />
+	</ItemGroup>
+
 
 	<!-- Auto-incrémente le patch en comptant les commits git et fixe ApplicationDisplayVersion.
 	     L'app lit sa version au runtime via AppInfo.Current.VersionString, qui reflète exactement

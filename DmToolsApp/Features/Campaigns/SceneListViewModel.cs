@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Extensions;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Models;
@@ -23,7 +24,8 @@ namespace DmToolsApp.Features.Campaigns
             _sceneDataService = sceneDataService;
             _audioMixerViewModel = audioMixerViewModel;
             _sessionStateService = sessionStateService;
-            Loc.LanguageChanged += () => OnPropertyChanged(nameof(PageTitle));
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
+                (r, m) => ((SceneListViewModel)r).OnPropertyChanged(nameof(PageTitle)));
         }
 
         [ObservableProperty] private Session? session;

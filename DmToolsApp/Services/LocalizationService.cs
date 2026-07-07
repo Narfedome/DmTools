@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.Messaging;
 using System.ComponentModel;
 using System.Globalization;
 using System.Resources;
@@ -38,11 +39,10 @@ namespace DmToolsApp.Services
                 _culture = new CultureInfo(value);
                 Preferences.Default.Set("app_lang", value);
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
-                LanguageChanged?.Invoke();
+                WeakReferenceMessenger.Default.Send(new LanguageChangedMessage());
             }
         }
 
-        public event Action? LanguageChanged;
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 }
