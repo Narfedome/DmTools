@@ -311,37 +311,43 @@ namespace DmToolsApp.Services
             };
         }
 
-        public async Task<List<string>> GetCategoryNamesAsync()
+        public async Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType)
         {
-            var categories = await _db.Connection.Table<CategoryEntity>().ToListAsync();
+            var typeName = currentLibraryType.Name;
+            var categories = await _db.Connection.Table<CategoryEntity>().Where(c => c.LibraryType == typeName).ToListAsync();
             return categories.Select(c => c.Name).OrderBy(c => c, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
-        public async Task EnsureCategoryAsync(string name)
+        public async Task EnsureCategoryAsync(Type currentLibraryType, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return;
 
-            var existing = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name).FirstOrDefaultAsync();
+            var typeName = currentLibraryType.Name;
+            var existing = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (existing == null)
-                await _db.Connection.InsertAsync(new CategoryEntity { Name = name });
+                await _db.Connection.InsertAsync(new CategoryEntity { Name = name, LibraryType = typeName });
         }
 
-        public async Task RenameCategoryAsync(string oldName, string newName)
+        public async Task RenameCategoryAsync(Type currentLibraryType, string oldName, string newName)
         {
-            var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == oldName).FirstOrDefaultAsync();
+            var typeName = currentLibraryType.Name;
+            var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == oldName && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (entity == null)
                 return;
 
-            var tracks = await _db.Connection.Table<TrackEntity>().Where(t => t.Category == oldName).ToListAsync();
-            foreach (var track in tracks)
+            if (currentLibraryType == typeof(Track))
             {
-                track.Category = newName;
-                await _db.Connection.UpdateAsync(track);
+                var tracks = await _db.Connection.Table<TrackEntity>().Where(t => t.Category == oldName).ToListAsync();
+                foreach (var track in tracks)
+                {
+                    track.Category = newName;
+                    await _db.Connection.UpdateAsync(track);
+                }
             }
 
-            // Si le nom cible existe déjà, on fusionne au lieu de créer un doublon.
-            var targetExists = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == newName).CountAsync() > 0;
+            // Si le nom cible existe déjà (même type), on fusionne au lieu de créer un doublon.
+            var targetExists = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == newName && c.LibraryType == typeName).CountAsync() > 0;
             if (targetExists)
             {
                 await _db.Connection.DeleteAsync<CategoryEntity>(entity.Id);
@@ -353,18 +359,22 @@ namespace DmToolsApp.Services
             }
         }
 
-        public async Task DeleteCategoryAsync(string name)
+        public async Task DeleteCategoryAsync(Type currentLibraryType, string name)
         {
-            var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name).FirstOrDefaultAsync();
+            var typeName = currentLibraryType.Name;
+            var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (entity != null)
                 await _db.Connection.DeleteAsync<CategoryEntity>(entity.Id);
 
-            // La catégorie est un simple tag : on détache les tracks sans les supprimer.
-            var tracks = await _db.Connection.Table<TrackEntity>().Where(t => t.Category == name).ToListAsync();
-            foreach (var track in tracks)
+            if (currentLibraryType == typeof(Track))
             {
-                track.Category = string.Empty;
-                await _db.Connection.UpdateAsync(track);
+                // La catégorie est un simple tag : on détache les tracks sans les supprimer.
+                var tracks = await _db.Connection.Table<TrackEntity>().Where(t => t.Category == name).ToListAsync();
+                foreach (var track in tracks)
+                {
+                    track.Category = string.Empty;
+                    await _db.Connection.UpdateAsync(track);
+                }
             }
         }
 
@@ -408,9 +418,9 @@ namespace DmToolsApp.Services
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);
         Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId);
         Task<HashSet<string>> GetAllReferencedFilePathsAsync();
-        Task<List<string>> GetCategoryNamesAsync();
-        Task EnsureCategoryAsync(string name);
-        Task RenameCategoryAsync(string oldName, string newName);
-        Task DeleteCategoryAsync(string name);
+        Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType);
+        Task EnsureCategoryAsync(Type currentLibraryType, string name);
+        Task RenameCategoryAsync(Type currentLibraryType, string oldName, string newName);
+        Task DeleteCategoryAsync(Type currentLibraryType, string name);
     }
 }

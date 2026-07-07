@@ -44,7 +44,7 @@ namespace DmToolsApp.Features.Library
 
         public async Task InitializeAsync()
         {
-            var names = await _libraryDataService.GetCategoryNamesAsync();
+            var names = await _libraryDataService.GetCategoryNamesAsync(typeof(Track));
             Categories = new ObservableCollection<string>(new[] { Loc["LibImportNoCategory"] }.Concat(names));
         }
 
