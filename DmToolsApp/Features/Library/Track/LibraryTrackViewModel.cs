@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
+using DmToolsApp.Components.TrackButton;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Plugin.Maui.Audio;
@@ -105,13 +106,30 @@ namespace DmToolsApp.Features.Library
             _audioPlayerService?.Stop();
         }
 
+        private bool _isInitializing;
+
         public async Task InitializeAsync()
         {
-            await Loading.RunAsync(async () =>
+            // Évite un rechargement concurrent si l'utilisateur quitte puis revient sur l'onglet avant
+            // la fin du chargement précédent (navigation restant possible pendant le chargement) - on
+            // laisse simplement le chargement déjà en cours se terminer plutôt que d'en démarrer un
+            // second en parallèle, qui corromprait l'état de la liste (doublons, sélection incohérente).
+            if (_isInitializing)
+                return;
+
+            _isInitializing = true;
+            try
             {
-                await RefreshCategoriesAsync();
-                await ReloadAsync();
-            });
+                await Loading.RunAsync(async () =>
+                {
+                    await RefreshCategoriesAsync();
+                    await ReloadAsync();
+                });
+            }
+            finally
+            {
+                _isInitializing = false;
+            }
         }
 
         private async Task RefreshCategoriesAsync()
@@ -160,18 +178,35 @@ namespace DmToolsApp.Features.Library
             if (_isLoadingMore || !_hasMoreItems)
                 return;
 
+            // Le spinner du footer (IsLoadingMore) ne doit apparaître qu'en pagination (scroll) - la
+            // toute première page est déjà couverte par le spinner de la liste (Loading.IsLoading),
+            // sans quoi les deux s'affichaient en même temps au premier chargement.
+            var isPagination = _loadedCount > 0;
+
             _isLoadingMore = true;
-            IsLoadingMore = true;
+            if (isPagination)
+                IsLoadingMore = true;
 
             try
             {
                 var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
+
+                // Précharge les pochettes de la page avant de révéler les tuiles : l'indicateur de
+                // chargement de la liste (spinner du haut ou du footer selon le cas) couvre alors tout
+                // le temps de chargement réel (DB + lecture des tags audio), au lieu de disparaître
+                // avant que les tuiles n'aient fini d'apparaître avec leur pochette.
+                await Task.WhenAll(items.Select(i => TrackButtonViewModel.LoadAndCacheCoverAsync(((Track)i).FilePath)));
 
                 foreach (var item in items)
                 {
                     var track = (Track)item;
                     Selection.Track(track);
                     TrackItems.Add(track);
+
+                    // Laisse la main au thread UI entre chaque tuile (traitement des messages Windows -
+                    // dont les taps sur les autres onglets) plutôt que d'enchaîner les 12 ajouts et
+                    // réalisations visuelles en un seul bloc synchrone ininterrompu.
+                    await Task.Yield();
                 }
 
                 _loadedCount += items.Count;
@@ -183,7 +218,8 @@ namespace DmToolsApp.Features.Library
             finally
             {
                 _isLoadingMore = false;
-                IsLoadingMore = false;
+                if (isPagination)
+                    IsLoadingMore = false;
             }
         }
 

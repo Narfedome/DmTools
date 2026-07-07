@@ -82,42 +82,44 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Boutons CRUD (visibles uniquement en mode CRUD) -->
-        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8"
-                               IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}">
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                                         Command="{Binding CreateItemCommand}"
-                                         Tooltip="{loc:Loc LibAdd}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileImport}"
-                                         Command="{Binding ImportMultipleTracksCommand}"
-                                         Tooltip="{loc:Loc LibImport}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Tags}"
-                                         Command="{Binding ManageCategoriesCommand}"
-                                         Tooltip="{loc:Loc LibManageCategories}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
-                                         Command="{Binding EditItemCommand}"
-                                         Tooltip="{loc:Loc LibEdit}"
-                                         IsEnabled="{Binding SelectedTrackItem, Converter={StaticResource IsNotNullConverter}}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.CheckDouble}"
-                                         Command="{Binding SelectAllCommand}"
-                                         Tooltip="{loc:Loc LibSelectAll}"
-                                         IsEnabled="{Binding HasTrackItems}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
-                                         Command="{Binding DeleteSelectedItemsCommand}"
-                                         Tooltip="{Binding DeleteTooltip}"
-                                         IsEnabled="{Binding CanDelete}"/>
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Grid.Row="2"
-                            HorizontalOptions="Center"
-                            Spacing="20"
-                            IsVisible="{Binding Source={x:Reference root}, Path=IsCrud, Converter={StaticResource InverseBoolConverter}}">
-            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleCheck}"
-                                           Command="{Binding ConfirmSelectionCommand}"
-                                           Tooltip="{loc:Loc LibConfirm}"/>
-            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleXmark}"
-                                           Command="{Binding CancelCommand}"
-                                           Tooltip="{loc:Loc LibCancel}"/>
-
-        </HorizontalStackLayout>
+        <!-- Boutons CRUD (visibles uniquement en mode CRUD, masqués pendant le chargement de la liste) -->
+        <VerticalStackLayout Grid.Row="2" IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}">
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" Margin="0,8"
+                                   IsVisible="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                                             Command="{Binding CreateItemCommand}"
+                                             Tooltip="{loc:Loc LibAdd}"/>
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileImport}"
+                                             Command="{Binding ImportMultipleTracksCommand}"
+                                             Tooltip="{loc:Loc LibImport}"/>
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Tags}"
+                                             Command="{Binding ManageCategoriesCommand}"
+                                             Tooltip="{loc:Loc LibManageCategories}"/>
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
+                                             Command="{Binding EditItemCommand}"
+                                             Tooltip="{loc:Loc LibEdit}"
+                                             IsEnabled="{Binding SelectedTrackItem, Converter={StaticResource IsNotNullConverter}}"/>
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.CheckDouble}"
+                                             Command="{Binding SelectAllCommand}"
+                                             Tooltip="{loc:Loc LibSelectAll}"
+                                             IsEnabled="{Binding HasTrackItems}"/>
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
+                                             Command="{Binding DeleteSelectedItemsCommand}"
+                                             Tooltip="{Binding DeleteTooltip}"
+                                             IsEnabled="{Binding CanDelete}"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+        <VerticalStackLayout Grid.Row="2"
+                             IsVisible="{Binding Source={x:Reference root}, Path=IsCrud, Converter={StaticResource InverseBoolConverter}}">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20"
+                                   IsVisible="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
+                <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleCheck}"
+                                               Command="{Binding ConfirmSelectionCommand}"
+                                               Tooltip="{loc:Loc LibConfirm}"/>
+                <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleXmark}"
+                                               Command="{Binding CancelCommand}"
+                                               Tooltip="{loc:Loc LibCancel}"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
     </Grid>
 </ContentView>
