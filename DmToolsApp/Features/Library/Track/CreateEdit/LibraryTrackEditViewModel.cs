@@ -59,7 +59,7 @@ namespace DmToolsApp.Features.Library
                 {
                     var tagfile = TagLib.File.Create(result.FullPath);
                     Item.FilePath = result.FullPath;
-                    Item.Title = string.IsNullOrEmpty(tagfile.Name) ? result.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title} ";
+                    Item.Title = FileService.ExtractTitle(tagfile.Tag, result.FileName);
                     Item.Duration = tagfile.Properties.Duration;
                     ImportedFilePath = result.FullPath;
                 }

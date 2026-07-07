@@ -264,7 +264,7 @@ namespace DmToolsApp.Features.Library
                             var (tagTitle, tagDuration) = await Task.Run(() =>
                             {
                                 var tagfile = TagLib.File.Create(file.FullPath);
-                                var t = string.IsNullOrEmpty(tagfile.Tag.Title) ? file.FileName : $"{tagfile.Tag.FirstAlbumArtist} - {tagfile.Tag.Title}";
+                                var t = FileService.ExtractTitle(tagfile.Tag, file.FileName);
                                 return (t, tagfile.Properties.Duration);
                             });
                             title = tagTitle;
