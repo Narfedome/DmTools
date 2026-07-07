@@ -91,6 +91,9 @@
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FileImport}"
                                          Command="{Binding ImportMultipleTracksCommand}"
                                          Tooltip="{loc:Loc LibImport}"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Tags}"
+                                         Command="{Binding ManageCategoriesCommand}"
+                                         Tooltip="{loc:Loc LibManageCategories}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding EditItemCommand}"
                                          Tooltip="{loc:Loc LibEdit}"

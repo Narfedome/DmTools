@@ -15,6 +15,7 @@ namespace DmToolsApp
             InitializeComponent();
             Routing.RegisterRoute(nameof(LibrarySpellEditPage), typeof(LibrarySpellEditPage));
             Routing.RegisterRoute(nameof(LibraryTrackEditPage), typeof(LibraryTrackEditPage));
+            Routing.RegisterRoute(nameof(CategoryListPage), typeof(CategoryListPage));
             Routing.RegisterRoute(nameof(SessionListPage), typeof(SessionListPage));
             Routing.RegisterRoute(nameof(SceneListPage), typeof(SceneListPage));
             Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));

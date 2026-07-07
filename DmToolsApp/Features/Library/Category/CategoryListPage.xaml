@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.Library"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.Library.CategoryListPage"
+             x:DataType="local:CategoryListViewModel">
+
+    <Shell.TitleView>
+        <Label Text="{loc:Loc CategoriesHeader}"
+               FontSize="18" FontAttributes="Bold"
+               VerticalOptions="Center"
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Shell.TitleView>
+
+    <components:WatermarkedLayout>
+    <Grid Padding="10" RowSpacing="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
+                           IsVisible="{Binding Loading.IsLoading}"
+                           VerticalOptions="Center" HorizontalOptions="Center"
+                           WidthRequest="80" HeightRequest="80"/>
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding CategoryNames}"
+                        SelectedItem="{Binding SelectedCategoryName}"
+                        SelectionMode="Single">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10"
+                            MinimumHeightRequest="52">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="Grey"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <Label Text="{Binding .}" FontSize="16" VerticalOptions="Center"/>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
+                                         Command="{Binding RenameCommand}"
+                                         Tooltip="{loc:Loc BtnRename}"
+                                         IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
+            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
+                                         Command="{Binding DeleteCommand}"
+                                         Tooltip="{loc:Loc BtnDelete}"
+                                         IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
+        </HorizontalStackLayout>
+    </Grid>
+    </components:WatermarkedLayout>
+</ContentPage>

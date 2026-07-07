@@ -16,7 +16,6 @@ namespace DmToolsApp.Features.Library
     public partial class LibraryTrackViewModel : BaseViewModel
     {
         private const int PageSize = 12;
-        private readonly string[] DefaultCategories;
 
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
@@ -74,7 +73,6 @@ namespace DmToolsApp.Features.Library
 
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
-            DefaultCategories =  new string[] { LocalizationService.Instance["LibCategoryMusic"], LocalizationService.Instance["LibCategoryAmbience"], LocalizationService.Instance  ["LibCategorySoundEffect"] };
             _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
@@ -117,7 +115,7 @@ namespace DmToolsApp.Features.Library
 
         private async Task RefreshCategoriesAsync()
         {
-            var existing = await _libraryDataService.GetDistinctTrackCategoriesAsync();
+            var existing = await _libraryDataService.GetCategoryNamesAsync();
             var previousSelection = string.IsNullOrEmpty(SelectedCategory) ? AllCategoriesLabel : SelectedCategory;
 
             _suppressCategoryReload = true;
@@ -205,6 +203,12 @@ namespace DmToolsApp.Features.Library
         public async Task Cancel()
         {
             await _navigation.ClosePickerAsync(null);
+        }
+
+        [RelayCommand]
+        public async Task ManageCategories()
+        {
+            await Shell.Current.GoToAsync(nameof(CategoryListPage));
         }
 
         [RelayCommand]
@@ -397,10 +401,9 @@ namespace DmToolsApp.Features.Library
         /// </summary>
         private async Task<string?> PickImportCategoryAsync()
         {
-            var existing = await _libraryDataService.GetDistinctTrackCategoriesAsync();
+            var existing = await _libraryDataService.GetCategoryNamesAsync();
             var options = new[] { Loc["LibImportNoCategory"] }
-                .Concat(DefaultCategories)
-                .Union(existing, StringComparer.OrdinalIgnoreCase)
+                .Concat(existing)
                 .Append(Loc["LibImportNewCategory"])
                 .ToArray();
 
@@ -415,7 +418,12 @@ namespace DmToolsApp.Features.Library
                 return choice;
 
             var newCategory = await ShowPromptAsync(Loc["LibImportNewCategory"], Loc["LibImportNewCategoryPrompt"]);
-            return string.IsNullOrWhiteSpace(newCategory) ? string.Empty : newCategory.Trim();
+            if (string.IsNullOrWhiteSpace(newCategory))
+                return string.Empty;
+
+            var trimmed = newCategory.Trim();
+            await _libraryDataService.EnsureCategoryAsync(trimmed);
+            return trimmed;
         }
     }
 }

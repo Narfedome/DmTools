@@ -65,6 +65,8 @@ namespace DmToolsApp
             builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<SettingsPage>();
             builder.Services.AddTransient<LibraryTrackViewModel>();
+            builder.Services.AddTransient<CategoryListViewModel>();
+            builder.Services.AddTransient<CategoryListPage>();
             builder.Services.AddTransient<LibrarySpellViewModel>();
             builder.Services.AddTransient<LibrarySpellEditViewModel>();
             builder.Services.AddTransient<LibraryTrackEditViewModel>();

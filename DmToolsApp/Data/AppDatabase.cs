@@ -1,4 +1,5 @@
 using DmToolsApp.Data.Entities;
+using DmToolsApp.Services;
 using SQLite;
 
 namespace DmToolsApp.Data
@@ -24,6 +25,7 @@ namespace DmToolsApp.Data
             await _db.CreateTableAsync<TrackEntity>();
             await _db.CreateTableAsync<SceneTrackEntity>();
             await _db.CreateTableAsync<CharacterSpellEntity>();
+            await _db.CreateTableAsync<CategoryEntity>();
 
             // Migration : ajout de IsLooping sur les DB existantes
             try
@@ -48,6 +50,27 @@ namespace DmToolsApp.Data
                     "ALTER TABLE TrackEntity ADD COLUMN Category TEXT NOT NULL DEFAULT ''");
             }
             catch { /* colonne déjà présente */ }
+
+            // Seed initial des catégories (une seule fois, table vide) : les 3 catégories par défaut
+            // + toute catégorie déjà utilisée par des tracks existantes (upgrade depuis une DB qui
+            // n'avait pas encore cette table). Si l'utilisateur en supprime une ensuite, elle ne
+            // revient pas au prochain lancement.
+            if (await _db.Table<CategoryEntity>().CountAsync() == 0)
+            {
+                var defaults = new[]
+                {
+                    LocalizationService.Instance["LibCategoryMusic"],
+                    LocalizationService.Instance["LibCategoryAmbience"],
+                    LocalizationService.Instance["LibCategorySoundEffect"]
+                };
+
+                var existingTrackCategories = (await _db.Table<TrackEntity>().ToListAsync())
+                    .Select(t => t.Category)
+                    .Where(c => !string.IsNullOrWhiteSpace(c));
+
+                foreach (var name in defaults.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
+                    await _db.InsertAsync(new CategoryEntity { Name = name });
+            }
         }
     }
 }

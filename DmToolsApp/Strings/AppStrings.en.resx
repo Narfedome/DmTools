@@ -153,6 +153,9 @@
   <data name="ScenesHeader" xml:space="preserve">
     <value>Scenes</value>
   </data>
+  <data name="CategoriesHeader" xml:space="preserve">
+    <value>Categories</value>
+  </data>
   <data name="TracksHeader" xml:space="preserve">
     <value>Audio tracks</value>
   </data>
@@ -260,6 +263,9 @@
   </data>
   <data name="LibImport" xml:space="preserve">
     <value>Import multiple</value>
+  </data>
+  <data name="LibManageCategories" xml:space="preserve">
+    <value>Manage categories</value>
   </data>
   <data name="LibSelectAll" xml:space="preserve">
     <value>Select all</value>
