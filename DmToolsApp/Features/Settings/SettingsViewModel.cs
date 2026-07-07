@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
@@ -10,6 +11,8 @@ namespace DmToolsApp.Features.Settings
     {
         private readonly ThemeService _theme = ThemeService.Instance;
         private readonly IStorageService _storageService;
+        private readonly AudioPlayerService _audioPlayerService;
+        private readonly AudioMixerViewModel _audioMixerViewModel;
 
         public string AppVersion => AppInfo.Current.VersionString;
 
@@ -52,6 +55,15 @@ namespace DmToolsApp.Features.Settings
         [RelayCommand]
         public async Task DeleteAllTracks()
         {
+            var isPlaying = _audioPlayerService.CurrentFile != null
+                || _audioMixerViewModel.CurrentChannels.Any(c => c.IsPlaying);
+
+            if (isPlaying)
+            {
+                await ShowInfoAsync(Loc["SettingsStorageTitle"], Loc["SettingsStorageDeleteAllPlaybackWarning"]);
+                return;
+            }
+
             var (count, totalBytes) = await _storageService.GetTracksSummaryAsync();
 
             if (count == 0)
@@ -131,9 +143,11 @@ namespace DmToolsApp.Features.Settings
         [ObservableProperty]
         private string selectedThemeOption;
 
-        public SettingsViewModel(IStorageService storageService)
+        public SettingsViewModel(IStorageService storageService, AudioPlayerService audioPlayerService, AudioMixerViewModel audioMixerViewModel)
         {
             _storageService = storageService;
+            _audioPlayerService = audioPlayerService;
+            _audioMixerViewModel = audioMixerViewModel;
             selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
             RebuildThemeOptions();

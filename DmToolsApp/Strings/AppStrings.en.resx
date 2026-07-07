@@ -405,6 +405,9 @@
   <data name="SettingsStorageDeleteAllNothingToDelete" xml:space="preserve">
     <value>No tracks to delete</value>
   </data>
+  <data name="SettingsStorageDeleteAllPlaybackWarning" xml:space="preserve">
+    <value>A track is currently playing. Stop playback before deleting all tracks.</value>
+  </data>
   <data name="SettingsStorageDeleteAllResult" xml:space="preserve">
     <value>{0} track(s) permanently deleted</value>
   </data>

@@ -405,6 +405,9 @@
   <data name="SettingsStorageDeleteAllNothingToDelete" xml:space="preserve">
     <value>Aucune piste à supprimer</value>
   </data>
+  <data name="SettingsStorageDeleteAllPlaybackWarning" xml:space="preserve">
+    <value>Une piste est en cours de lecture. Arrêtez la lecture avant de supprimer toutes les pistes.</value>
+  </data>
   <data name="SettingsStorageDeleteAllResult" xml:space="preserve">
     <value>{0} piste(s) supprimée(s) définitivement</value>
   </data>
