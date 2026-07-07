@@ -36,11 +36,15 @@
             <Grid Grid.Row="3"  RowSpacing="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Entry Grid.Row="0" Text="{Binding Item.Title}"
                        Placeholder="{loc:Loc TrackTitlePh}"/>
-                <Label Grid.Row="1" Text="{Binding Item.DurationFormatted}"/>
+                <Picker Grid.Row="1" Title="{loc:Loc LibImportCategoryTitle}"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"/>
+                <Label Grid.Row="2" Text="{Binding Item.DurationFormatted}"/>
             </Grid>
         </Grid>
         <HorizontalStackLayout Grid.Row="1"
@@ -50,7 +54,7 @@
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
                                            Tooltip="{loc:Loc BtnSave}"/>
-            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.Stop}"
+            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleXmark}"
                                            Command="{Binding CancelCommand}"
                                            Tooltip="{loc:Loc BtnCancel}"/>
 

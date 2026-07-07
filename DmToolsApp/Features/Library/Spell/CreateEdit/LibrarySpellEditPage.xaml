@@ -40,7 +40,7 @@
             <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.FloppyDisk}"
                                            Command="{Binding SaveCommand}"
                                            Tooltip="{loc:Loc BtnSave}"/>
-            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleMinus}"
+            <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleXmark}"
                                            Command="{Binding CancelCommand}"
                                            Tooltip="{loc:Loc BtnCancel}"/>
 

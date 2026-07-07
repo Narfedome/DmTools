@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
+using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Library
 {
@@ -32,6 +33,21 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private string title = string.Empty;
 
+        [ObservableProperty]
+        private ObservableCollection<string> categories = new();
+
+        public string SelectedCategory
+        {
+            get => string.IsNullOrEmpty(Item.Category) ? Loc["LibImportNoCategory"] : Item.Category;
+            set => Item.Category = value == Loc["LibImportNoCategory"] ? string.Empty : value;
+        }
+
+        public async Task InitializeAsync()
+        {
+            var names = await _libraryDataService.GetCategoryNamesAsync();
+            Categories = new ObservableCollection<string>(new[] { Loc["LibImportNoCategory"] }.Concat(names));
+        }
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("Item", out var value) &&
@@ -40,7 +56,7 @@ namespace DmToolsApp.Features.Library
                 Item = item;
                 var loc = LocalizationService.Instance;
                 Title = Item.Id != 0 ? loc["TrackEditTitle"] : loc["TrackCreateTitle"];
-
+                OnPropertyChanged(nameof(SelectedCategory));
             }
         }
         public void StopAudio()
