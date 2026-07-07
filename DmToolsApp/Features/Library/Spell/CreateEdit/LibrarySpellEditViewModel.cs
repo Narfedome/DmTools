@@ -19,6 +19,8 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private Spell? item;
 
+        [ObservableProperty]
+        private string title = string.Empty;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -26,6 +28,7 @@ namespace DmToolsApp.Features.Library
            value is Spell item)
             {
                 Item = item;
+                Title = Item.Id != 0 ? Loc["SpellEditTitle"] : Loc["SpellCreateTitle"];
             }
         }
         [RelayCommand]

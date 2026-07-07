@@ -73,6 +73,7 @@ namespace DmToolsApp.Features.Library
 
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
+            _navigation = navigation;
             _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;

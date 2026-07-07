@@ -327,6 +327,9 @@
   <data name="SpellEditTitle" xml:space="preserve">
     <value>Edit Spell</value>
   </data>
+  <data name="SpellCreateTitle" xml:space="preserve">
+    <value>Create Spell</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Settings</value>
   </data>

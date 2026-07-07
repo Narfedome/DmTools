@@ -21,10 +21,10 @@ namespace DmToolsApp.Components
             UpdateSelection(SelectedPalette);
         }
 
-        private void SelectA(object sender, TappedEventArgs e) => SelectedPalette = AppPalette.NuitEtOr;
-        private void SelectB(object sender, TappedEventArgs e) => SelectedPalette = AppPalette.ForetProfonde;
-        private void SelectC(object sender, TappedEventArgs e) => SelectedPalette = AppPalette.TaverneAmbre;
-        private void SelectD(object sender, TappedEventArgs e) => SelectedPalette = AppPalette.AcierBrume;
+        private void SelectA(object? sender, TappedEventArgs e) => SelectedPalette = AppPalette.NuitEtOr;
+        private void SelectB(object? sender, TappedEventArgs e) => SelectedPalette = AppPalette.ForetProfonde;
+        private void SelectC(object? sender, TappedEventArgs e) => SelectedPalette = AppPalette.TaverneAmbre;
+        private void SelectD(object? sender, TappedEventArgs e) => SelectedPalette = AppPalette.AcierBrume;
 
         private void UpdateSelection(AppPalette palette)
         {

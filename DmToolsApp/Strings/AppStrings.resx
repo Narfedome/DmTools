@@ -327,6 +327,9 @@
   <data name="SpellEditTitle" xml:space="preserve">
     <value>Modifier le sort</value>
   </data>
+  <data name="SpellCreateTitle" xml:space="preserve">
+    <value>Créer un sort</value>
+  </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Paramètres</value>
   </data>
