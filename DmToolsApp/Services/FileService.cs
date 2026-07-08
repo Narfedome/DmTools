@@ -14,6 +14,40 @@
             _tracksDirectory = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
             Directory.CreateDirectory(_assetsDirectory);
             Directory.CreateDirectory(_tracksDirectory);
+
+            ClearPickerCache();
+        }
+
+        // Sur Android, FilePicker copie systématiquement le fichier choisi dans le cache privé de
+        // l'appli (getCacheDir()) et ne le supprime jamais lui-même - comportement documenté et non
+        // géré par MAUI. Sans ce coup de balai au démarrage, les copies laissées par les imports
+        // précédant ce correctif restent coincées indéfiniment : invisibles pour le calcul de
+        // stockage de l'appli (qui ne regarde que Tracks/Assets) mais comptées par Android dans la
+        // taille totale de l'appli.
+        private static void ClearPickerCache()
+        {
+            var dir = FileSystem.CacheDirectory;
+            if (!Directory.Exists(dir))
+                return;
+
+            foreach (var file in Directory.EnumerateFiles(dir))
+            {
+                try { File.Delete(file); } catch { /* fichier verrouillé, on continue */ }
+            }
+        }
+
+        /// <summary>
+        /// Supprime le fichier s'il s'agit d'une copie laissée par FilePicker dans le cache de l'appli
+        /// (cf. ClearPickerCache) - ne touche jamais un fichier hors de ce dossier, pour ne pas risquer
+        /// de supprimer le fichier original de l'utilisateur sur les plateformes où FilePicker renvoie
+        /// directement son chemin réel (Windows, MacCatalyst) plutôt qu'une copie.
+        /// </summary>
+        public void DeleteIfCached(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !filePath.StartsWith(FileSystem.CacheDirectory, StringComparison.Ordinal))
+                return;
+
+            try { File.Delete(filePath); } catch { /* déjà supprimé ou verrouillé, sans conséquence */ }
         }
 
         public string CopyAssetToLocal(string originalFilePath)

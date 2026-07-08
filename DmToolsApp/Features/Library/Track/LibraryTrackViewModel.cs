@@ -428,6 +428,12 @@ namespace DmToolsApp.Features.Library
                         imported++;
                     }
                     catch { /* fichier invalide, on passe au suivant */ }
+                    finally
+                    {
+                        // Nettoie la copie laissée par FilePicker dans le cache Android une fois le fichier
+                        // traité (copié en local ou dédupliqué) - sinon elle reste orpheline indéfiniment.
+                        _fileService.DeleteIfCached(file.FullPath);
+                    }
 
                     popupView.ViewModel.ProcessedCount++;
                 }

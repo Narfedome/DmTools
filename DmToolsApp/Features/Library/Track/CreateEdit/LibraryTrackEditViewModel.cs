@@ -115,6 +115,10 @@ namespace DmToolsApp.Features.Library
                     ? existing.FilePath
                     : _trackFileService.CopyTrackToLocal(ImportedFilePath);
                 Item.Hash = hash;
+
+                // Nettoie la copie laissée par FilePicker dans le cache Android maintenant que le fichier
+                // est traité (copié en local ou dédupliqué) - sinon elle reste orpheline indéfiniment.
+                _trackFileService.DeleteIfCached(ImportedFilePath);
             }
 
             await _libraryDataService.SaveLibraryItemAsync(Item);
