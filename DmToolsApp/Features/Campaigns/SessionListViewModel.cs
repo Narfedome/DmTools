@@ -34,11 +34,11 @@ namespace DmToolsApp.Features.Campaigns
             if (query.TryGetValue("Campaign", out var value) && value is Campaign c)
             {
                 Campaign = c;
-                _ = LoadAsync();
+                _ = ReloadAsync();
             }
         }
 
-        private async Task LoadAsync()
+        public async Task ReloadAsync()
         {
             if (Campaign == null) return;
             await Loading.RunAsync(async () =>

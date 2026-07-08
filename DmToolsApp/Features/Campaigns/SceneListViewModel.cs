@@ -45,11 +45,11 @@ namespace DmToolsApp.Features.Campaigns
             if (query.TryGetValue("Session", out var s) && s is Session session)
             {
                 Session = session;
-                _ = LoadAsync();
+                _ = ReloadAsync();
             }
         }
 
-        private async Task LoadAsync()
+        public async Task ReloadAsync()
         {
             if (Session == null) return;
             await Loading.RunAsync(async () =>

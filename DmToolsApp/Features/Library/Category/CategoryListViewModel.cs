@@ -41,6 +41,17 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
+        public async Task Create()
+        {
+            var name = await ShowPromptAsync(Loc["DialogNewCategory"], Loc["PromptName"]);
+            if (string.IsNullOrWhiteSpace(name)) return;
+
+            await _libraryDataService.EnsureCategoryAsync(_libraryType, name.Trim());
+            WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
+            await LoadAsync();
+        }
+
+        [RelayCommand]
         public async Task Rename()
         {
             if (SelectedCategoryName == null) return;

@@ -468,6 +468,9 @@
   <data name="DialogNewScene" xml:space="preserve">
     <value>Nouvelle scène</value>
   </data>
+  <data name="DialogNewCategory" xml:space="preserve">
+    <value>Nouvelle catégorie</value>
+  </data>
   <data name="LibCategoryAmbience" xml:space="preserve">
     <value>Ambiance</value>
   </data>
