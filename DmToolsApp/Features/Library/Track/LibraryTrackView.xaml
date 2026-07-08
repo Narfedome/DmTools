@@ -14,10 +14,15 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Picker Grid.Row="0"
+        <Button Grid.Row="0"
                 Margin="0,0,0,8"
-                ItemsSource="{Binding Categories}"
-                SelectedItem="{Binding SelectedCategory}"/>
+                Text="{Binding SelectedCategory}"
+                Command="{Binding SelectCategoryCommand}"
+                HorizontalOptions="Start"
+                BackgroundColor="Transparent"
+                TextColor="{DynamicResource AppAccent}"
+                FontSize="15"
+                Padding="8,4"/>
 
         <ActivityIndicator Grid.Row="1" IsRunning="{Binding Loading.IsLoading}" IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"

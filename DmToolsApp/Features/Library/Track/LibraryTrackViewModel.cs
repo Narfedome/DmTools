@@ -243,6 +243,14 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
+        public async Task SelectCategory()
+        {
+            var result = await ShowActionSheetAsync(Loc["LibImportCategoryTitle"], Categories.ToArray());
+            if (result != null)
+                SelectedCategory = result;
+        }
+
+        [RelayCommand]
         public async Task ManageCategories()
         {
             await Shell.Current.GoToAsync(nameof(CategoryListPage),
