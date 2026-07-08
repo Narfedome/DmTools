@@ -107,9 +107,18 @@ namespace DmToolsApp.Features.Library
         }
 
         private bool _isInitializing;
+        private bool _hasLoadedOnce;
 
         public async Task InitializeAsync()
         {
+            // Le premier chargement (requête catégories + page de pistes + extraction des pochettes)
+            // peut être long : pas la peine de le refaire à chaque retour sur l'onglet, alors que
+            // LibraryUpdatedMessage (édition, catégories...) recharge déjà la liste quand les données
+            // changent réellement. Ça évite aussi de revivre ce chargement long à chaque changement
+            // d'onglet.
+            if (_hasLoadedOnce)
+                return;
+
             // Évite un rechargement concurrent si l'utilisateur quitte puis revient sur l'onglet avant
             // la fin du chargement précédent (navigation restant possible pendant le chargement) - on
             // laisse simplement le chargement déjà en cours se terminer plutôt que d'en démarrer un
@@ -125,6 +134,7 @@ namespace DmToolsApp.Features.Library
                     await RefreshCategoriesAsync();
                     await ReloadAsync();
                 });
+                _hasLoadedOnce = true;
             }
             finally
             {

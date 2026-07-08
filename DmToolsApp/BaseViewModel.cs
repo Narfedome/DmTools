@@ -12,8 +12,13 @@ public abstract partial class BaseViewModel : ObservableObject
     public LocalizationService Loc => LocalizationService.Instance;
     public ThemeService Theme => ThemeService.Instance;
 
+    // Mis en cache par instance de ViewModel (LoadingService est enregistré en Transient) : chaque page
+    // a son propre indicateur de chargement, pour qu'un chargement long sur un onglet n'affiche pas un
+    // spinner sur un autre onglet consulté entre-temps (LoadingService était auparavant un singleton
+    // partagé par toute l'appli).
+    private LoadingService? _loading;
     public LoadingService Loading =>
-        IPlatformApplication.Current!.Services.GetRequiredService<LoadingService>();
+        _loading ??= IPlatformApplication.Current!.Services.GetRequiredService<LoadingService>();
 
     // Shell.Current est null tant que la fenêtre n'affiche pas encore l'AppShell (ex: pendant
     // l'onboarding, où la page active est l'OnboardingPage) : on cible la page réellement affichée.
