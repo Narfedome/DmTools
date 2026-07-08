@@ -16,7 +16,7 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackViewModel : BaseViewModel
     {
-        private const int PageSize = 12;
+        private const int PageSize = 15;
 
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
