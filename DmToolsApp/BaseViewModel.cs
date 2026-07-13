@@ -27,11 +27,14 @@ public abstract partial class BaseViewModel : ObservableObject
     protected Task<bool> ConfirmDeleteAsync(string itemName) =>
         ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogDeleteConfirm"], itemName));
 
+    // IMPORTANT : quand une popup est fermée en tapant à côté, lire result.Result LÈVE une
+    // InvalidOperationException pour les types valeur (bool, int...) — le toolkit ne sait pas y
+    // représenter "null". Toujours vérifier WasDismissedByTappingOutsideOfPopup d'abord.
     protected async Task<bool> ConfirmAsync(string title, string message)
     {
         var popup = new ConfirmDialog(title, message, Loc["DialogYes"], Loc["DialogNo"]);
         var result = await CurrentPage.ShowPopupAsync<bool>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
-        return result.Result is true;
+        return !result.WasDismissedByTappingOutsideOfPopup && result.Result is true;
     }
 
     protected Task ShowErrorAsync(Exception ex)
@@ -50,7 +53,7 @@ public abstract partial class BaseViewModel : ObservableObject
     {
         var popup = new PromptDialog(title, message, placeholder, initialValue, Loc["DialogYes"], Loc["DialogNo"]);
         var result = await CurrentPage.ShowPopupAsync<string?>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
-        return result.Result;
+        return result.WasDismissedByTappingOutsideOfPopup ? null : result.Result;
     }
 
     /// <summary>
@@ -60,7 +63,7 @@ public abstract partial class BaseViewModel : ObservableObject
     protected async Task<TResult?> ShowDialogAsync<TResult>(Popup<TResult> popup)
     {
         var result = await CurrentPage.ShowPopupAsync<TResult>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
-        return result.Result;
+        return result.WasDismissedByTappingOutsideOfPopup ? default : result.Result;
     }
 
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
