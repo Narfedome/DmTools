@@ -17,12 +17,14 @@ namespace DmToolsApp.Services
 
         public async Task<List<Campaign>> GetCampaignsAsync()
         {
+            await _db.Initialization;
             var entities = await _db.Connection.Table<CampaignEntity>().ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
 
         public async Task SaveCampaignAsync(Campaign campaign)
         {
+            await _db.Initialization;
             var entity = campaign.ToEntity();
             if (entity.Id == 0)
             {
@@ -35,8 +37,22 @@ namespace DmToolsApp.Services
             }
         }
 
+        // Les suppressions cascadent manuellement (sqlite-net ne gère pas les FK ON DELETE
+        // CASCADE) : sans ça, chapitres, scènes et pistes de scène orphelins s'accumulaient
+        // indéfiniment en base à chaque suppression d'un parent.
+
         public async Task DeleteCampaignAsync(Campaign campaign)
         {
+            await _db.Initialization;
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SceneTrackEntity WHERE SceneId IN (" +
+                "SELECT sc.Id FROM SceneEntity sc JOIN SessionEntity se ON sc.SessionId = se.Id WHERE se.CampaignId = ?)",
+                campaign.Id);
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SceneEntity WHERE SessionId IN (SELECT Id FROM SessionEntity WHERE CampaignId = ?)",
+                campaign.Id);
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SessionEntity WHERE CampaignId = ?", campaign.Id);
             await _db.Connection.DeleteAsync<CampaignEntity>(campaign.Id);
         }
 
@@ -44,6 +60,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<Session>> GetSessionsAsync(int campaignId)
         {
+            await _db.Initialization;
             var entities = await _db.Connection.Table<SessionEntity>()
                 .Where(e => e.CampaignId == campaignId)
                 .ToListAsync();
@@ -52,6 +69,7 @@ namespace DmToolsApp.Services
 
         public async Task SaveSessionAsync(Session session)
         {
+            await _db.Initialization;
             var entity = session.ToEntity();
             if (entity.Id == 0)
             {
@@ -66,6 +84,12 @@ namespace DmToolsApp.Services
 
         public async Task DeleteSessionAsync(Session session)
         {
+            await _db.Initialization;
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SceneTrackEntity WHERE SceneId IN (SELECT Id FROM SceneEntity WHERE SessionId = ?)",
+                session.Id);
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SceneEntity WHERE SessionId = ?", session.Id);
             await _db.Connection.DeleteAsync<SessionEntity>(session.Id);
         }
 
@@ -73,6 +97,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<Scene>> GetScenesAsync(int sessionId)
         {
+            await _db.Initialization;
             var entities = await _db.Connection.Table<SceneEntity>()
                 .Where(e => e.SessionId == sessionId)
                 .ToListAsync();
@@ -81,6 +106,7 @@ namespace DmToolsApp.Services
 
         public async Task SaveSceneAsync(Scene scene)
         {
+            await _db.Initialization;
             var entity = scene.ToEntity();
             if (entity.Id == 0)
             {
@@ -95,6 +121,9 @@ namespace DmToolsApp.Services
 
         public async Task DeleteSceneAsync(Scene scene)
         {
+            await _db.Initialization;
+            await _db.Connection.ExecuteAsync(
+                "DELETE FROM SceneTrackEntity WHERE SceneId = ?", scene.Id);
             await _db.Connection.DeleteAsync<SceneEntity>(scene.Id);
         }
 
@@ -102,6 +131,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId)
         {
+            await _db.Initialization;
             var sceneTrackEntities = await _db.Connection.Table<SceneTrackEntity>()
                 .Where(e => e.SceneId == sceneId)
                 .OrderBy(e => e.Position)
@@ -129,6 +159,7 @@ namespace DmToolsApp.Services
 
         public async Task SaveSceneTrackAsync(SceneTrack sceneTrack)
         {
+            await _db.Initialization;
             var entity = sceneTrack.ToEntity();
             if (entity.Id == 0)
             {
@@ -143,11 +174,13 @@ namespace DmToolsApp.Services
 
         public async Task DeleteSceneTrackAsync(SceneTrack sceneTrack)
         {
+            await _db.Initialization;
             await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
         }
 
         public async Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut)
         {
+            await _db.Initialization;
             var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
             if (entity == null) return;
             entity.Volume = volume;
@@ -158,8 +191,26 @@ namespace DmToolsApp.Services
             await _db.Connection.UpdateAsync(entity);
         }
 
+        /// <summary>
+        /// Sauvegarde automatique du mixer : persiste les réglages du strip SANS toucher à
+        /// l'AutoPlay, qui est un choix explicite de l'utilisateur (et serait sinon écrasé par
+        /// l'état de lecture du moment).
+        /// </summary>
+        public async Task UpdateSceneTrackSettingsAsync(int sceneTrackId, double volume, bool isLooping, bool fadeIn, bool fadeOut)
+        {
+            await _db.Initialization;
+            var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
+            if (entity == null) return;
+            entity.Volume = volume;
+            entity.IsLooping = isLooping;
+            entity.FadeIn = fadeIn;
+            entity.FadeOut = fadeOut;
+            await _db.Connection.UpdateAsync(entity);
+        }
+
         public async Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume)
         {
+            await _db.Initialization;
             var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
             if (entity == null) return;
             entity.Volume = volume;
@@ -185,6 +236,7 @@ namespace DmToolsApp.Services
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);
         Task DeleteSceneTrackAsync(SceneTrack sceneTrack);
         Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut);
+        Task UpdateSceneTrackSettingsAsync(int sceneTrackId, double volume, bool isLooping, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
     }
 }

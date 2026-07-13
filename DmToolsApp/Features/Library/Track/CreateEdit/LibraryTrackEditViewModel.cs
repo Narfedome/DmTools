@@ -87,11 +87,20 @@ namespace DmToolsApp.Features.Library
 
                 if (result != null)
                 {
-                    var tagfile = TagLib.File.Create(result.FullPath);
+                    // Lecture des tags hors du thread UI : parser un gros fichier en synchrone
+                    // gelait l'interface (risque d'ANR sur Android).
+                    var (title, duration, coverBytes) = await Task.Run(() =>
+                    {
+                        var tagfile = TagLib.File.Create(result.FullPath);
+                        return (TrackTagHelper.ExtractTitle(tagfile.Tag, result.FileName),
+                                tagfile.Properties.Duration,
+                                CoverArtService.ExtractCoverThumbnailBytes(tagfile.Tag));
+                    });
+
                     Item.FilePath = result.FullPath;
-                    Item.Title = TrackTagHelper.ExtractTitle(tagfile.Tag, result.FileName);
-                    Item.Duration = tagfile.Properties.Duration;
-                    _pendingCoverBytes = CoverArtService.ExtractCoverThumbnailBytes(tagfile.Tag);
+                    Item.Title = title;
+                    Item.Duration = duration;
+                    _pendingCoverBytes = coverBytes;
                     ImportedFilePath = result.FullPath;
                 }
             }
@@ -111,13 +120,15 @@ namespace DmToolsApp.Features.Library
             // Si c'est un Track et que le fichier a été choisi par l'utilisateur
             if (!string.IsNullOrEmpty(ImportedFilePath))
             {
-                // Déduplication par hash : réutilise le fichier existant si le contenu est déjà en librairie
-                var hash = TrackTagHelper.ComputeSha256(ImportedFilePath);
+                // Déduplication par hash : réutilise le fichier existant si le contenu est déjà en
+                // librairie. Hash et copie tournent hors du thread UI (comme l'import multiple) :
+                // en synchrone, un gros fichier gelait l'interface (risque d'ANR sur Android).
+                var hash = await Task.Run(() => TrackTagHelper.ComputeSha256(ImportedFilePath));
                 var existing = await _libraryDataService.FindTrackByHashAsync(hash, Item.Id);
 
                 Item.FilePath = existing != null
                     ? existing.FilePath
-                    : _trackFileService.CopyTrackToLocal(ImportedFilePath);
+                    : await Task.Run(() => _trackFileService.CopyTrackToLocal(ImportedFilePath));
                 Item.Hash = hash;
 
                 // Dédup : réutilise la pochette déjà extraite pour ce fichier plutôt que d'en

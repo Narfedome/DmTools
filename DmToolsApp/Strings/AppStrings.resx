@@ -294,6 +294,9 @@
   <data name="LibImportResult" xml:space="preserve">
     <value>{0} piste(s) importée(s) ({1} doublon(s) réutilisé(s))</value>
   </data>
+  <data name="LibImportResultErrors" xml:space="preserve">
+    <value>{0} fichier(s) n'ont pas pu être importé(s) (illisibles ou corrompus)</value>
+  </data>
   <data name="LibImportInProgress" xml:space="preserve">
     <value>Import en cours...</value>
   </data>
@@ -446,6 +449,9 @@
   </data>
   <data name="ErrorTitle" xml:space="preserve">
     <value>Erreur</value>
+  </data>
+  <data name="ErrorTrackFileMissing" xml:space="preserve">
+    <value>Le fichier audio de cette piste est introuvable.</value>
   </data>
   <data name="PromptName" xml:space="preserve">
     <value>Nom :</value>

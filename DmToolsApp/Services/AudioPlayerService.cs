@@ -20,7 +20,7 @@ public class AudioPlayerService
     public void Toggle(string filePath)
     {
         if(string.IsNullOrEmpty(filePath))
-        { 
+        {
             return;
         }
 
@@ -33,17 +33,32 @@ public class AudioPlayerService
 
         Stop();
 
+        // Le fichier peut avoir disparu (restauration de sauvegarde Android sans les fichiers
+        // audio, nettoyage externe...) : message clair plutôt qu'un crash du player natif.
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException(LocalizationService.Instance["ErrorTrackFileMissing"], filePath);
+
+        try
+        {
 #if WINDOWS
-        // Sur Windows, CreatePlayer(string) du plugin préfixe le chemin par "ms-appx:///Assets/"
-        // (réservé aux assets packagés) : un chemin absolu devient une source invalide et muette.
-        // On passe par un FileStream (enveloppé progressivement, pas de copie mémoire), gardé
-        // ouvert le temps de la lecture et refermé au Cleanup.
-        _playerStream = File.OpenRead(filePath);
-        _player = _audioManager.CreatePlayer(_playerStream);
+            // Sur Windows, CreatePlayer(string) du plugin préfixe le chemin par "ms-appx:///Assets/"
+            // (réservé aux assets packagés) : un chemin absolu devient une source invalide et muette.
+            // On passe par un FileStream (enveloppé progressivement, pas de copie mémoire), gardé
+            // ouvert le temps de la lecture et refermé au Cleanup.
+            _playerStream = File.OpenRead(filePath);
+            _player = _audioManager.CreatePlayer(_playerStream);
 #else
-        // Android/iOS résolvent correctement un chemin de fichier absolu (flux natif progressif).
-        _player = _audioManager.CreatePlayer(filePath);
+            // Android/iOS résolvent correctement un chemin de fichier absolu (flux natif progressif).
+            _player = _audioManager.CreatePlayer(filePath);
 #endif
+        }
+        catch
+        {
+            // Fichier illisible/verrouillé : on ne garde pas un état à moitié construit
+            // (stream ouvert sans player) avant de laisser l'appelant afficher l'erreur.
+            Cleanup();
+            throw;
+        }
 
         // Fin de lecture naturelle : sans ça, le bouton play de la tuile restait visuellement en
         // lecture une fois le fichier terminé. On vérifie que le player notifiant est toujours le
@@ -72,11 +87,18 @@ public class AudioPlayerService
 
     private void Cleanup()
     {
-        _player?.Dispose();
+        // Vide les champs AVANT de disposer : sur Windows, Dispose() du plugin appelle Stop(),
+        // qui relance PlaybackEnded de façon synchrone sur le thread UI. Si _player était encore
+        // assigné à ce moment-là, le handler de fin de lecture (ReferenceEquals(_player, player))
+        // rappellerait Cleanup() en boucle → StackOverflowException.
+        var player = _player;
+        var stream = _playerStream;
         _player = null;
-        _playerStream?.Dispose();
         _playerStream = null;
         CurrentFile = null;
+
+        player?.Dispose();
+        stream?.Dispose();
 
         OnStateChanged?.Invoke(null);
     }

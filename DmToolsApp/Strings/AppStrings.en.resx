@@ -294,6 +294,9 @@
   <data name="LibImportResult" xml:space="preserve">
     <value>{0} track(s) imported ({1} duplicate(s) reused)</value>
   </data>
+  <data name="LibImportResultErrors" xml:space="preserve">
+    <value>{0} file(s) could not be imported (unreadable or corrupted)</value>
+  </data>
   <data name="LibImportInProgress" xml:space="preserve">
     <value>Importing...</value>
   </data>
@@ -446,6 +449,9 @@
   </data>
   <data name="ErrorTitle" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="ErrorTrackFileMissing" xml:space="preserve">
+    <value>The audio file for this track could not be found.</value>
   </data>
   <data name="PromptName" xml:space="preserve">
     <value>Name:</value>

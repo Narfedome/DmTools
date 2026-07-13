@@ -22,7 +22,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<!-- NU1903: vulnérabilité connue SQLitePCLRaw, mise à jour bloquée par dépendances transitives -->
+		<!-- NU1903: CVE-2025-6965 SQLitePCLRaw — aucune version corrigée compatible sqlite-net-pcl
+		     n'existe (cf. commentaire détaillé dans DmToolsApp.Core.csproj) -->
 		<!-- MVVMTK0045: partial properties AOT - refactoring trop large, pas de cible WinRT stricte -->
 		<NoWarn>$(NoWarn);NU1903;MVVMTK0045</NoWarn>
 

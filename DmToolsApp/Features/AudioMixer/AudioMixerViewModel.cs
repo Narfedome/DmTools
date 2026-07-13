@@ -64,10 +64,17 @@ namespace DmToolsApp.Features.AudioMixer
             await Task.WhenAll(tasks);
         }
 
-        [RelayCommand]
+        // Les boutons livre/gear/X de chaque strip sont liés à UNE seule instance de commande du
+        // ViewModel (RelativeSource dans le template) : sans AllowConcurrentExecutions, le toolkit
+        // passe CanExecute à false pendant toute l'exécution async, et TOUS les boutons liés
+        // passent visuellement en état désactivé tant que le dialog est ouvert. Ce garde reprend
+        // le seul rôle utile de ce blocage : empêcher un double-tap d'ouvrir deux dialogs.
+        private bool _isStripDialogOpen;
+
+        [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task RemoveChannel(ChannelStripViewModel channel)
         {
-            if (channel == null)
+            if (channel == null || _isStripDialogOpen)
                 return;
             if (channel.Player == null)
             {
@@ -77,29 +84,41 @@ namespace DmToolsApp.Features.AudioMixer
                 CurrentChannels.Remove(channel);
                 return;
             }
-            channel.Pause();
 
-            bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
-
-            if (!confirm)
+            _isStripDialogOpen = true;
+            try
             {
-                channel.TogglePlay();
-                return;
-            }
+                channel.Pause();
 
-            channel.Stop();
-            UnsubscribeChannel(channel);
-            if (channel.SceneTrackId > 0)
-                await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
-            CurrentChannels.Remove(channel);
+                bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
+
+                if (!confirm)
+                {
+                    channel.TogglePlay();
+                    return;
+                }
+
+                channel.Stop();
+                UnsubscribeChannel(channel);
+                channel.DisposePlayer();
+                if (channel.SceneTrackId > 0)
+                    await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
+                CurrentChannels.Remove(channel);
+            }
+            finally
+            {
+                _isStripDialogOpen = false;
+            }
         }
 
         [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task PickLibraryItem(ChannelStripViewModel channel)
         {
+            if (channel == null || _isStripDialogOpen) return;
+
+            _isStripDialogOpen = true;
             try
             {
-                if (channel == null) return;
                 var selectedLibraryItem = await _pickerService.PickTrackAsync();
 
                 if (selectedLibraryItem is not Track selectedTrack || !File.Exists(selectedTrack.FilePath))
@@ -115,6 +134,10 @@ namespace DmToolsApp.Features.AudioMixer
             {
                 await ShowErrorAsync(ex);
             }
+            finally
+            {
+                _isStripDialogOpen = false;
+            }
         }
 
         /// <summary>
@@ -122,46 +145,69 @@ namespace DmToolsApp.Features.AudioMixer
         /// Save : applique au strip (le volume agit en direct sur le player) et persiste ; Cancel
         /// (ou tap à côté) : referme sans rien toucher.
         /// </summary>
-        [RelayCommand]
+        [RelayCommand(AllowConcurrentExecutions = true)]
         public async Task OpenChannelSettings(ChannelStripViewModel channel)
         {
-            if (channel == null || _activeScene == null || channel.SceneTrackId == 0)
+            if (channel == null || _activeScene == null || channel.SceneTrackId == 0 || _isStripDialogOpen)
                 return;
 
-            // L'AutoPlay n'est pas porté par le strip : on relit l'état persisté de la piste.
-            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(_activeScene.Id);
-            var persisted = sceneTracks.FirstOrDefault(st => st.Id == channel.SceneTrackId);
-            if (persisted == null)
-                return;
-
-            var dialog = new ChannelSettingsDialog(
-                channel.DisplayTrackName ?? persisted.Track.Title,
-                channel.Volume,
-                channel.IsLooping,
-                channel.IsFadeIn,
-                channel.IsFadeOut,
-                persisted.AutoPlay);
-
-            var saved = await ShowDialogAsync(dialog);
-            if (!saved)
-                return;
-
-            channel.Volume = dialog.VolumeValue;
-            channel.IsLooping = dialog.IsLoopingValue;
-            channel.IsFadeIn = dialog.FadeInValue;
-            channel.IsFadeOut = dialog.FadeOutValue;
-
-            // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée (qui
-            // écraserait l'AutoPlay avec l'état de lecture) : on l'annule au profit d'une
-            // sauvegarde immédiate et complète.
-            if (_pendingSaves.TryGetValue(channel, out var pendingCts))
+            _isStripDialogOpen = true;
+            try
             {
-                pendingCts.Cancel();
-                _pendingSaves.Remove(channel);
-            }
+                // L'AutoPlay n'est pas porté par le strip : on relit l'état persisté de la piste.
+                var sceneTracks = await _sceneDataService.GetSceneTracksAsync(_activeScene.Id);
+                var persisted = sceneTracks.FirstOrDefault(st => st.Id == channel.SceneTrackId);
+                if (persisted == null)
+                    return;
 
-            await _sceneDataService.UpdateSceneTrackAsync(
-                channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue, dialog.FadeOutValue);
+                var dialog = new ChannelSettingsDialog(
+                    channel.DisplayTrackName ?? persisted.Track.Title,
+                    channel.Volume,
+                    channel.IsLooping,
+                    channel.IsFadeIn,
+                    channel.IsFadeOut,
+                    persisted.AutoPlay);
+
+                var saved = await ShowDialogAsync(dialog);
+                if (!saved)
+                    return;
+
+                channel.Volume = dialog.VolumeValue;
+                channel.IsLooping = dialog.IsLoopingValue;
+                channel.IsFadeIn = dialog.FadeInValue;
+                channel.IsFadeOut = dialog.FadeOutValue;
+
+                // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée,
+                // redondante avec la sauvegarde immédiate et complète qui suit : on l'annule.
+                if (_pendingSaves.TryGetValue(channel, out var pendingCts))
+                {
+                    pendingCts.Cancel();
+                    _pendingSaves.Remove(channel);
+                }
+
+                await _sceneDataService.UpdateSceneTrackAsync(
+                    channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue, dialog.FadeOutValue);
+            }
+            finally
+            {
+                _isStripDialogOpen = false;
+            }
+        }
+
+        /// <summary>
+        /// Vide le mixer proprement : désabonnement des sauvegardes auto et libération des players
+        /// natifs (FileStream Windows / MediaPlayer Android). Utilisé au changement de scène et
+        /// avant la suppression massive de pistes (un player même en pause verrouille son fichier
+        /// sur Windows).
+        /// </summary>
+        public void ClearChannels()
+        {
+            foreach (var c in CurrentChannels)
+            {
+                UnsubscribeChannel(c);
+                c.DisposePlayer();
+            }
+            CurrentChannels.Clear();
         }
 
         private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
@@ -225,8 +271,11 @@ namespace DmToolsApp.Features.AudioMixer
             try
             {
                 await Task.Delay(500, cts.Token);
-                await _sceneDataService.UpdateSceneTrackAsync(
-                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying, channel.IsFadeIn, channel.IsFadeOut);
+                // Sauvegarde partielle : l'AutoPlay est un réglage explicite de l'utilisateur
+                // (dialog de paramètres / page des pistes de scène), il ne doit pas être écrasé
+                // par l'état de lecture du moment à chaque changement de volume ou de boucle.
+                await _sceneDataService.UpdateSceneTrackSettingsAsync(
+                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsFadeIn, channel.IsFadeOut);
             }
             catch (OperationCanceledException) { }
             finally
@@ -298,10 +347,12 @@ namespace DmToolsApp.Features.AudioMixer
 
         private async Task SaveCurrentSceneAsync()
         {
+            // Cf. DebouncedSaveChannel : on ne persiste que les réglages du strip, jamais
+            // l'AutoPlay (réglage explicite, qui serait sinon écrasé par l'état de lecture).
             var tasks = CurrentChannels
                 .Where(c => c.SceneTrackId > 0)
-                .Select(c => _sceneDataService.UpdateSceneTrackAsync(
-                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying, c.IsFadeIn, c.IsFadeOut));
+                .Select(c => _sceneDataService.UpdateSceneTrackSettingsAsync(
+                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsFadeIn, c.IsFadeOut));
             await Task.WhenAll(tasks);
         }
 
@@ -339,16 +390,18 @@ namespace DmToolsApp.Features.AudioMixer
         public async Task SelectSession()
         {
             if (!Sessions.Any()) return;
-            var result = await ShowActionSheetAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
-            if (result != null) SelectedSession = Sessions.First(s => s.Title == result);
+            // Sélection par index et non par titre : deux chapitres homonymes doivent rester
+            // sélectionnables individuellement.
+            var index = await ShowActionSheetIndexAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
+            if (index >= 0) SelectedSession = Sessions[index];
         }
 
         [RelayCommand]
         public async Task SelectScene()
         {
             if (!Scenes.Any()) return;
-            var result = await ShowActionSheetAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
-            if (result != null) SelectedScene = Scenes.First(s => s.Title == result);
+            var index = await ShowActionSheetIndexAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
+            if (index >= 0) SelectedScene = Scenes[index];
         }
 
         [RelayCommand]
@@ -391,9 +444,7 @@ namespace DmToolsApp.Features.AudioMixer
                     var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
                     await Task.WhenAll(fadeTasks);
 
-                    foreach (var c in CurrentChannels)
-                        UnsubscribeChannel(c);
-                    CurrentChannels.Clear();
+                    ClearChannels();
 
                     _activeScene = SelectedScene;
 
@@ -401,12 +452,21 @@ namespace DmToolsApp.Features.AudioMixer
 
                     // Crée tous les lecteurs en parallèle plutôt que d'attendre chaque piste l'une
                     // après l'autre : le temps de chargement de la scène devient celui de la piste
-                    // la plus lente au lieu de la somme de toutes.
+                    // la plus lente au lieu de la somme de toutes. Une piste illisible (fichier
+                    // corrompu, verrouillé...) est simplement ignorée au lieu de faire échouer
+                    // toute la scène (et de laisser fuiter les players déjà créés).
                     var playable = sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
-                    var players = await Task.WhenAll(playable.Select(st => _audioMixerService.CreatePlayerAsync(st.Track.FilePath)));
+                    var players = await Task.WhenAll(playable.Select(async st =>
+                    {
+                        try { return await _audioMixerService.CreatePlayerAsync(st.Track.FilePath); }
+                        catch { return null; }
+                    }));
 
                     for (int i = 0; i < playable.Count; i++)
                     {
+                        if (players[i] == null)
+                            continue;
+
                         var st = playable[i];
                         var channel = new ChannelStripViewModel
                         {

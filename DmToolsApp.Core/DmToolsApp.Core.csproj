@@ -4,12 +4,21 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- NU1903 : CVE-2025-6965 (SQLite < 3.50.2, corruption mémoire via SQL malveillant).
+         Aucune version corrigée n'existe dans la lignée 2.x requise par sqlite-net-pcl (le
+         correctif n'est que dans SQLitePCLRaw 3.x, incompatible). Exposition réelle quasi
+         nulle : l'appli n'exécute que ses propres requêtes sur une base locale privée.
+         À réévaluer quand sqlite-net-pcl supportera SQLitePCLRaw 3.x. -->
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <!-- Aligne SQLitePCLRaw sur la dernière 2.x (sqlite-net-pcl tire sinon la 2.1.2 en
+         transitif) : SQLite plus récent et mêmes binaires natifs que le projet appli. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 

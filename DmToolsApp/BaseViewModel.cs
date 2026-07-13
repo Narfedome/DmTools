@@ -65,8 +65,20 @@ public abstract partial class BaseViewModel : ObservableObject
 
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
     {
+        var index = await ShowActionSheetIndexAsync(title, options);
+        return index >= 0 && index < options.Length ? options[index] : null;
+    }
+
+    /// <summary>
+    /// Variante retournant l'index de l'option choisie (-1 : annulation ou tap à côté), pour les
+    /// listes pouvant contenir des doublons de libellé (scènes/chapitres homonymes).
+    /// </summary>
+    protected async Task<int> ShowActionSheetIndexAsync(string title, params string[] options)
+    {
         var popup = new ActionSheetDialog(title, options, Loc["BtnCancel"]);
-        var result = await CurrentPage.ShowPopupAsync<string?>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
-        return result.Result;
+        var result = await CurrentPage.ShowPopupAsync<int>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
+        // Tap à côté de la popup : Result vaut default(int) = 0, qu'il ne faut surtout pas
+        // confondre avec la première option.
+        return result.WasDismissedByTappingOutsideOfPopup ? -1 : result.Result is int index ? index : -1;
     }
 }

@@ -12,9 +12,10 @@ namespace DmToolsApp.Data
         private readonly IReadOnlyList<string> _defaultTrackCategories;
 
         /// <summary>
-        /// Création des tables, migrations et seed, lancés dès la construction. L'appli n'attend pas
-        /// (les premières requêtes SQLite s'enchaînent sur la même connexion), mais les tests peuvent
-        /// await pour un état déterministe.
+        /// Création des tables, migrations et seed, lancés dès la construction. Les services de
+        /// données l'attendent en tête de chaque méthode : SQLiteAsyncConnection ne garantit pas
+        /// l'ordre d'exécution entre opérations, une requête partie avant la fin de l'init pouvait
+        /// tomber sur "no such table" au premier lancement.
         /// </summary>
         public Task Initialization { get; }
 
@@ -39,53 +40,24 @@ namespace DmToolsApp.Data
             await _db.CreateTableAsync<CharacterSpellEntity>();
             await _db.CreateTableAsync<CategoryEntity>();
 
-            // Migration : ajout de IsLooping sur les DB existantes
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE SceneTrackEntity ADD COLUMN IsLooping INTEGER NOT NULL DEFAULT 1");
-            }
-            catch { /* colonne déjà présente */ }
+            // Migrations : ajout des colonnes manquantes sur les DB existantes. Le catch ne cible
+            // que l'erreur "duplicate column" (colonne déjà présente) : un vrai problème (disque
+            // plein, DB corrompue...) doit remonter au lieu d'être avalé silencieusement, sans quoi
+            // l'appli planterait plus loin de façon incompréhensible.
+            await AddColumnIfMissingAsync("SceneTrackEntity", "IsLooping INTEGER NOT NULL DEFAULT 1");
+            await AddColumnIfMissingAsync("SceneTrackEntity", "FadeIn INTEGER NOT NULL DEFAULT 0");
+            await AddColumnIfMissingAsync("SceneTrackEntity", "FadeOut INTEGER NOT NULL DEFAULT 0");
+            await AddColumnIfMissingAsync("TrackEntity", "Hash TEXT NOT NULL DEFAULT ''");
+            await AddColumnIfMissingAsync("TrackEntity", "Category TEXT NOT NULL DEFAULT ''");
+            await AddColumnIfMissingAsync("CategoryEntity", "LibraryType TEXT NOT NULL DEFAULT ''");
 
-            // Migration : ajout de FadeIn sur les DB existantes
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE SceneTrackEntity ADD COLUMN FadeIn INTEGER NOT NULL DEFAULT 0");
-            }
-            catch { /* colonne déjà présente */ }
-
-            // Migration : ajout de FadeOut sur les DB existantes
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE SceneTrackEntity ADD COLUMN FadeOut INTEGER NOT NULL DEFAULT 0");
-            }
-            catch { /* colonne déjà présente */ }
-
-            // Migration : ajout de Hash sur les DB existantes
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE TrackEntity ADD COLUMN Hash TEXT NOT NULL DEFAULT ''");
-            }
-            catch { /* colonne déjà présente */ }
-
-            // Migration : ajout de Category sur les DB existantes
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE TrackEntity ADD COLUMN Category TEXT NOT NULL DEFAULT ''");
-            }
-            catch { /* colonne déjà présente */ }
-
-            // Migration : ajout de LibraryType sur les DB existantes (catégories scopées par type)
-            try
-            {
-                await _db.ExecuteAsync(
-                    "ALTER TABLE CategoryEntity ADD COLUMN LibraryType TEXT NOT NULL DEFAULT ''");
-            }
-            catch { /* colonne déjà présente */ }
+            // Purge unique des lignes orphelines laissées par les suppressions sans cascade des
+            // versions précédentes (supprimer une campagne ne supprimait ni ses chapitres, ni
+            // leurs scènes, ni leurs pistes). L'ordre importe : parents d'abord.
+            await _db.ExecuteAsync("DELETE FROM SessionEntity WHERE CampaignId NOT IN (SELECT Id FROM CampaignEntity)");
+            await _db.ExecuteAsync("DELETE FROM SceneEntity WHERE SessionId NOT IN (SELECT Id FROM SessionEntity)");
+            await _db.ExecuteAsync("DELETE FROM SceneTrackEntity WHERE SceneId NOT IN (SELECT Id FROM SceneEntity)");
+            await _db.ExecuteAsync("DELETE FROM SceneTrackEntity WHERE TrackId NOT IN (SELECT Id FROM TrackEntity)");
 
             // Toute catégorie créée avant l'introduction de LibraryType ne pouvait être que pour des
             // tracks (les sorts n'ont pas encore de catégories) : on les rattache rétroactivement.
@@ -104,6 +76,18 @@ namespace DmToolsApp.Data
 
                 foreach (var name in _defaultTrackCategories.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
                     await _db.InsertAsync(new CategoryEntity { Name = name, LibraryType = nameof(Track) });
+            }
+        }
+
+        private async Task AddColumnIfMissingAsync(string table, string columnDefinition)
+        {
+            try
+            {
+                await _db.ExecuteAsync($"ALTER TABLE {table} ADD COLUMN {columnDefinition}");
+            }
+            catch (SQLiteException ex) when (ex.Message.Contains("duplicate column", StringComparison.OrdinalIgnoreCase))
+            {
+                // Colonne déjà présente (DB déjà migrée) : rien à faire.
             }
         }
     }

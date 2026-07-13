@@ -173,6 +173,31 @@ public class ChannelStripViewModelTests : IDisposable
         oldPlayer.RaisePlaybackEnded(stillPlaying: false);
         Assert.True(vm.IsPlaying);
     }
+
+    [Fact]
+    public void ReplacingPlayer_DisposesOldPlayer()
+    {
+        var (vm, oldPlayer) = MakeStrip();
+
+        vm.Player = new FakeAudioPlayer();
+
+        // Un player remplacé ne sera plus jamais utilisé : sans Dispose, le FileStream sous-jacent
+        // reste ouvert sur Windows et le MediaPlayer natif fuit sur Android.
+        Assert.Contains("Dispose", oldPlayer.Calls);
+    }
+
+    [Fact]
+    public void DisposePlayer_DisposesPlayer_AndResetsState()
+    {
+        var (vm, player) = MakeStrip();
+        vm.Play();
+
+        vm.DisposePlayer();
+
+        Assert.Null(vm.Player);
+        Assert.False(vm.IsPlaying);
+        Assert.Contains("Dispose", player.Calls);
+    }
 }
 
 /// <summary>Player factice : enregistre les appels et volumes pour vérifier les fades sans audio réel.</summary>
@@ -208,7 +233,7 @@ internal sealed class FakeAudioPlayer : IAudioPlayer
     public void Stop() { IsPlaying = false; Calls.Add("Stop"); }
     public void Seek(double position) { CurrentPosition = position; LastSeek = position; Calls.Add("Seek"); }
     public void SetSource(Stream stream) { }
-    public void Dispose() { }
+    public void Dispose() => Calls.Add("Dispose");
 
     public void RaisePlaybackEnded(bool stillPlaying)
     {

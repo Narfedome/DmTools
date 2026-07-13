@@ -81,6 +81,11 @@ namespace DmToolsApp.Features.Settings
 
             try
             {
+                // Vide le mixer avant de supprimer : des strips chargés (même en pause) gardent
+                // leurs fichiers ouverts (verrouillés sur Windows) et pointeraient de toute façon
+                // vers des pistes qui n'existent plus.
+                _audioMixerViewModel.ClearChannels();
+
                 var deleted = await _storageService.DeleteAllTracksAsync();
                 await InitializeAsync();
                 await ShowInfoAsync(Loc["SettingsStorageTitle"], string.Format(Loc["SettingsStorageDeleteAllResult"], deleted));
