@@ -1,9 +1,6 @@
-﻿using DmToolsApp.Data;
+using DmToolsApp.Data;
 using DmToolsApp.Data.Entities;
 using DmToolsApp.Models.Library;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DmToolsApp.Services
 {
@@ -16,41 +13,20 @@ namespace DmToolsApp.Services
             _db = db;
         }
 
-
         public async Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType)
         {
-
             var result = new List<LibraryItem>();
 
             if (currentLibraryType == typeof(Track))
             {
                 var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
-
-                result.AddRange(tracks.Select(t => new Track
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    ImagePath = t.ImagePath,
-                    FilePath = t.FilePath,
-                    Duration = t.Duration,
-                    Volume = t.DefaultVolume,
-                    Hash = t.Hash,
-                    Category = t.Category
-                }));
+                result.AddRange(tracks.Select(t => t.ToModel()));
             }
 
             if (currentLibraryType == typeof(Spell))
             {
                 var spells = await _db.Connection.Table<SpellEntity>().ToListAsync();
-
-                result.AddRange(spells.Select(s => new Spell
-                {
-                    Id = s.Id,
-                    Title = s.Title,
-                    ImagePath = s.ImagePath,
-                    FilePath = s.FilePath,
-                    Description = s.Description
-                }));
+                result.AddRange(spells.Select(s => s.ToModel()));
             }
 
             return result.OrderBy(x => x.Id).ToList();
@@ -58,7 +34,6 @@ namespace DmToolsApp.Services
 
         public async Task SaveLibraryItemAsync(LibraryItem item)
         {
-           
             switch (item)
             {
                 case Track track:
@@ -71,30 +46,21 @@ namespace DmToolsApp.Services
             }
         }
 
-        private async Task SaveTrack(Track oldTrack)
+        private async Task SaveTrack(Track track)
         {
-            var entity = new TrackEntity
-            {
-                Id = oldTrack.Id,
-                Title = oldTrack.Title,
-                ImagePath = oldTrack.ImagePath,
-                FilePath = oldTrack.FilePath,
-                Duration = oldTrack.Duration,
-                DefaultVolume = oldTrack.Volume,
-                Hash = oldTrack.Hash,
-                Category = oldTrack.Category
-            };
+            var entity = track.ToEntity();
 
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);
-                oldTrack.Id = entity.Id; // 🔥 IMPORTANT
+                track.Id = entity.Id; // 🔥 IMPORTANT
             }
             else
             {
                 await _db.Connection.UpdateAsync(entity);
             }
         }
+
         public async Task DeleteLibraryItem(LibraryItem libraryItem)
         {
             switch (libraryItem)
@@ -117,17 +83,7 @@ namespace DmToolsApp.Services
             await _db.Connection.DeleteAllAsync<SceneTrackEntity>();
             await _db.Connection.DeleteAllAsync<TrackEntity>();
 
-            return tracks.Select(t => new Track
-            {
-                Id = t.Id,
-                Title = t.Title,
-                ImagePath = t.ImagePath,
-                FilePath = t.FilePath,
-                Duration = t.Duration,
-                Volume = t.DefaultVolume,
-                Hash = t.Hash,
-                Category = t.Category
-            }).ToList();
+            return tracks.Select(t => t.ToModel()).ToList();
         }
 
         /// <summary>
@@ -178,17 +134,7 @@ namespace DmToolsApp.Services
                     foreach (var sceneTrack in sceneTracks)
                         await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
 
-                    deleted.Add(new Track
-                    {
-                        Id = entity.Id,
-                        Title = entity.Title,
-                        ImagePath = entity.ImagePath,
-                        FilePath = entity.FilePath,
-                        Duration = entity.Duration,
-                        Volume = entity.DefaultVolume,
-                        Hash = entity.Hash,
-                        Category = entity.Category
-                    });
+                    deleted.Add(entity.ToModel());
                 }
                 else if (currentLibraryType == typeof(Spell))
                 {
@@ -201,40 +147,27 @@ namespace DmToolsApp.Services
                     foreach (var characterSpell in characterSpells)
                         await _db.Connection.DeleteAsync<CharacterSpellEntity>(characterSpell.Id);
 
-                    deleted.Add(new Spell
-                    {
-                        Id = entity.Id,
-                        Title = entity.Title,
-                        ImagePath = entity.ImagePath,
-                        FilePath = entity.FilePath,
-                        Description = entity.Description
-                    });
+                    deleted.Add(entity.ToModel());
                 }
             }
 
             return deleted;
         }
 
-        private async Task SaveSpell(Spell oldSpell)
+        private async Task SaveSpell(Spell spell)
         {
-            var entity = new SpellEntity
-            {
-                Id = oldSpell.Id,
-                Title = oldSpell.Title,
-                ImagePath = oldSpell.ImagePath,
-                FilePath = oldSpell.FilePath,
-                Description = oldSpell.Description
-            };
+            var entity = spell.ToEntity();
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);
-                oldSpell.Id = entity.Id; // 🔥 IMPORTANT
+                spell.Id = entity.Id; // 🔥 IMPORTANT
             }
             else
             {
                 await _db.Connection.UpdateAsync(entity);
             }
         }
+
         public async Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null)
         {
             var result = new List<LibraryItem>();
@@ -252,17 +185,7 @@ namespace DmToolsApp.Services
                     .Take(take)
                     .ToListAsync();
 
-                result.AddRange(tracks.Select(t => new Track
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    ImagePath = t.ImagePath,
-                    FilePath = t.FilePath,
-                    Duration = t.Duration,
-                    Volume = t.DefaultVolume,
-                    Hash = t.Hash,
-                    Category = t.Category
-                }));
+                result.AddRange(tracks.Select(t => t.ToModel()));
             }
 
             if (currentLibraryType == typeof(Spell))
@@ -273,14 +196,7 @@ namespace DmToolsApp.Services
                     .Take(take)
                     .ToListAsync();
 
-                result.AddRange(spells.Select(s => new Spell
-                {
-                    Id = s.Id,
-                    Title = s.Title,
-                    ImagePath = s.ImagePath,
-                    FilePath = s.FilePath,
-                    Description = s.Description
-                }));
+                result.AddRange(spells.Select(s => s.ToModel()));
             }
 
             return result;
@@ -295,20 +211,7 @@ namespace DmToolsApp.Services
                 .Where(t => t.Hash == hash && t.Id != excludeId)
                 .FirstOrDefaultAsync();
 
-            if (entity == null)
-                return null;
-
-            return new Track
-            {
-                Id = entity.Id,
-                Title = entity.Title,
-                ImagePath = entity.ImagePath,
-                FilePath = entity.FilePath,
-                Duration = entity.Duration,
-                Volume = entity.DefaultVolume,
-                Hash = entity.Hash,
-                Category = entity.Category
-            };
+            return entity?.ToModel();
         }
 
         public async Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType)
@@ -406,6 +309,7 @@ namespace DmToolsApp.Services
             return paths;
         }
     }
+
     public interface ILibraryDataService
     {
         Task SaveLibraryItemAsync(LibraryItem item);

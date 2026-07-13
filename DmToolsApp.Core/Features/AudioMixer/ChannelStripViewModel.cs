@@ -1,16 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
-using DmToolsApp.Services;
 using Plugin.Maui.Audio;
 
 namespace DmToolsApp.Components
 {
-    public partial class ChannelStripViewModel : BaseViewModel
+    public partial class ChannelStripViewModel : ObservableObject
     {
-        private static readonly TimeSpan FadeDuration = TimeSpan.FromMilliseconds(1500);
-        private static readonly int FadeSteps = 30;
+        // Durée/pas des fades, surchargeables par les tests (InternalsVisibleTo) pour ne pas
+        // attendre 1,5 s réelle par fade.
+        internal static TimeSpan FadeDuration = TimeSpan.FromMilliseconds(1500);
+        internal static int FadeSteps = 30;
+
+        /// <summary>
+        /// Renvoi vers le thread UI pour les callbacks du player (fin de lecture), branché sur
+        /// MainThread par l'appli au démarrage. Par défaut : exécution synchrone (tests, ou tout
+        /// hôte sans dispatcher).
+        /// </summary>
+        public static Action<Action> UiDispatcher { get; set; } = action => action();
 
         private CancellationTokenSource? _fadeCts;
 
@@ -41,7 +48,7 @@ namespace DmToolsApp.Components
         /// </summary>
         private void OnPlaybackEnded(object? sender, EventArgs e)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            UiDispatcher(() =>
             {
                 if (!ReferenceEquals(sender, _player) || _player == null)
                     return;

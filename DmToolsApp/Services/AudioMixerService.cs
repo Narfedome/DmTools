@@ -38,11 +38,19 @@ namespace DmToolsApp.Services
 
         public Task<IAudioPlayer> CreatePlayerAsync(string filePath)
         {
-            // Passe le chemin de fichier plutôt qu'un Stream : sur Windows, CreatePlayer(Stream)
-            // copie tout le flux en mémoire avant de créer le lecteur, alors que CreatePlayer(string)
-            // s'appuie sur un flux natif progressif. Reste sorti du thread UI car la création du
-            // lecteur natif peut malgré tout être coûteuse.
+            // Création sortie du thread UI car le lecteur natif peut être coûteux à construire.
+#if WINDOWS
+            // Sur Windows, CreatePlayer(string) du plugin préfixe le chemin par "ms-appx:///Assets/"
+            // (réservé aux assets packagés de l'appli) : un chemin absolu devient une source
+            // invalide → MediaFailed, IsPlaying toujours false, aucun son. On passe donc par un
+            // FileStream, que le plugin enveloppe via AsRandomAccessStream : lecture progressive,
+            // sans copie mémoire (la copie intégrale ne concerne que les MemoryStream). Le stream
+            // doit rester ouvert pendant toute la vie du player.
+            return Task.Run(() => audioManager.CreatePlayer(File.OpenRead(filePath)));
+#else
+            // Android/iOS résolvent correctement un chemin de fichier absolu (flux natif progressif).
             return Task.Run(() => audioManager.CreatePlayer(filePath));
+#endif
         }
 
         public async Task<IAudioPlayer> PlayLoop(string file, double volume = 1)

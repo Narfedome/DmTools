@@ -2,7 +2,7 @@ using SQLite;
 
 namespace DmToolsApp.Data.Entities
 {
-    class CategoryEntity
+    public class CategoryEntity
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

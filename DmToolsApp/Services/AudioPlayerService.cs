@@ -6,6 +6,7 @@ public class AudioPlayerService
 {
     private readonly IAudioManager _audioManager;
     private IAudioPlayer? _player;
+    private Stream? _playerStream;
 
     public string? CurrentFile { get; private set; }
 
@@ -32,10 +33,17 @@ public class AudioPlayerService
 
         Stop();
 
-        // Passe le chemin de fichier plutôt qu'un Stream : sur Windows, CreatePlayer(Stream) copie
-        // tout le flux en mémoire avant de créer le lecteur, alors que CreatePlayer(string) s'appuie
-        // sur un flux natif progressif (pas de contrainte de seek ici, juste une prévisualisation).
+#if WINDOWS
+        // Sur Windows, CreatePlayer(string) du plugin préfixe le chemin par "ms-appx:///Assets/"
+        // (réservé aux assets packagés) : un chemin absolu devient une source invalide et muette.
+        // On passe par un FileStream (enveloppé progressivement, pas de copie mémoire), gardé
+        // ouvert le temps de la lecture et refermé au Cleanup.
+        _playerStream = File.OpenRead(filePath);
+        _player = _audioManager.CreatePlayer(_playerStream);
+#else
+        // Android/iOS résolvent correctement un chemin de fichier absolu (flux natif progressif).
         _player = _audioManager.CreatePlayer(filePath);
+#endif
 
         // Fin de lecture naturelle : sans ça, le bouton play de la tuile restait visuellement en
         // lecture une fois le fichier terminé. On vérifie que le player notifiant est toujours le
@@ -66,6 +74,8 @@ public class AudioPlayerService
     {
         _player?.Dispose();
         _player = null;
+        _playerStream?.Dispose();
+        _playerStream = null;
         CurrentFile = null;
 
         OnStateChanged?.Invoke(null);

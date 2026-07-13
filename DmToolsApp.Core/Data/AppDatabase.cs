@@ -1,6 +1,5 @@
 using DmToolsApp.Data.Entities;
 using DmToolsApp.Models.Library;
-using DmToolsApp.Services;
 using SQLite;
 
 namespace DmToolsApp.Data
@@ -10,10 +9,22 @@ namespace DmToolsApp.Data
         public readonly SQLiteAsyncConnection _db;
         public SQLiteAsyncConnection Connection => _db;
 
-        public AppDatabase(string path)
+        private readonly IReadOnlyList<string> _defaultTrackCategories;
+
+        /// <summary>
+        /// Création des tables, migrations et seed, lancés dès la construction. L'appli n'attend pas
+        /// (les premières requêtes SQLite s'enchaînent sur la même connexion), mais les tests peuvent
+        /// await pour un état déterministe.
+        /// </summary>
+        public Task Initialization { get; }
+
+        /// <param name="defaultTrackCategories">Catégories de tracks seedées au premier lancement
+        /// (localisées par l'appelant — la couche données ne dépend pas de la localisation).</param>
+        public AppDatabase(string path, IEnumerable<string>? defaultTrackCategories = null)
         {
+            _defaultTrackCategories = defaultTrackCategories?.ToList() ?? new List<string>();
             _db = new SQLiteAsyncConnection(path);
-            _ = InitializeAsync();
+            Initialization = InitializeAsync();
         }
 
         private async Task InitializeAsync()
@@ -87,18 +98,11 @@ namespace DmToolsApp.Data
             // ensuite, elle ne revient pas au prochain lancement.
             if (await _db.Table<CategoryEntity>().Where(c => c.LibraryType == nameof(Track)).CountAsync() == 0)
             {
-                var defaults = new[]
-                {
-                    LocalizationService.Instance["LibCategoryMusic"],
-                    LocalizationService.Instance["LibCategoryAmbience"],
-                    LocalizationService.Instance["LibCategorySoundEffect"]
-                };
-
                 var existingTrackCategories = (await _db.Table<TrackEntity>().ToListAsync())
                     .Select(t => t.Category)
                     .Where(c => !string.IsNullOrWhiteSpace(c));
 
-                foreach (var name in defaults.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
+                foreach (var name in _defaultTrackCategories.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
                     await _db.InsertAsync(new CategoryEntity { Name = name, LibraryType = nameof(Track) });
             }
         }

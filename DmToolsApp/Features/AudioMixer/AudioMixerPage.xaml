@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
              xmlns:components="clr-namespace:DmToolsApp.Components"
+             xmlns:corevm="clr-namespace:DmToolsApp.Components;assembly=DmToolsApp.Core"
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
@@ -100,7 +101,7 @@
         <Border Grid.Row="2">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="components:ChannelStripViewModel">
+                    <DataTemplate x:DataType="corevm:ChannelStripViewModel">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
