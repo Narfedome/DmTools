@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    class TrackEntity : LibraryItemEntity
+    public class TrackEntity : LibraryItemEntity
     {
 
         public TimeSpan Duration { get; set; }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    class CharacterSpellEntity
+    public class CharacterSpellEntity
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

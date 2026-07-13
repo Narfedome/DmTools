@@ -1,7 +1,6 @@
 using DmToolsApp.Data;
 using DmToolsApp.Data.Entities;
 using DmToolsApp.Models;
-using DmToolsApp.Models.Library;
 
 namespace DmToolsApp.Services
 {
@@ -19,12 +18,12 @@ namespace DmToolsApp.Services
         public async Task<List<Campaign>> GetCampaignsAsync()
         {
             var entities = await _db.Connection.Table<CampaignEntity>().ToListAsync();
-            return entities.Select(e => new Campaign { Id = e.Id, Title = e.Title }).ToList();
+            return entities.Select(e => e.ToModel()).ToList();
         }
 
         public async Task SaveCampaignAsync(Campaign campaign)
         {
-            var entity = new CampaignEntity { Id = campaign.Id, Title = campaign.Title };
+            var entity = campaign.ToEntity();
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);
@@ -48,22 +47,12 @@ namespace DmToolsApp.Services
             var entities = await _db.Connection.Table<SessionEntity>()
                 .Where(e => e.CampaignId == campaignId)
                 .ToListAsync();
-            return entities.Select(e => new Session
-            {
-                Id = e.Id,
-                CampaignId = e.CampaignId,
-                Title = e.Title
-            }).ToList();
+            return entities.Select(e => e.ToModel()).ToList();
         }
 
         public async Task SaveSessionAsync(Session session)
         {
-            var entity = new SessionEntity
-            {
-                Id = session.Id,
-                CampaignId = session.CampaignId,
-                Title = session.Title
-            };
+            var entity = session.ToEntity();
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);
@@ -87,22 +76,12 @@ namespace DmToolsApp.Services
             var entities = await _db.Connection.Table<SceneEntity>()
                 .Where(e => e.SessionId == sessionId)
                 .ToListAsync();
-            return entities.Select(e => new Scene
-            {
-                Id = e.Id,
-                SessionId = e.SessionId,
-                Title = e.Title
-            }).ToList();
+            return entities.Select(e => e.ToModel()).ToList();
         }
 
         public async Task SaveSceneAsync(Scene scene)
         {
-            var entity = new SceneEntity
-            {
-                Id = scene.Id,
-                SessionId = scene.SessionId,
-                Title = scene.Title
-            };
+            var entity = scene.ToEntity();
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);
@@ -138,26 +117,11 @@ namespace DmToolsApp.Services
 
                 if (trackEntity == null) continue;
 
-                result.Add(new SceneTrack
-                {
-                    Id = ste.Id,
-                    SceneId = ste.SceneId,
-                    Position = ste.Position,
-                    Volume = ste.Volume,
-                    AutoPlay = ste.AutoPlay,
-                    IsLooping = ste.IsLooping,
-                    FadeIn = ste.FadeIn,
-                    FadeOut = ste.FadeOut,
-                    Track = new Track
-                    {
-                        Id = trackEntity.Id,
-                        Title = trackEntity.Title,
-                        FilePath = trackEntity.FilePath,
-                        ImagePath = trackEntity.ImagePath,
-                        Duration = trackEntity.Duration,
-                        Volume = ste.Volume
-                    }
-                });
+                // Le volume du strip prime sur le volume par défaut de la track de bibliothèque.
+                var track = trackEntity.ToModel();
+                track.Volume = ste.Volume;
+
+                result.Add(ste.ToModel(track));
             }
 
             return result;
@@ -165,18 +129,7 @@ namespace DmToolsApp.Services
 
         public async Task SaveSceneTrackAsync(SceneTrack sceneTrack)
         {
-            var entity = new SceneTrackEntity
-            {
-                Id = sceneTrack.Id,
-                SceneId = sceneTrack.SceneId,
-                TrackId = sceneTrack.Track.Id,
-                Volume = sceneTrack.Volume,
-                Position = sceneTrack.Position,
-                AutoPlay = sceneTrack.AutoPlay,
-                IsLooping = sceneTrack.IsLooping,
-                FadeIn = sceneTrack.FadeIn,
-                FadeOut = sceneTrack.FadeOut
-            };
+            var entity = sceneTrack.ToEntity();
             if (entity.Id == 0)
             {
                 await _db.Connection.InsertAsync(entity);

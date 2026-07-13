@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Core;
+using DmToolsApp.Components;
 using DmToolsApp.Data;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Features.Campaigns;
@@ -48,8 +49,20 @@ namespace DmToolsApp
                     fonts.AddFont("rpgawesome-webfont.ttf", "RpgAwesome");
                 });
             builder.AddAudio();
+
+            // Le dispatcher UI du ChannelStripViewModel (projet Core, sans dépendance MAUI) est
+            // branché ici sur le vrai thread UI.
+            ChannelStripViewModel.UiDispatcher = action => MainThread.BeginInvokeOnMainThread(action);
+
+            // Les catégories par défaut sont localisées ici : la couche données (Core) ne dépend
+            // pas de la localisation.
             builder.Services.AddSingleton(
-                new AppDatabase(dbPath)); 
+                new AppDatabase(dbPath, new[]
+                {
+                    LocalizationService.Instance["LibCategoryMusic"],
+                    LocalizationService.Instance["LibCategoryAmbience"],
+                    LocalizationService.Instance["LibCategorySoundEffect"]
+                }));
             builder.Services.AddTransient<LoadingService>();
             builder.Services.AddSingleton<AudioPlayerService>();
             builder.Services.AddSingleton<AudioMixerService>();
