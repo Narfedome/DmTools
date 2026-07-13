@@ -4,16 +4,20 @@
     {
         private readonly string _tracksDirectory;
         private readonly string _assetsDirectory;
+        private readonly string _coversDirectory;
 
         public string TracksDirectory => _tracksDirectory;
         public string AssetsDirectory => _assetsDirectory;
+        public string CoversDirectory => _coversDirectory;
 
         public FileService()
         {
             _assetsDirectory = Path.Combine(FileSystem.AppDataDirectory, "Assets");
             _tracksDirectory = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
+            _coversDirectory = Path.Combine(FileSystem.AppDataDirectory, "Covers");
             Directory.CreateDirectory(_assetsDirectory);
             Directory.CreateDirectory(_tracksDirectory);
+            Directory.CreateDirectory(_coversDirectory);
 
             ClearPickerCache();
         }
@@ -78,6 +82,17 @@
             File.Copy(originalFilePath, destPath, overwrite: true);
             return destPath;
         }
+        /// <summary>
+        /// Sauvegarde une vignette de pochette (déjà extraite/redimensionnée) dans le dossier privé
+        /// de l'application et retourne son chemin.
+        /// </summary>
+        public string SaveCoverThumbnail(byte[] jpegBytes)
+        {
+            var destPath = Path.Combine(_coversDirectory, Guid.NewGuid().ToString() + ".jpg");
+            File.WriteAllBytes(destPath, jpegBytes);
+            return destPath;
+        }
+
         public void DeleteTrackFromLocal(string filePath)
         {
             // Suppression "best effort" : une track peut ne pas avoir de fichier associé (FilePath vide)

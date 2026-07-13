@@ -19,7 +19,7 @@ namespace DmToolsApp.Services
         {
             long total = 0;
 
-            foreach (var directory in new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory })
+            foreach (var directory in new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory, _fileService.CoversDirectory })
             {
                 if (!Directory.Exists(directory))
                     continue;
@@ -50,7 +50,7 @@ namespace DmToolsApp.Services
             var orphans = new List<string>();
             long totalBytes = 0;
 
-            foreach (var directory in new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory })
+            foreach (var directory in new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory, _fileService.CoversDirectory })
             {
                 if (!Directory.Exists(directory))
                     continue;

@@ -57,6 +57,7 @@ namespace DmToolsApp
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
+            builder.Services.AddSingleton<CoverArtService>();
             builder.Services.AddSingleton<IStorageService, StorageService>();
             builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
             builder.Services.AddSingleton<SessionStateService>();

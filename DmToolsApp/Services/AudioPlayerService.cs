@@ -32,8 +32,10 @@ public class AudioPlayerService
 
         Stop();
 
-        var stream = File.OpenRead(filePath);
-        _player = _audioManager.CreatePlayer(stream);
+        // Passe le chemin de fichier plutôt qu'un Stream : sur Windows, CreatePlayer(Stream) copie
+        // tout le flux en mémoire avant de créer le lecteur, alors que CreatePlayer(string) s'appuie
+        // sur un flux natif progressif (pas de contrainte de seek ici, juste une prévisualisation).
+        _player = _audioManager.CreatePlayer(filePath);
 
         _player.Play();
 

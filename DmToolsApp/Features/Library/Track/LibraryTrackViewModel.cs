@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
-using DmToolsApp.Components.TrackButton;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using Plugin.Maui.Audio;
@@ -22,6 +21,7 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
         private readonly AudioPlayerService _audioPlayerService;
+        private readonly CoverArtService _coverArtService;
 
         private int _loadedCount;
         private bool _hasMoreItems = true;
@@ -72,12 +72,13 @@ namespace DmToolsApp.Features.Library
             _ = ReloadAsync();
         }
 
-        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
+        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService, CoverArtService coverArtService)
         {
             _navigation = navigation;
             _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
+            _coverArtService = coverArtService;
             TrackItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasTrackItems));
             Selection.PropertyChanged += (_, e) =>
             {
@@ -205,7 +206,7 @@ namespace DmToolsApp.Features.Library
                 // chargement de la liste (spinner du haut ou du footer selon le cas) couvre alors tout
                 // le temps de chargement réel (DB + lecture des tags audio), au lieu de disparaître
                 // avant que les tuiles n'aient fini d'apparaître avec leur pochette.
-                await Task.WhenAll(items.Select(i => TrackButtonViewModel.LoadAndCacheCoverAsync(((Track)i).FilePath)));
+                await Task.WhenAll(items.Select(i => _coverArtService.GetCoverAsync((Track)i)));
 
                 foreach (var item in items)
                 {
@@ -404,23 +405,33 @@ namespace DmToolsApp.Features.Library
 
                         var title = file.FileName;
                         var duration = TimeSpan.Zero;
+                        byte[]? coverBytes = null;
                         try
                         {
-                            var (tagTitle, tagDuration) = await Task.Run(() =>
+                            var (tagTitle, tagDuration, cover) = await Task.Run(() =>
                             {
                                 var tagfile = TagLib.File.Create(file.FullPath);
                                 var t = TrackTagHelper.ExtractTitle(tagfile.Tag, file.FileName);
-                                return (t, tagfile.Properties.Duration);
+                                var c = CoverArtService.ExtractCoverThumbnailBytes(tagfile.Tag);
+                                return (t, tagfile.Properties.Duration, c);
                             });
                             title = tagTitle;
                             duration = tagDuration;
+                            coverBytes = cover;
                         }
                         catch { /* tags illisibles, on garde le nom de fichier */ }
+
+                        // Dédup : réutilise la pochette déjà extraite pour ce fichier plutôt que
+                        // d'en écrire une seconde copie identique sur disque.
+                        var imagePath = existing != null && !string.IsNullOrEmpty(existing.ImagePath)
+                            ? existing.ImagePath
+                            : coverBytes != null ? _fileService.SaveCoverThumbnail(coverBytes) : string.Empty;
 
                         var track = new Track
                         {
                             Title = title,
                             FilePath = filePath,
+                            ImagePath = imagePath,
                             Duration = duration,
                             Hash = hash,
                             Category = category

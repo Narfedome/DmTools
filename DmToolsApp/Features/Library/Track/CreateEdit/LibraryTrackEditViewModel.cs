@@ -15,6 +15,9 @@ namespace DmToolsApp.Features.Library
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _trackFileService;
 
+        // Pochette extraite au moment du choix du fichier (PickFile), persistée sur disque à la
+        // sauvegarde (Save) une fois le chemin final de la track connu (copie locale ou dédup).
+        private byte[]? _pendingCoverBytes;
 
         public LibraryTrackEditViewModel(AudioPlayerService audioPlayerService, ILibraryDataService libraryDataService,
                                         FileService trackFileService)
@@ -88,6 +91,7 @@ namespace DmToolsApp.Features.Library
                     Item.FilePath = result.FullPath;
                     Item.Title = TrackTagHelper.ExtractTitle(tagfile.Tag, result.FileName);
                     Item.Duration = tagfile.Properties.Duration;
+                    _pendingCoverBytes = CoverArtService.ExtractCoverThumbnailBytes(tagfile.Tag);
                     ImportedFilePath = result.FullPath;
                 }
             }
@@ -115,6 +119,12 @@ namespace DmToolsApp.Features.Library
                     ? existing.FilePath
                     : _trackFileService.CopyTrackToLocal(ImportedFilePath);
                 Item.Hash = hash;
+
+                // Dédup : réutilise la pochette déjà extraite pour ce fichier plutôt que d'en
+                // écrire une seconde copie identique sur disque.
+                Item.ImagePath = existing != null && !string.IsNullOrEmpty(existing.ImagePath)
+                    ? existing.ImagePath
+                    : _pendingCoverBytes != null ? _trackFileService.SaveCoverThumbnail(_pendingCoverBytes) : string.Empty;
 
                 // Nettoie la copie laissée par FilePicker dans le cache Android maintenant que le fichier
                 // est traité (copié en local ou dédupliqué) - sinon elle reste orpheline indéfiniment.

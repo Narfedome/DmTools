@@ -45,16 +45,18 @@ public partial class TrackButtonView : ContentView
         if (ViewModel != null)
             return;
 
-        var audioService = Application.Current?
+        var services = Application.Current?
             .Handler?
             .MauiContext?
-            .Services?
-            .GetService<AudioPlayerService>();
+            .Services;
 
-        if (audioService == null)
+        var audioService = services?.GetService<AudioPlayerService>();
+        var coverArtService = services?.GetService<CoverArtService>();
+
+        if (audioService == null || coverArtService == null)
             return;
 
-        ViewModel = new TrackButtonViewModel(audioService);
+        ViewModel = new TrackButtonViewModel(audioService, coverArtService);
 
         // If the XAML child control exists, bind it to the ViewModel so its inner bindings use the VM as source.
         if (IconBtn != null)
