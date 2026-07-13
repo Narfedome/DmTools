@@ -31,11 +31,13 @@ namespace DmToolsApp.Features.Campaigns
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            // Ne recharge pas ici : OnNavigatedTo (SessionListPage) s'en charge à chaque navigation
+            // réelle. Shell ré-applique les query attributes retenus à la fermeture d'une popup
+            // (modale) : un rechargement ici écrasait la liste avec l'état de la BD lu AVANT que le
+            // rename/create en cours n'ait fini d'être persisté (liste figée sur l'ancien titre),
+            // alors que CampaignPage (sans query attributes) ne souffrait pas de ce problème.
             if (query.TryGetValue("Campaign", out var value) && value is Campaign c)
-            {
                 Campaign = c;
-                _ = ReloadAsync();
-            }
         }
 
         public async Task ReloadAsync()
