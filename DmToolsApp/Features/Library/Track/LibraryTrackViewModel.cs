@@ -6,10 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using Plugin.Maui.Audio;
 using System.Collections.ObjectModel;
-using TagLib.Matroska;
-using Track = DmToolsApp.Models.Library.Track;
 
 namespace DmToolsApp.Features.Library
 {

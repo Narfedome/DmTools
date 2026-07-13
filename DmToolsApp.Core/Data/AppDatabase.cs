@@ -6,7 +6,7 @@ namespace DmToolsApp.Data
 {
     public class AppDatabase
     {
-        public readonly SQLiteAsyncConnection _db;
+        private readonly SQLiteAsyncConnection _db;
         public SQLiteAsyncConnection Connection => _db;
 
         private readonly IReadOnlyList<string> _defaultTrackCategories;

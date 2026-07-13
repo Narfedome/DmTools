@@ -37,7 +37,7 @@ namespace DmToolsApp.Features.AudioMixer
         private ObservableCollection<ChannelStripViewModel> currentChannels = new();
 
         [RelayCommand]
-        public async Task AddChannel()
+        public void AddChannel()
         {
             var channel = new ChannelStripViewModel() { DisplayTrackName = (LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
@@ -88,13 +88,18 @@ namespace DmToolsApp.Features.AudioMixer
             _isStripDialogOpen = true;
             try
             {
+                // La lecture est suspendue le temps du dialogue, puis reprise UNIQUEMENT si elle
+                // était en cours : un TogglePlay inconditionnel lançait la lecture d'un strip à
+                // l'arrêt quand l'utilisateur annulait la suppression.
+                var wasPlaying = channel.IsPlaying;
                 channel.Pause();
 
                 bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
 
                 if (!confirm)
                 {
-                    channel.TogglePlay();
+                    if (wasPlaying)
+                        channel.Play();
                     return;
                 }
 
