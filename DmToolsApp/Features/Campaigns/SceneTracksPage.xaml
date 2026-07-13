@@ -40,6 +40,8 @@
                                 <ColumnDefinition Width="60"/>
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
 
                             <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
@@ -55,15 +57,29 @@
                                         WidthRequest="60"/>
                             </VerticalStackLayout>
 
-                            <!-- AutoPlay toggle -->
+                            <!-- Loop toggle -->
                             <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{loc:Loc ChannelLoop}"
+                                       FontSize="10" HorizontalOptions="Center"/>
+                                <CheckBox IsChecked="{Binding IsLooping, Mode=TwoWay}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+
+                            <!-- Fade in toggle -->
+                            <VerticalStackLayout Grid.Column="3" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{loc:Loc SceneFadeIn}"
+                                       FontSize="10" HorizontalOptions="Center"/>
+                                <CheckBox IsChecked="{Binding FadeIn, Mode=TwoWay}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+
+                            <!-- AutoPlay toggle -->
+                            <VerticalStackLayout Grid.Column="4" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
                                 <Label Text="{loc:Loc SceneAuto}"
                                        FontSize="10" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding AutoPlay, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
 
                             <!-- Sauvegarder + Supprimer -->
-                            <HorizontalStackLayout Grid.Column="3" VerticalOptions="Center" Spacing="4">
+                            <HorizontalStackLayout Grid.Column="5" VerticalOptions="Center" Spacing="4">
                                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.FloppyDisk}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:SceneTracksViewModel}}, Path=SaveTrackCommand}"
                                                              CommandParameter="{Binding .}"

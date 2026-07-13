@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Components;
+using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
@@ -116,6 +117,51 @@ namespace DmToolsApp.Features.AudioMixer
             }
         }
 
+        /// <summary>
+        /// Ouvre les paramètres de la piste assignée au channel strip dans une boîte de dialogue.
+        /// Save : applique au strip (le volume agit en direct sur le player) et persiste ; Cancel
+        /// (ou tap à côté) : referme sans rien toucher.
+        /// </summary>
+        [RelayCommand]
+        public async Task OpenChannelSettings(ChannelStripViewModel channel)
+        {
+            if (channel == null || _activeScene == null || channel.SceneTrackId == 0)
+                return;
+
+            // L'AutoPlay n'est pas porté par le strip : on relit l'état persisté de la piste.
+            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(_activeScene.Id);
+            var persisted = sceneTracks.FirstOrDefault(st => st.Id == channel.SceneTrackId);
+            if (persisted == null)
+                return;
+
+            var dialog = new ChannelSettingsDialog(
+                channel.DisplayTrackName ?? persisted.Track.Title,
+                channel.Volume,
+                channel.IsLooping,
+                channel.IsFadeIn,
+                persisted.AutoPlay);
+
+            var saved = await ShowDialogAsync(dialog);
+            if (!saved)
+                return;
+
+            channel.Volume = dialog.VolumeValue;
+            channel.IsLooping = dialog.IsLoopingValue;
+            channel.IsFadeIn = dialog.FadeInValue;
+
+            // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée (qui
+            // écraserait l'AutoPlay avec l'état de lecture) : on l'annule au profit d'une
+            // sauvegarde immédiate et complète.
+            if (_pendingSaves.TryGetValue(channel, out var pendingCts))
+            {
+                pendingCts.Cancel();
+                _pendingSaves.Remove(channel);
+            }
+
+            await _sceneDataService.UpdateSceneTrackAsync(
+                channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue);
+        }
+
         private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
         {
             if (_activeScene == null || channel.Track == null || channel.Track.Id == 0) return;
@@ -127,6 +173,7 @@ namespace DmToolsApp.Features.AudioMixer
                 Track = channel.Track,
                 Volume = channel.Volume,
                 IsLooping = channel.IsLooping,
+                FadeIn = channel.IsFadeIn,
                 AutoPlay = channel.IsPlaying,
                 Position = CurrentChannels.IndexOf(channel)
             };
@@ -176,7 +223,7 @@ namespace DmToolsApp.Features.AudioMixer
             {
                 await Task.Delay(500, cts.Token);
                 await _sceneDataService.UpdateSceneTrackAsync(
-                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying);
+                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying, channel.IsFadeIn);
             }
             catch (OperationCanceledException) { }
             finally
@@ -251,7 +298,7 @@ namespace DmToolsApp.Features.AudioMixer
             var tasks = CurrentChannels
                 .Where(c => c.SceneTrackId > 0)
                 .Select(c => _sceneDataService.UpdateSceneTrackAsync(
-                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying));
+                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying, c.IsFadeIn));
             await Task.WhenAll(tasks);
         }
 
@@ -365,6 +412,7 @@ namespace DmToolsApp.Features.AudioMixer
                             DisplayTrackName = st.Track.Title,
                             Volume = st.Volume,
                             IsLooping = st.IsLooping,
+                            IsFadeIn = st.FadeIn,
                             Player = players[i]
                         };
 

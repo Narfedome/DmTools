@@ -53,6 +53,16 @@ public abstract partial class BaseViewModel : ObservableObject
         return result.Result;
     }
 
+    /// <summary>
+    /// Affiche une popup typée quelconque (dialogs "métier" comme ChannelSettingsDialog) et retourne
+    /// son résultat — default(TResult) si elle est fermée en tapant à côté.
+    /// </summary>
+    protected async Task<TResult?> ShowDialogAsync<TResult>(Popup<TResult> popup)
+    {
+        var result = await CurrentPage.ShowPopupAsync<TResult>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
+        return result.Result;
+    }
+
     protected async Task<string?> ShowActionSheetAsync(string title, params string[] options)
     {
         var popup = new ActionSheetDialog(title, options, Loc["BtnCancel"]);

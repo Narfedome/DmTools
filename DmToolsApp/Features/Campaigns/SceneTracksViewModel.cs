@@ -21,22 +21,34 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private ObservableCollection<SceneTrack> sceneTracks = new();
         [ObservableProperty] private SceneTrack? selectedTrack;
 
+        // Piste à présélectionner au prochain chargement (ouverture depuis le bouton gear d'un
+        // channel strip du mixer), consommée une seule fois.
+        private int _focusSceneTrackId;
+
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            // Ne recharge pas ici : OnNavigatedTo (SceneTracksPage) s'en charge à chaque navigation
+            // réelle (cf. SessionListViewModel/SceneListViewModel pour le détail du problème que pose
+            // un rechargement déclenché par les query attributes).
             if (query.TryGetValue("Scene", out var value) && value is Scene scene)
-            {
                 Scene = scene;
-                _ = LoadAsync();
-            }
+            if (query.TryGetValue("FocusSceneTrackId", out var focus) && focus is int focusId)
+                _focusSceneTrackId = focusId;
         }
 
-        private async Task LoadAsync()
+        public async Task ReloadAsync()
         {
             if (Scene == null) return;
             await Loading.RunAsync(async () =>
             {
                 var list = await _sceneDataService.GetSceneTracksAsync(Scene.Id);
                 SceneTracks = new ObservableCollection<SceneTrack>(list);
+
+                if (_focusSceneTrackId > 0)
+                {
+                    SelectedTrack = SceneTracks.FirstOrDefault(t => t.Id == _focusSceneTrackId);
+                    _focusSceneTrackId = 0;
+                }
             });
         }
 
@@ -58,7 +70,11 @@ namespace DmToolsApp.Features.Campaigns
             };
 
             await _sceneDataService.SaveSceneTrackAsync(sceneTrack);
-            SceneTracks.Add(sceneTrack);
+
+            // Recharge plutôt que d'ajouter à la main : le retour du picker déclenche déjà un
+            // OnNavigatedTo → ReloadAsync qui peut s'exécuter avant ou après la sauvegarde ; un Add
+            // manuel risquerait alors un doublon. Deux rechargements concurrents, eux, convergent.
+            await ReloadAsync();
         }
 
         [RelayCommand]

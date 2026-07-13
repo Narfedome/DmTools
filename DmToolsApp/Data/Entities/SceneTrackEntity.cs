@@ -21,5 +21,7 @@ namespace DmToolsApp.Data.Entities
         public bool AutoPlay { get; set; } = false;
 
         public bool IsLooping { get; set; } = true;
+
+        public bool FadeIn { get; set; } = false;
     }
 }

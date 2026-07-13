@@ -48,7 +48,18 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private bool isLooping;
 
-        public int SceneTrackId { get; set; }
+        // Réglage persisté sur la piste de scène (édité via SceneTracksPage) : au lancement de la
+        // lecture, le volume monte progressivement de 0 jusqu'au volume du strip.
+        [ObservableProperty]
+        private bool isFadeIn;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasSceneTrack))]
+        private int sceneTrackId;
+
+        // Le bouton de paramètres (gear) n'a de sens que si le strip est persisté comme piste de
+        // scène : c'est là que vivent les réglages édités par SceneTracksPage.
+        public bool HasSceneTrack => SceneTrackId > 0;
 
         partial void OnVolumeChanged(double oldValue, double newValue)
         {
@@ -84,10 +95,7 @@ namespace DmToolsApp.Components
             }
             else
             {
-                CancelFade();
-                Player.Volume = Volume;
-                Player.Play();
-                IsPlaying = true;
+                Play();
             }
         }
 
@@ -97,9 +105,66 @@ namespace DmToolsApp.Components
                 return;
 
             CancelFade();
+
+            if (IsFadeIn)
+            {
+                _ = FadeInAsync();
+                return;
+            }
+
             Player.Volume = Volume;
             Player.Play();
             IsPlaying = true;
+        }
+
+        /// <summary>
+        /// Démarre la lecture avec une montée progressive du volume (miroir de FadeOut). Interrompu
+        /// (stop, fade out, replay...), le volume est ramené directement à sa valeur cible : c'est
+        /// l'action suivante qui décide de la suite.
+        /// </summary>
+        private async Task FadeInAsync()
+        {
+            if (Player == null)
+                return;
+
+            var cts = new CancellationTokenSource();
+            _fadeCts = cts;
+            var token = cts.Token;
+
+            var targetVolume = Volume;
+            var stepDelay = (int)(FadeDuration.TotalMilliseconds / FadeSteps);
+            var volumeStep = targetVolume / FadeSteps;
+
+            Player.Volume = 0;
+            Player.Play();
+            IsPlaying = true;
+
+            try
+            {
+                for (int i = 0; i < FadeSteps; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    await Task.Delay(stepDelay, token);
+                    if (Player != null)
+                        Player.Volume = Math.Min(targetVolume, volumeStep * (i + 1));
+                }
+
+                if (Player != null)
+                    Player.Volume = targetVolume;
+            }
+            catch (OperationCanceledException)
+            {
+                if (Player != null)
+                    Player.Volume = targetVolume;
+            }
+            finally
+            {
+                // Ne remet à zéro que si un autre fade n'a pas déjà pris la main (sinon on
+                // disposerait SON CancellationTokenSource et son Task.Delay planterait).
+                if (_fadeCts == cts)
+                    _fadeCts = null;
+                cts.Dispose();
+            }
         }
 
         public void Pause()
@@ -128,8 +193,9 @@ namespace DmToolsApp.Components
                 return;
 
             CancelFade();
-            _fadeCts = new CancellationTokenSource();
-            var token = _fadeCts.Token;
+            var cts = new CancellationTokenSource();
+            _fadeCts = cts;
+            var token = cts.Token;
 
             var startVolume = Volume;
             var stepDelay = (int)(FadeDuration.TotalMilliseconds / FadeSteps);
@@ -159,8 +225,10 @@ namespace DmToolsApp.Components
             }
             finally
             {
-                _fadeCts?.Dispose();
-                _fadeCts = null;
+                // Cf. FadeInAsync : ne touche pas à _fadeCts si un autre fade l'a déjà remplacé.
+                if (_fadeCts == cts)
+                    _fadeCts = null;
+                cts.Dispose();
             }
         }
 

@@ -22,5 +22,8 @@ namespace DmToolsApp.Models
 
         [ObservableProperty]
         private bool isLooping = true;
+
+        [ObservableProperty]
+        private bool fadeIn = false;
     }
 }

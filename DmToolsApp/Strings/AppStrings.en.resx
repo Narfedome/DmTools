@@ -234,6 +234,9 @@
   <data name="ChannelLoop" xml:space="preserve">
     <value>Loop</value>
   </data>
+  <data name="ChannelSettings" xml:space="preserve">
+    <value>Channel settings</value>
+  </data>
   <data name="ChannelPlay" xml:space="preserve">
     <value>Play</value>
   </data>
@@ -245,6 +248,12 @@
   </data>
   <data name="SceneAuto" xml:space="preserve">
     <value>Auto</value>
+  </data>
+  <data name="SceneFadeIn" xml:space="preserve">
+    <value>Fade in</value>
+  </data>
+  <data name="SceneVolume" xml:space="preserve">
+    <value>Volume</value>
   </data>
   <data name="LibAdd" xml:space="preserve">
     <value>Add</value>

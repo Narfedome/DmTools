@@ -121,14 +121,20 @@
                                 <Grid Grid.Row="1" RowSpacing="5">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
                                                              CommandParameter="{Binding .}" Grid.Row="0"/>
+                                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Gear}"
+                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=OpenChannelSettingsCommand}"
+                                                             CommandParameter="{Binding .}"
+                                                             IsEnabled="{Binding HasSceneTrack}"
+                                                             Tooltip="{loc:Loc ChannelSettings}" Grid.Row="1"/>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
-                                                             CommandParameter="{Binding .}" Grid.Row="1"/>
+                                                             CommandParameter="{Binding .}" Grid.Row="2"/>
                                 </Grid>
                             </Grid>
                             <BoxView Grid.Column="1"
