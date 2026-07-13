@@ -44,6 +44,14 @@ namespace DmToolsApp.Data
             }
             catch { /* colonne déjà présente */ }
 
+            // Migration : ajout de FadeOut sur les DB existantes
+            try
+            {
+                await _db.ExecuteAsync(
+                    "ALTER TABLE SceneTrackEntity ADD COLUMN FadeOut INTEGER NOT NULL DEFAULT 0");
+            }
+            catch { /* colonne déjà présente */ }
+
             // Migration : ajout de Hash sur les DB existantes
             try
             {

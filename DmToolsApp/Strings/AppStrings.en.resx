@@ -252,6 +252,12 @@
   <data name="SceneFadeIn" xml:space="preserve">
     <value>Fade in</value>
   </data>
+  <data name="SceneFadeOut" xml:space="preserve">
+    <value>Fade out</value>
+  </data>
+  <data name="ChannelStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
   <data name="SceneVolume" xml:space="preserve">
     <value>Volume</value>
   </data>

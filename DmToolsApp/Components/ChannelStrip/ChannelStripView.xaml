@@ -11,8 +11,8 @@
                                      Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}"
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
-                                     Command="{Binding FadeOutCommand}"
-                                     Tooltip="{loc:Loc ChannelFadeOut}"
+                                     Command="{Binding StopPlaybackCommand}"
+                                     Tooltip="{loc:Loc ChannelStop}"
                                      HorizontalOptions="Center" />
         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
                                      Command="{Binding ToggleLoopCommand}"

@@ -25,5 +25,8 @@ namespace DmToolsApp.Models
 
         [ObservableProperty]
         private bool fadeIn = false;
+
+        [ObservableProperty]
+        private bool fadeOut = false;
     }
 }

@@ -147,6 +147,7 @@ namespace DmToolsApp.Services
                     AutoPlay = ste.AutoPlay,
                     IsLooping = ste.IsLooping,
                     FadeIn = ste.FadeIn,
+                    FadeOut = ste.FadeOut,
                     Track = new Track
                     {
                         Id = trackEntity.Id,
@@ -173,7 +174,8 @@ namespace DmToolsApp.Services
                 Position = sceneTrack.Position,
                 AutoPlay = sceneTrack.AutoPlay,
                 IsLooping = sceneTrack.IsLooping,
-                FadeIn = sceneTrack.FadeIn
+                FadeIn = sceneTrack.FadeIn,
+                FadeOut = sceneTrack.FadeOut
             };
             if (entity.Id == 0)
             {
@@ -191,7 +193,7 @@ namespace DmToolsApp.Services
             await _db.Connection.DeleteAsync<SceneTrackEntity>(sceneTrack.Id);
         }
 
-        public async Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn)
+        public async Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut)
         {
             var entity = await _db.Connection.FindAsync<SceneTrackEntity>(sceneTrackId);
             if (entity == null) return;
@@ -199,6 +201,7 @@ namespace DmToolsApp.Services
             entity.IsLooping = isLooping;
             entity.AutoPlay = autoPlay;
             entity.FadeIn = fadeIn;
+            entity.FadeOut = fadeOut;
             await _db.Connection.UpdateAsync(entity);
         }
 
@@ -228,7 +231,7 @@ namespace DmToolsApp.Services
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);
         Task DeleteSceneTrackAsync(SceneTrack sceneTrack);
-        Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn);
+        Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
     }
 }

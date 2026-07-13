@@ -139,6 +139,7 @@ namespace DmToolsApp.Features.AudioMixer
                 channel.Volume,
                 channel.IsLooping,
                 channel.IsFadeIn,
+                channel.IsFadeOut,
                 persisted.AutoPlay);
 
             var saved = await ShowDialogAsync(dialog);
@@ -148,6 +149,7 @@ namespace DmToolsApp.Features.AudioMixer
             channel.Volume = dialog.VolumeValue;
             channel.IsLooping = dialog.IsLoopingValue;
             channel.IsFadeIn = dialog.FadeInValue;
+            channel.IsFadeOut = dialog.FadeOutValue;
 
             // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée (qui
             // écraserait l'AutoPlay avec l'état de lecture) : on l'annule au profit d'une
@@ -159,7 +161,7 @@ namespace DmToolsApp.Features.AudioMixer
             }
 
             await _sceneDataService.UpdateSceneTrackAsync(
-                channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue);
+                channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue, dialog.FadeOutValue);
         }
 
         private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
@@ -174,6 +176,7 @@ namespace DmToolsApp.Features.AudioMixer
                 Volume = channel.Volume,
                 IsLooping = channel.IsLooping,
                 FadeIn = channel.IsFadeIn,
+                FadeOut = channel.IsFadeOut,
                 AutoPlay = channel.IsPlaying,
                 Position = CurrentChannels.IndexOf(channel)
             };
@@ -223,7 +226,7 @@ namespace DmToolsApp.Features.AudioMixer
             {
                 await Task.Delay(500, cts.Token);
                 await _sceneDataService.UpdateSceneTrackAsync(
-                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying, channel.IsFadeIn);
+                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsPlaying, channel.IsFadeIn, channel.IsFadeOut);
             }
             catch (OperationCanceledException) { }
             finally
@@ -298,7 +301,7 @@ namespace DmToolsApp.Features.AudioMixer
             var tasks = CurrentChannels
                 .Where(c => c.SceneTrackId > 0)
                 .Select(c => _sceneDataService.UpdateSceneTrackAsync(
-                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying, c.IsFadeIn));
+                    c.SceneTrackId, c.Volume, c.IsLooping, c.IsPlaying, c.IsFadeIn, c.IsFadeOut));
             await Task.WhenAll(tasks);
         }
 
@@ -413,6 +416,7 @@ namespace DmToolsApp.Features.AudioMixer
                             Volume = st.Volume,
                             IsLooping = st.IsLooping,
                             IsFadeIn = st.FadeIn,
+                            IsFadeOut = st.FadeOut,
                             Player = players[i]
                         };
 

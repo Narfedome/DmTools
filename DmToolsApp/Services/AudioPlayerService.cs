@@ -37,6 +37,16 @@ public class AudioPlayerService
         // sur un flux natif progressif (pas de contrainte de seek ici, juste une prévisualisation).
         _player = _audioManager.CreatePlayer(filePath);
 
+        // Fin de lecture naturelle : sans ça, le bouton play de la tuile restait visuellement en
+        // lecture une fois le fichier terminé. On vérifie que le player notifiant est toujours le
+        // player courant (l'utilisateur a pu lancer une autre piste entre-temps).
+        var player = _player;
+        _player.PlaybackEnded += (_, _) => MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (ReferenceEquals(_player, player))
+                Cleanup();
+        });
+
         _player.Play();
 
         CurrentFile = filePath;

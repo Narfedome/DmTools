@@ -21,13 +21,39 @@ namespace DmToolsApp.Components
             set
             {
                 CancelFade();
+                if (_player != null)
+                    _player.PlaybackEnded -= OnPlaybackEnded;
+
                 _player = value;
                 if (_player != null)
                 {
                     _player.Volume = Volume;
                     _player.Loop = IsLooping;
+                    _player.PlaybackEnded += OnPlaybackEnded;
                 }
             }
+        }
+
+        /// <summary>
+        /// Fin de lecture naturelle (piste non bouclée) : sans ça le strip restait visuellement en
+        /// lecture (bordure active, icône pause). On rembobine aussi pour qu'un nouveau play
+        /// reparte du début.
+        /// </summary>
+        private void OnPlaybackEnded(object? sender, EventArgs e)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (!ReferenceEquals(sender, _player) || _player == null)
+                    return;
+
+                // Certaines plateformes notifient la fin de chaque itération même en boucle : dans
+                // ce cas la lecture continue, on ne touche à rien.
+                if (_player.IsPlaying)
+                    return;
+
+                _player.Seek(0);
+                IsPlaying = false;
+            });
         }
 
         [ObservableProperty]
@@ -52,6 +78,11 @@ namespace DmToolsApp.Components
         // lecture, le volume monte progressivement de 0 jusqu'au volume du strip.
         [ObservableProperty]
         private bool isFadeIn;
+
+        // Réglage persisté sur la piste de scène : le bouton stop du strip fait un fade out
+        // plutôt qu'un arrêt sec.
+        [ObservableProperty]
+        private bool isFadeOut;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasSceneTrack))]
@@ -184,6 +215,19 @@ namespace DmToolsApp.Components
             CancelFade();
             Player.Stop();
             IsPlaying = false;
+        }
+
+        /// <summary>
+        /// Bouton stop du strip : fade out ou arrêt sec selon le réglage de la piste. Les actions
+        /// globales du mixer (Fade Out All, Stop All) restent explicites et n'en tiennent pas compte.
+        /// </summary>
+        [RelayCommand]
+        public async Task StopPlayback()
+        {
+            if (IsFadeOut)
+                await FadeOut();
+            else
+                Stop();
         }
 
         [RelayCommand]

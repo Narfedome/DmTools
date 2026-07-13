@@ -23,5 +23,7 @@ namespace DmToolsApp.Data.Entities
         public bool IsLooping { get; set; } = true;
 
         public bool FadeIn { get; set; } = false;
+
+        public bool FadeOut { get; set; } = false;
     }
 }

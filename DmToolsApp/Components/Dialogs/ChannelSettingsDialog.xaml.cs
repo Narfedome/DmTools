@@ -9,7 +9,7 @@ namespace DmToolsApp.Components.Dialogs;
 /// </summary>
 public partial class ChannelSettingsDialog : Popup<bool>
 {
-    public ChannelSettingsDialog(string trackName, double volume, bool isLooping, bool fadeIn, bool autoPlay)
+    public ChannelSettingsDialog(string trackName, double volume, bool isLooping, bool fadeIn, bool fadeOut, bool autoPlay)
     {
         InitializeComponent();
 
@@ -18,12 +18,14 @@ public partial class ChannelSettingsDialog : Popup<bool>
         VolumeValueLabel.Text = ((int)(volume * 100)).ToString();
         LoopCheck.IsChecked = isLooping;
         FadeInCheck.IsChecked = fadeIn;
+        FadeOutCheck.IsChecked = fadeOut;
         AutoPlayCheck.IsChecked = autoPlay;
     }
 
     public double VolumeValue => VolumeSlider.Value;
     public bool IsLoopingValue => LoopCheck.IsChecked;
     public bool FadeInValue => FadeInCheck.IsChecked;
+    public bool FadeOutValue => FadeOutCheck.IsChecked;
     public bool AutoPlayValue => AutoPlayCheck.IsChecked;
 
     void OnVolumeChanged(object? sender, ValueChangedEventArgs e)
