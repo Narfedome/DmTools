@@ -3,7 +3,12 @@
 ; Non-commercial use only
 
 #define MyAppName "DmTools"
-#define MyAppVersion "1.46"
+; Passée en ligne de commande par Build-Installer.ps1 (calquée sur ApplicationDisplayVersion du
+; csproj : major.minor à la main + patch = nombre de commits git). Valeur de repli si le script
+; n'est pas utilisé (compilation manuelle depuis l'IDE Inno Setup).
+#ifndef MyAppVersion
+  #define MyAppVersion "0.2.0"
+#endif
 #define MyAppPublisher "Narfedome"
 #define MyAppExeName "DmToolsApp.exe"
 #define MyAppAssocName MyAppName + " File"
@@ -33,9 +38,11 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
-OutputDir=D:\Dev\DmTools\DmToolsApp\Pack
-OutputBaseFilename=DmToolsInstaller
-SetupIconFile=D:\Dev\DmTools\DmToolsApp\bin\x64\release\net10.0-windows10.0.19041\win-x64\appicon.ico
+; Hors de DmToolsApp (et gitignoré) : ce ne sont que des artefacts de build, pas du code source
+; à versionner - cf. suppression du dossier Pack.
+OutputDir=D:\Dev\DmTools\Installer
+OutputBaseFilename=DmToolsInstaller-{#MyAppVersion}
+SetupIconFile=D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\appicon.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -47,8 +54,8 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\Dev\DmTools\DmToolsApp\bin\x64\release\net10.0-windows10.0.19041\win-x64\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Dev\DmTools\DmToolsApp\bin\x64\release\net10.0-windows10.0.19041\win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Installeur Windows genere par Build-Installer.ps1 / Installer.iss - artefact de build, pas du
+# code source (cf. suppression du dossier DmToolsApp/Pack qui versionnait ces binaires par erreur)
+/Installer/
