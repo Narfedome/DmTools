@@ -297,6 +297,19 @@ namespace DmToolsApp.Services
             }
         }
 
+        /// <summary>
+        /// Met à jour UNIQUEMENT le chemin de vignette d'une track (écriture de cache de pochette
+        /// en arrière-plan, cf. CoverArtService). Contrairement à SaveLibraryItemAsync, ne réécrit
+        /// pas toute la ligne : une sauvegarde différée qui s'entrelace avec une édition utilisateur
+        /// faite depuis une autre instance du modèle n'écraserait sinon ses autres champs (titre...).
+        /// </summary>
+        public async Task UpdateTrackImagePathAsync(int trackId, string imagePath)
+        {
+            await _db.Initialization;
+            await _db.Connection.ExecuteAsync(
+                "UPDATE TrackEntity SET ImagePath = ? WHERE Id = ?", imagePath, trackId);
+        }
+
         public async Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId)
         {
             await _db.Initialization;
@@ -338,6 +351,7 @@ namespace DmToolsApp.Services
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
         Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null);
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);
+        Task UpdateTrackImagePathAsync(int trackId, string imagePath);
         Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId);
         Task<HashSet<string>> GetAllReferencedFilePathsAsync();
         Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType);

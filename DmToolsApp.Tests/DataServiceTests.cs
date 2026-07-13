@@ -320,6 +320,42 @@ public class LibraryDataServiceTests : DatabaseTestBase
     }
 
     [Fact]
+    public async Task UpdateTrackImagePath_OnlyTouchesImagePath_EvenIfInMemoryModelDiverged()
+    {
+        var track = MakeTrack("Tavern", category: "Musique", hash: "AAA");
+        await Service.SaveLibraryItemAsync(track);
+
+        // Simule une édition concurrente depuis une autre instance : la sauvegarde différée de la
+        // pochette ne doit pas réintroduire l'ancien titre (c'est tout l'intérêt de l'UPDATE ciblé
+        // par rapport à SaveLibraryItemAsync, qui réécrit la ligne entière).
+        var edited = MakeTrack("Tavern renamed", category: "Ambiance", hash: "AAA");
+        edited.Id = track.Id;
+        await Service.SaveLibraryItemAsync(edited);
+
+        await Service.UpdateTrackImagePathAsync(track.Id, @"C:\covers\tavern.jpg");
+
+        var reloaded = (Track)(await Service.GetAllItemsTypeAsync(typeof(Track))).Single();
+        Assert.Equal(@"C:\covers\tavern.jpg", reloaded.ImagePath);
+        Assert.Equal("Tavern renamed", reloaded.Title);
+        Assert.Equal("Ambiance", reloaded.Category);
+    }
+
+    [Fact]
+    public async Task UpdateTrackImagePath_WithUnknownId_IsANoOp()
+    {
+        var track = MakeTrack("Tavern");
+        await Service.SaveLibraryItemAsync(track);
+
+        // Id 0 (modèle jamais persisté) ou inconnu : aucune ligne modifiée, aucune exception -
+        // l'ancien SaveLibraryItemAsync aurait lui INSÉRÉ une track fantôme pour un Id à 0.
+        await Service.UpdateTrackImagePathAsync(0, @"C:\covers\ghost.jpg");
+        await Service.UpdateTrackImagePathAsync(9999, @"C:\covers\ghost.jpg");
+
+        var reloaded = (Track)(await Service.GetAllItemsTypeAsync(typeof(Track))).Single();
+        Assert.Equal(string.Empty, reloaded.ImagePath);
+    }
+
+    [Fact]
     public async Task DeleteItems_RemovesTracks_AndTheirSceneLinks()
     {
         var sceneService = new SceneDataService(Db);
