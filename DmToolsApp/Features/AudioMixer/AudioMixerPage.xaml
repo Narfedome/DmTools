@@ -84,6 +84,18 @@
                      Tooltip="{loc:Loc BtnAddChannel}" />
         </Grid>
 
+        <!-- Overlay de chargement de scène : couvre toute la page et absorbe les taps (fond
+             semi-transparent) pendant la (re)création des channel strips, en plus du blocage de la
+             navigation Shell côté ViewModel. -->
+        <Grid Grid.RowSpan="3"
+              ZIndex="10"
+              IsVisible="{Binding Loading.IsLoading}"
+              BackgroundColor="#80000000">
+            <ActivityIndicator IsRunning="{Binding Loading.IsLoading}"
+                               VerticalOptions="Center" HorizontalOptions="Center"
+                               WidthRequest="120" HeightRequest="120"/>
+        </Grid>
+
         <!-- Channels -->
         <Border Grid.Row="2">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">

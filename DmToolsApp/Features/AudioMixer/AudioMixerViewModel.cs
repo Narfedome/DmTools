@@ -104,11 +104,9 @@ namespace DmToolsApp.Features.AudioMixer
                 if (selectedLibraryItem is not Track selectedTrack || !File.Exists(selectedTrack.FilePath))
                     return;
 
-                var stream = File.OpenRead(selectedTrack.FilePath);
-                channel.Player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
+                channel.Player = await _audioMixerService.CreatePlayerAsync(selectedTrack.FilePath);
                 channel.Track = selectedTrack;
                 channel.DisplayTrackName = selectedTrack.Title;
-                channel.TogglePlay();
 
                 await SaveChannelAsSceneTrack(channel);
             }
@@ -317,43 +315,68 @@ namespace DmToolsApp.Features.AudioMixer
             SelectedScene = Scenes[SceneIndex];
         }
 
+        // Empêche deux chargements de scène concurrents (l'UI est bloquée pendant le chargement,
+        // mais LoadScene peut aussi être déclenché programmatiquement via LoadFromPlayAsync).
+        private bool _isLoadingScene;
+
         [RelayCommand]
         public async Task LoadScene()
         {
-            if (SelectedScene == null) return;
+            if (SelectedScene == null || _isLoadingScene) return;
+            _isLoadingScene = true;
 
-            await SaveCurrentSceneAsync();
+            // Bloque toute la navigation (onglets, changement de scène...) pendant la (re)création
+            // des channel strips : changer de scène ou d'onglet en plein chargement laisserait des
+            // players orphelins ou un état de mixer incohérent.
+            var shell = Shell.Current;
+            if (shell != null) shell.IsEnabled = false;
 
-            // Fade out tous les channels actifs
-            var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
-            await Task.WhenAll(fadeTasks);
-
-            foreach (var c in CurrentChannels)
-                UnsubscribeChannel(c);
-            CurrentChannels.Clear();
-
-            _activeScene = SelectedScene;
-
-            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene.Id);
-
-            foreach (var st in sceneTracks)
+            try
             {
-                if (!File.Exists(st.Track.FilePath)) continue;
-
-                var stream = File.OpenRead(st.Track.FilePath);
-                var player = await _audioMixerService.CreatePlayerFromSelectedFile(stream);
-                var channel = new ChannelStripViewModel
+                await Loading.RunAsync(async () =>
                 {
-                    SceneTrackId = st.Id,
-                    Track = st.Track,
-                    DisplayTrackName = st.Track.Title,
-                    Volume = st.Volume,
-                    IsLooping = st.IsLooping,
-                    Player = player
-                };
+                    await SaveCurrentSceneAsync();
 
-                SubscribeChannel(channel);
-                CurrentChannels.Add(channel);
+                    // Fade out tous les channels actifs
+                    var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
+                    await Task.WhenAll(fadeTasks);
+
+                    foreach (var c in CurrentChannels)
+                        UnsubscribeChannel(c);
+                    CurrentChannels.Clear();
+
+                    _activeScene = SelectedScene;
+
+                    var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene.Id);
+
+                    // Crée tous les lecteurs en parallèle plutôt que d'attendre chaque piste l'une
+                    // après l'autre : le temps de chargement de la scène devient celui de la piste
+                    // la plus lente au lieu de la somme de toutes.
+                    var playable = sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
+                    var players = await Task.WhenAll(playable.Select(st => _audioMixerService.CreatePlayerAsync(st.Track.FilePath)));
+
+                    for (int i = 0; i < playable.Count; i++)
+                    {
+                        var st = playable[i];
+                        var channel = new ChannelStripViewModel
+                        {
+                            SceneTrackId = st.Id,
+                            Track = st.Track,
+                            DisplayTrackName = st.Track.Title,
+                            Volume = st.Volume,
+                            IsLooping = st.IsLooping,
+                            Player = players[i]
+                        };
+
+                        SubscribeChannel(channel);
+                        CurrentChannels.Add(channel);
+                    }
+                });
+            }
+            finally
+            {
+                if (shell != null) shell.IsEnabled = true;
+                _isLoadingScene = false;
             }
         }
     }

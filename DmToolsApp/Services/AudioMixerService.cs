@@ -36,11 +36,13 @@ namespace DmToolsApp.Services
             return channel;
         }
 
-        public Task<IAudioPlayer> CreatePlayerFromSelectedFile(Stream fileStream)
+        public Task<IAudioPlayer> CreatePlayerAsync(string filePath)
         {
-            // CreatePlayer décode/bufferise le flux de façon synchrone : on le sort du thread UI
-            // pour éviter un freeze/saccade sur les fichiers volumineux.
-            return Task.Run(() => audioManager.CreatePlayer(fileStream));
+            // Passe le chemin de fichier plutôt qu'un Stream : sur Windows, CreatePlayer(Stream)
+            // copie tout le flux en mémoire avant de créer le lecteur, alors que CreatePlayer(string)
+            // s'appuie sur un flux natif progressif. Reste sorti du thread UI car la création du
+            // lecteur natif peut malgré tout être coûteuse.
+            return Task.Run(() => audioManager.CreatePlayer(filePath));
         }
 
         public async Task<IAudioPlayer> PlayLoop(string file, double volume = 1)
