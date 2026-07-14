@@ -213,8 +213,13 @@
 	     généré séparément à garder en synchro.
 	     _GetAndroidPackageName est la cible qui fige _AndroidVersionName = $(ApplicationDisplayVersion)
 	     pour le manifeste Android ; elle tourne très tôt (via AndroidPrepareForBuild, avant CoreCompile),
-	     donc on doit y accrocher ce calcul explicitement sous peine de packager la version statique. -->
-	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion;_GetAndroidPackageName">
+	     donc on doit y accrocher ce calcul explicitement sous peine de packager la version statique.
+	     Idem côté Windows : MauiGeneratePackageAppxManifest (package Resizetizer) lit
+	     ApplicationDisplayVersion pour générer Package.appxmanifest, puis GetAssemblyAttributes en
+	     extrait la version pour l'embarquer en AssemblyMetadataAttribute (ce que AppInfo.VersionString
+	     lit vraiment au runtime, l'appli étant non empaquetée) - les deux doivent tourner APRÈS ce
+	     calcul, sous peine de packager/embarquer la version statique par défaut du csproj. -->
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion;_GetAndroidPackageName;MauiGeneratePackageAppxManifest;GetAssemblyAttributes">
 		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
 		</Exec>
@@ -235,6 +240,13 @@
 		<ItemGroup Condition="Exists('$(_AndroidStampDirectory)_GenerateJavaStubs.stamp')">
 			<_StampToDelete Include="$(_AndroidStampDirectory)_GenerateJavaStubs.stamp" />
 		</ItemGroup>
+
+		<!-- Idem côté Windows : le stamp de MauiGeneratePackageAppxManifest ne surveille en incrémental
+		     que le Package.appxmanifest source, jamais cette propriété. -->
+		<ItemGroup Condition="Exists('$(IntermediateOutputPath)mauimanifest.stamp')">
+			<_StampToDelete Include="$(IntermediateOutputPath)mauimanifest.stamp" />
+		</ItemGroup>
+
 		<Delete Files="@(_StampToDelete)" Condition="'@(_StampToDelete)' != ''" />
 	</Target>
 

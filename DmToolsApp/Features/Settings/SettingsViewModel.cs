@@ -14,7 +14,18 @@ namespace DmToolsApp.Features.Settings
         private readonly AudioPlayerService _audioPlayerService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
 
-        public string AppVersion => AppInfo.Current.VersionString;
+        // Windows exige 4 segments (Major.Minor.Build.Revision) pour l'identité de package - le 4e
+        // (Revision) est une valeur fixe du csproj sans intérêt pour l'utilisateur, on l'aligne sur
+        // le format 3 segments affiché nativement sur les autres plateformes.
+        public string AppVersion
+        {
+            get
+            {
+                var raw = AppInfo.Current.VersionString;
+                var parts = raw.Split('.');
+                return parts.Length > 3 ? string.Join('.', parts.Take(3)) : raw;
+            }
+        }
 
         [ObservableProperty]
         private string storageUsedText = string.Empty;
