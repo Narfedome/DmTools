@@ -11,7 +11,9 @@ namespace DmToolsApp.Services
     public class TutorialService
     {
         public const string StepCreateCampaign = "create-campaign";
+        public const string StepOpenCampaign = "open-campaign";
         public const string StepCreateChapter = "create-chapter";
+        public const string StepOpenChapter = "open-chapter";
         public const string StepCreateScene = "create-scene";
         public const string StepLaunchScene = "launch-scene";
         public const string StepAddChannel = "add-channel";
@@ -21,8 +23,9 @@ namespace DmToolsApp.Services
 
         private static readonly string[] Order =
         {
-            StepCreateCampaign, StepCreateChapter, StepCreateScene, StepLaunchScene,
-            StepAddChannel, StepPickTrack, StepAddSecondChannel, StepPickSecondTrack
+            StepCreateCampaign, StepOpenCampaign, StepCreateChapter, StepOpenChapter,
+            StepCreateScene, StepLaunchScene, StepAddChannel, StepPickTrack,
+            StepAddSecondChannel, StepPickSecondTrack
         };
 
         // Copiées depuis Resources/Raw (MauiAsset) vers la bibliothèque au premier lancement du

@@ -483,11 +483,23 @@
   <data name="TutorialCreateCampaignDesc" xml:space="preserve">
     <value>Commencez par créer votre première campagne avec le bouton + ci-dessous.</value>
   </data>
+  <data name="TutorialOpenCampaignTitle" xml:space="preserve">
+    <value>Ouvrez-la</value>
+  </data>
+  <data name="TutorialOpenCampaignDesc" xml:space="preserve">
+    <value>Appuyez sur la flèche › de votre campagne pour l'ouvrir.</value>
+  </data>
   <data name="TutorialCreateChapterTitle" xml:space="preserve">
     <value>Un chapitre</value>
   </data>
   <data name="TutorialCreateChapterDesc" xml:space="preserve">
     <value>Chaque campagne se découpe en chapitres. Créez-en un avec le bouton +.</value>
+  </data>
+  <data name="TutorialOpenChapterTitle" xml:space="preserve">
+    <value>Ouvrez-le</value>
+  </data>
+  <data name="TutorialOpenChapterDesc" xml:space="preserve">
+    <value>Appuyez sur la flèche › de votre chapitre pour l'ouvrir.</value>
   </data>
   <data name="TutorialCreateSceneTitle" xml:space="preserve">
     <value>Une scène</value>

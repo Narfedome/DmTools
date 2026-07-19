@@ -21,15 +21,32 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private ObservableCollection<Campaign> campaigns = new();
         [ObservableProperty] private Campaign? selectedCampaign;
 
-        public bool ShowTutorialHint => _tutorial.CurrentStep == TutorialService.StepCreateCampaign;
-        public string TutorialHintTitle => Loc["TutorialCreateCampaignTitle"];
-        public string TutorialHintDescription => Loc["TutorialCreateCampaignDesc"];
+        public bool ShowTutorialHint => _tutorial.CurrentStep is TutorialService.StepCreateCampaign or TutorialService.StepOpenCampaign;
+
+        public string TutorialHintTitle => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateCampaign => Loc["TutorialCreateCampaignTitle"],
+            TutorialService.StepOpenCampaign => Loc["TutorialOpenCampaignTitle"],
+            _ => string.Empty
+        };
+
+        public string TutorialHintDescription => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateCampaign => Loc["TutorialCreateCampaignDesc"],
+            TutorialService.StepOpenCampaign => Loc["TutorialOpenCampaignDesc"],
+            _ => string.Empty
+        };
+
+        // Fait ressortir la flèche > de chaque campagne pendant l'étape "ouvrez votre campagne" :
+        // le texte de la bulle seule ne dit pas QUEL élément taper dans une liste à plusieurs lignes.
+        public bool ShowOpenHint => _tutorial.CurrentStep == TutorialService.StepOpenCampaign;
 
         private void RefreshTutorialHint()
         {
             OnPropertyChanged(nameof(ShowTutorialHint));
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
+            OnPropertyChanged(nameof(ShowOpenHint));
         }
 
         [RelayCommand]
@@ -88,6 +105,8 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Navigate(Campaign campaign)
         {
+            _tutorial.Complete(TutorialService.StepOpenCampaign);
+
             await Shell.Current.GoToAsync(nameof(SessionListPage),
                 new Dictionary<string, object> { { "Campaign", campaign } });
         }

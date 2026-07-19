@@ -21,15 +21,30 @@ namespace DmToolsApp.Features.Campaigns
                 (r, m) => ((SessionListViewModel)r).OnPropertyChanged(nameof(PageTitle)));
         }
 
-        public bool ShowTutorialHint => _tutorial.CurrentStep == TutorialService.StepCreateChapter;
-        public string TutorialHintTitle => Loc["TutorialCreateChapterTitle"];
-        public string TutorialHintDescription => Loc["TutorialCreateChapterDesc"];
+        public bool ShowTutorialHint => _tutorial.CurrentStep is TutorialService.StepCreateChapter or TutorialService.StepOpenChapter;
+
+        public string TutorialHintTitle => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateChapter => Loc["TutorialCreateChapterTitle"],
+            TutorialService.StepOpenChapter => Loc["TutorialOpenChapterTitle"],
+            _ => string.Empty
+        };
+
+        public string TutorialHintDescription => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateChapter => Loc["TutorialCreateChapterDesc"],
+            TutorialService.StepOpenChapter => Loc["TutorialOpenChapterDesc"],
+            _ => string.Empty
+        };
+
+        public bool ShowOpenHint => _tutorial.CurrentStep == TutorialService.StepOpenChapter;
 
         private void RefreshTutorialHint()
         {
             OnPropertyChanged(nameof(ShowTutorialHint));
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
+            OnPropertyChanged(nameof(ShowOpenHint));
         }
 
         [RelayCommand]
@@ -111,6 +126,8 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Navigate(Session session)
         {
+            _tutorial.Complete(TutorialService.StepOpenChapter);
+
             await Shell.Current.GoToAsync(nameof(SceneListPage),
                 new Dictionary<string, object>
                 {

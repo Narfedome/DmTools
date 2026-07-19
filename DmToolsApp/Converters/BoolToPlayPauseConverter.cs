@@ -63,4 +63,18 @@ namespace DmToolsApp.Converters
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+
+    // Met en évidence (couleur accent) une icône ciblée par une bulle d'aide du tutoriel, ex. les
+    // chevrons de navigation Campagne -> Chapitre -> Scène : le texte seul de la bulle ne suffit
+    // pas à indiquer QUEL élément taper parmi plusieurs lignes de la liste.
+    internal class BoolToTutorialHighlightConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => value is bool b && b
+                ? DmToolsApp.Services.ThemeService.Instance.CurrentAccent
+                : DmToolsApp.Services.ThemeService.Instance.CurrentTextMuted;
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

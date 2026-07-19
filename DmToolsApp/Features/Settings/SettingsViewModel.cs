@@ -151,7 +151,7 @@ namespace DmToolsApp.Features.Settings
         public async Task RestartTutorial()
         {
             await _tutorial.StartAsync();
-            await Shell.Current.GoToAsync("//CampaignsTab");
+            await Shell.Current.GoToAsync("//CampaignPage");
         }
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;

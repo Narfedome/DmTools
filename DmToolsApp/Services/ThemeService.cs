@@ -113,6 +113,7 @@ namespace DmToolsApp.Services
 
         public Color CurrentAccent => GetPaletteTokens(_palette, IsDark()).GetValueOrDefault("AppAccent", Colors.Gray);
         public Color CurrentAccentSecondary => GetPaletteTokens(_palette, IsDark()).GetValueOrDefault("AppAccentSecondary", Colors.Gray);
+        public Color CurrentTextMuted => GetPaletteTokens(_palette, IsDark()).GetValueOrDefault("AppTextMuted", Colors.Gray);
 
         private static Dictionary<string, Color> GetPaletteTokens(AppPalette palette, bool dark) => palette switch
         {
