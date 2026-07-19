@@ -142,6 +142,10 @@ namespace DmToolsApp.Features.Settings
         public async Task OpenCoffeeLink() =>
             await Launcher.OpenAsync(new Uri("https://buymeacoffee.com/narfedome"));
 
+        [RelayCommand]
+        public async Task ReportBug() =>
+            await Launcher.OpenAsync(new Uri("https://docs.google.com/forms/d/e/1FAIpQLSdg2q1o01eGZsFvd0qIwOqYEVKDwBikQ0g7FWLSWHenKqeW0g/viewform?usp=dialog"));
+
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 
         public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);

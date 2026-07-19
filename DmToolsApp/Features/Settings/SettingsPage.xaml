@@ -123,6 +123,24 @@
                 </Grid>
             </Border>
 
+            <!-- Signaler un bug -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                        <Label Text="{loc:Loc SettingsReportBugTitle}" FontSize="16"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1"
+                           Text="{loc:Loc SettingsReportBugDesc}"
+                           TextColor="{DynamicResource AppAccent}"
+                           FontSize="14"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ReportBugCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+            </Border>
+
         </VerticalStackLayout>
     </ScrollView>
     </components:WatermarkedLayout>

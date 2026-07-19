@@ -351,6 +351,12 @@
   <data name="SettingsSupportDesc" xml:space="preserve">
     <value>Buy me a coffee ☕</value>
   </data>
+  <data name="SettingsReportBugTitle" xml:space="preserve">
+    <value>Report a bug</value>
+  </data>
+  <data name="SettingsReportBugDesc" xml:space="preserve">
+    <value>Open the form</value>
+  </data>
   <data name="SettingsVersion" xml:space="preserve">
     <value>Version</value>
   </data>
