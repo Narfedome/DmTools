@@ -47,11 +47,16 @@ namespace DmToolsApp.Features.Campaigns
             _ => string.Empty
         };
 
+        public bool ShowCreateHint => _tutorial.CurrentStep == TutorialService.StepCreateScene;
+        public bool ShowLaunchHint => _tutorial.CurrentStep == TutorialService.StepLaunchScene;
+
         private void RefreshTutorialHint()
         {
             OnPropertyChanged(nameof(ShowTutorialHint));
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
+            OnPropertyChanged(nameof(ShowCreateHint));
+            OnPropertyChanged(nameof(ShowLaunchHint));
         }
 
         [RelayCommand]

@@ -150,8 +150,15 @@ namespace DmToolsApp.Features.Settings
         [RelayCommand]
         public async Task RestartTutorial()
         {
-            await _tutorial.StartAsync();
-            await Shell.Current.GoToAsync("//CampaignPage");
+            try
+            {
+                await _tutorial.StartAsync();
+                await Shell.Current.GoToAsync("//CampaignPage");
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
         }
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;

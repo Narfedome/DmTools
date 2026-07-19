@@ -85,7 +85,8 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{loc:Loc BtnNewChapter}"/>
+                                         Tooltip="{loc:Loc BtnNewChapter}"
+                                         IsHighlighted="{Binding ShowCreateHint}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"

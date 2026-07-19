@@ -41,12 +41,16 @@ namespace DmToolsApp.Features.Campaigns
         // le texte de la bulle seule ne dit pas QUEL élément taper dans une liste à plusieurs lignes.
         public bool ShowOpenHint => _tutorial.CurrentStep == TutorialService.StepOpenCampaign;
 
+        // Anneau de mise en évidence sur le bouton "+" pendant l'étape de création.
+        public bool ShowCreateHint => _tutorial.CurrentStep == TutorialService.StepCreateCampaign;
+
         private void RefreshTutorialHint()
         {
             OnPropertyChanged(nameof(ShowTutorialHint));
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
             OnPropertyChanged(nameof(ShowOpenHint));
+            OnPropertyChanged(nameof(ShowCreateHint));
         }
 
         [RelayCommand]

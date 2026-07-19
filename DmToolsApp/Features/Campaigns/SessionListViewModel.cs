@@ -38,6 +38,7 @@ namespace DmToolsApp.Features.Campaigns
         };
 
         public bool ShowOpenHint => _tutorial.CurrentStep == TutorialService.StepOpenChapter;
+        public bool ShowCreateHint => _tutorial.CurrentStep == TutorialService.StepCreateChapter;
 
         private void RefreshTutorialHint()
         {
@@ -45,6 +46,7 @@ namespace DmToolsApp.Features.Campaigns
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
             OnPropertyChanged(nameof(ShowOpenHint));
+            OnPropertyChanged(nameof(ShowCreateHint));
         }
 
         [RelayCommand]

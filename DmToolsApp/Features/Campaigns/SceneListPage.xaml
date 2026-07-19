@@ -74,6 +74,12 @@
                                 <Label Text="{loc:Loc BtnLaunch}"
                                        FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
                                        TextColor="{DynamicResource AppAccent}"/>
+                                <Border StrokeShape="RoundRectangle 8"
+                                        Stroke="{DynamicResource AppAccent}"
+                                        StrokeThickness="2"
+                                        BackgroundColor="Transparent"
+                                        InputTransparent="True"
+                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type local:SceneListViewModel}}, Path=ShowLaunchHint}"/>
                             </Grid>
                         </Grid>
                     </Border>
@@ -84,7 +90,8 @@
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{loc:Loc BtnNewScene}"/>
+                                         Tooltip="{loc:Loc BtnNewScene}"
+                                         IsHighlighted="{Binding ShowCreateHint}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"

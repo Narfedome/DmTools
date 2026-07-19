@@ -56,11 +56,19 @@ namespace DmToolsApp.Features.AudioMixer
             _ => string.Empty
         };
 
+        public bool ShowAddChannelHint => _tutorial.CurrentStep is
+            TutorialService.StepAddChannel or TutorialService.StepAddSecondChannel;
+
+        public bool ShowPickTrackHint => _tutorial.CurrentStep is
+            TutorialService.StepPickTrack or TutorialService.StepPickSecondTrack;
+
         private void RefreshTutorialHint()
         {
             OnPropertyChanged(nameof(ShowTutorialHint));
             OnPropertyChanged(nameof(TutorialHintTitle));
             OnPropertyChanged(nameof(TutorialHintDescription));
+            OnPropertyChanged(nameof(ShowAddChannelHint));
+            OnPropertyChanged(nameof(ShowPickTrackHint));
         }
 
         [RelayCommand]

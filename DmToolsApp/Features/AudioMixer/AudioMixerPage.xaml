@@ -92,7 +92,8 @@
             <components:FaIconButtonView Grid.Column="2"
                      Icon="{x:Static icons:SolidFont.Plus}"
                      Command="{Binding AddChannelCommand}"
-                     Tooltip="{loc:Loc BtnAddChannel}" />
+                     Tooltip="{loc:Loc BtnAddChannel}"
+                     IsHighlighted="{Binding ShowAddChannelHint}" />
         </Grid>
 
         <!-- Overlay de chargement de scène : couvre toute la page (fond semi-transparent) pendant
@@ -140,7 +141,8 @@
                                     </Grid.RowDefinitions>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
-                                                             CommandParameter="{Binding .}" Grid.Row="0"/>
+                                                             CommandParameter="{Binding .}" Grid.Row="0"
+                                                             IsHighlighted="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint}"/>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Gear}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=OpenChannelSettingsCommand}"
                                                              CommandParameter="{Binding .}"
