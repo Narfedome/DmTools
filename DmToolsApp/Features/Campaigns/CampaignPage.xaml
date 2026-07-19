@@ -79,10 +79,21 @@
         </CollectionView>
 
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                                         Command="{Binding CreateCommand}"
-                                         Tooltip="{loc:Loc BtnNewCampaign}"
-                                         IsHighlighted="{Binding ShowCreateHint}"/>
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="0">
+                <tutorial:TutorialArrowView IsActive="{Binding ShowCreateHint}"/>
+                <Grid>
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                                                 Command="{Binding CreateCommand}"
+                                                 Tooltip="{loc:Loc BtnNewCampaign}"/>
+                    <Border StrokeShape="RoundRectangle 12"
+                            Stroke="{DynamicResource AppAccent}"
+                            StrokeThickness="3"
+                            BackgroundColor="Transparent"
+                            Margin="-5"
+                            InputTransparent="True"
+                            IsVisible="{Binding ShowCreateHint}"/>
+                </Grid>
+            </VerticalStackLayout>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"

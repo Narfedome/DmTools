@@ -94,14 +94,4 @@ public partial class FaIconButtonView : ContentView
         get => (int)GetValue(CornerRadiusProperty);
         set => SetValue(CornerRadiusProperty, value);
     }
-
-    // IS HIGHLIGHTED (tutoriel guidé : anneau accent autour du bouton ciblé par l'étape en cours)
-    public static readonly BindableProperty IsHighlightedProperty =
-        BindableProperty.Create(nameof(IsHighlighted), typeof(bool), typeof(FaIconButtonView), false);
-
-    public bool IsHighlighted
-    {
-        get => (bool)GetValue(IsHighlightedProperty);
-        set => SetValue(IsHighlightedProperty, value);
-    }
 }

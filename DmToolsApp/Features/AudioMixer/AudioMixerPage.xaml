@@ -89,11 +89,21 @@
                                                  Tooltip="{loc:Loc MixerStopAll}" />
                 </HorizontalStackLayout>
             </Border>
-            <components:FaIconButtonView Grid.Column="2"
-                     Icon="{x:Static icons:SolidFont.Plus}"
-                     Command="{Binding AddChannelCommand}"
-                     Tooltip="{loc:Loc BtnAddChannel}"
-                     IsHighlighted="{Binding ShowAddChannelHint}" />
+            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="0">
+                <tutorial:TutorialArrowView IsActive="{Binding ShowAddChannelHint}"/>
+                <Grid>
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                             Command="{Binding AddChannelCommand}"
+                             Tooltip="{loc:Loc BtnAddChannel}"/>
+                    <Border StrokeShape="RoundRectangle 12"
+                            Stroke="{DynamicResource AppAccent}"
+                            StrokeThickness="3"
+                            BackgroundColor="Transparent"
+                            Margin="-5"
+                            InputTransparent="True"
+                            IsVisible="{Binding ShowAddChannelHint}"/>
+                </Grid>
+            </VerticalStackLayout>
         </Grid>
 
         <!-- Overlay de chargement de scène : couvre toute la page (fond semi-transparent) pendant
@@ -139,10 +149,18 @@
                                         <RowDefinition Height="auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
-                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
-                                                             CommandParameter="{Binding .}" Grid.Row="0"
-                                                             IsHighlighted="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint}"/>
+                                    <Grid Grid.Row="0">
+                                        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
+                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
+                                                                 CommandParameter="{Binding .}"/>
+                                        <Border StrokeShape="RoundRectangle 12"
+                                                Stroke="{DynamicResource AppAccent}"
+                                                StrokeThickness="3"
+                                                BackgroundColor="Transparent"
+                                                Margin="-5"
+                                                InputTransparent="True"
+                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint}"/>
+                                    </Grid>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Gear}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=OpenChannelSettingsCommand}"
                                                              CommandParameter="{Binding .}"

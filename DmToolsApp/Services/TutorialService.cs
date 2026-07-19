@@ -48,12 +48,19 @@ namespace DmToolsApp.Services
 
         public async Task StartAsync()
         {
-            await SeedExampleTrackAsync(MusicExampleAssetName,
-                LocalizationService.Instance["TutorialMusicTrackTitle"],
-                LocalizationService.Instance["LibCategoryMusic"]);
-            await SeedExampleTrackAsync(AmbienceExampleAssetName,
-                LocalizationService.Instance["TutorialAmbienceTrackTitle"],
-                LocalizationService.Instance["LibCategoryAmbience"]);
+            // Le rejeu du tutoriel ("Revoir le tutoriel" dans les Réglages) n'a pas besoin de
+            // ré-extraire/hasher les pistes d'exemple à chaque fois : un flag suffit, on évite
+            // ainsi un aller-retour disque + hash perceptible à chaque redémarrage du tutoriel.
+            if (!Preferences.Default.Get("tutorial_tracks_seeded", false))
+            {
+                await SeedExampleTrackAsync(MusicExampleAssetName,
+                    LocalizationService.Instance["TutorialMusicTrackTitle"],
+                    LocalizationService.Instance["LibCategoryMusic"]);
+                await SeedExampleTrackAsync(AmbienceExampleAssetName,
+                    LocalizationService.Instance["TutorialAmbienceTrackTitle"],
+                    LocalizationService.Instance["LibCategoryAmbience"]);
+                Preferences.Default.Set("tutorial_tracks_seeded", true);
+            }
 
             IsActive = true;
             CurrentStep = Order[0];
@@ -96,18 +103,26 @@ namespace DmToolsApp.Services
             using (var fileStream = File.Create(tempPath))
                 await assetStream.CopyToAsync(fileStream);
 
+            // Hash + lecture des tags hors du thread UI (comme l'import manuel, cf.
+            // LibraryTrackEditViewModel.PickFile) : en synchrone, ça gèle l'interface le temps de
+            // l'opération.
+            var (hash, duration) = await Task.Run(() =>
+            {
+                var h = TrackTagHelper.ComputeSha256(tempPath);
+                var d = TagLib.File.Create(tempPath).Properties.Duration;
+                return (h, d);
+            });
+
             // Déduplication par hash (même logique que l'import manuel) : évite de recréer une
-            // seconde entrée si le tutoriel est relancé ("Revoir le tutoriel" dans les Réglages).
-            var hash = TrackTagHelper.ComputeSha256(tempPath);
+            // seconde entrée si jamais cette méthode est appelée alors qu'une piste identique existe déjà.
             var existing = await _libraryDataService.FindTrackByHashAsync(hash, excludeId: 0);
             if (existing == null)
             {
-                var tagFile = TagLib.File.Create(tempPath);
                 var track = new Track
                 {
                     Title = title,
-                    FilePath = _fileService.CopyTrackToLocal(tempPath),
-                    Duration = tagFile.Properties.Duration,
+                    FilePath = await Task.Run(() => _fileService.CopyTrackToLocal(tempPath)),
+                    Duration = duration,
                     Hash = hash,
                     Category = category
                 };

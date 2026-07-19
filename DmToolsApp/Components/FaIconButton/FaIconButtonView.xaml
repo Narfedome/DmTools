@@ -27,15 +27,5 @@
         Padding="0"
         HorizontalOptions="Center" />
 
-        <!-- Anneau de mise en évidence (tutoriel guidé) : superposé, ne capte aucun tap, pour ne
-             jamais gêner le bouton qu'il entoure. -->
-        <Border StrokeShape="RoundRectangle 12"
-                Stroke="{DynamicResource AppAccent}"
-                StrokeThickness="3"
-                BackgroundColor="Transparent"
-                Margin="-5"
-                InputTransparent="True"
-                IsVisible="{Binding Source={x:Reference root}, Path=IsHighlighted}"/>
-
     </Grid>
 </ContentView>
