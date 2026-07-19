@@ -16,18 +16,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <tutorial:TutorialHintView Grid.Row="0"
-                                    IsVisible="{Binding ShowTutorialHint}"
-                                    TitleText="{Binding TutorialHintTitle}"
-                                    DescriptionText="{Binding TutorialHintDescription}"
-                                    SkipCommand="{Binding SkipTutorialCommand}"/>
-
         <!-- Barre de sélection de scène -->
-        <Border Grid.Row="1" Padding="10"
+        <Border Grid.Row="0" Padding="10"
                 IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
@@ -67,15 +60,22 @@
             </Grid>
         </Border>
 
+        <!-- Voile qui assombrit la barre de scène pendant les étapes "ajouter un channel" /
+             "choisir une piste" : elle n'est pas concernée par ces deux étapes. -->
+        <BoxView Grid.Row="0" Color="Black" Opacity="0.55"
+                 InputTransparent="True"
+                 IsVisible="{Binding ShowTutorialHint}"/>
+
         <!-- Global Commands + Add -->
-        <Grid Grid.Row="2" Padding="10" ColumnSpacing="15"
+        <Grid Grid.Row="1" Padding="10" ColumnSpacing="15"
               IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0">
+            <Border Grid.Column="0"
+                    Opacity="{Binding ShowTutorialHint, Converter={StaticResource BoolToDimOpacityConverter}}">
                 <HorizontalStackLayout Spacing="10" Margin="10">
                     <Label Text="{loc:Loc MixerGlobal}" VerticalOptions="Center"/>
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Play}"
@@ -89,21 +89,15 @@
                                                  Tooltip="{loc:Loc MixerStopAll}" />
                 </HorizontalStackLayout>
             </Border>
-            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="0">
-                <tutorial:TutorialArrowView IsActive="{Binding ShowAddChannelHint}"/>
-                <Grid>
-                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                             Command="{Binding AddChannelCommand}"
-                             Tooltip="{loc:Loc BtnAddChannel}"/>
-                    <Border StrokeShape="RoundRectangle 12"
-                            Stroke="{DynamicResource AppAccent}"
-                            StrokeThickness="3"
-                            BackgroundColor="Transparent"
-                            Margin="-5"
-                            InputTransparent="True"
-                            IsVisible="{Binding ShowAddChannelHint}"/>
-                </Grid>
-            </VerticalStackLayout>
+            <tutorial:TutorialCoachMark Grid.Column="2"
+                                         IsActive="{Binding ShowAddChannelHint}"
+                                         HintTitle="{Binding TutorialHintTitle}"
+                                         HintDescription="{Binding TutorialHintDescription}"
+                                         SkipCommand="{Binding SkipTutorialCommand}">
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                         Command="{Binding AddChannelCommand}"
+                         Tooltip="{loc:Loc BtnAddChannel}"/>
+            </tutorial:TutorialCoachMark>
         </Grid>
 
         <!-- Overlay de chargement de scène : couvre toute la page (fond semi-transparent) pendant
@@ -111,7 +105,7 @@
              Windows, l'ordre visuel (ZIndex) ne suffit pas à bloquer ses interactions : chaque
              zone interactive est donc aussi désactivée via IsEnabled, en plus du blocage de la
              navigation Shell côté ViewModel. -->
-        <Grid Grid.RowSpan="4"
+        <Grid Grid.RowSpan="3"
               ZIndex="10"
               IsVisible="{Binding Loading.IsLoading}"
               BackgroundColor="#80000000">
@@ -121,7 +115,7 @@
         </Grid>
 
         <!-- Channels -->
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
@@ -149,26 +143,26 @@
                                         <RowDefinition Height="auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Grid Grid.Row="0">
+                                    <tutorial:TutorialCoachMark Grid.Row="0"
+                                            IsActive="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint}"
+                                            HintTitle="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=TutorialHintTitle}"
+                                            HintDescription="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=TutorialHintDescription}"
+                                            SkipCommand="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=SkipTutorialCommand}">
                                         <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
                                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
                                                                  CommandParameter="{Binding .}"/>
-                                        <Border StrokeShape="RoundRectangle 12"
-                                                Stroke="{DynamicResource AppAccent}"
-                                                StrokeThickness="3"
-                                                BackgroundColor="Transparent"
-                                                Margin="-5"
-                                                InputTransparent="True"
-                                                IsVisible="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint}"/>
-                                    </Grid>
+                                    </tutorial:TutorialCoachMark>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Gear}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=OpenChannelSettingsCommand}"
                                                              CommandParameter="{Binding .}"
                                                              IsEnabled="{Binding HasSceneTrack}"
+                                                             Opacity="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint, Converter={StaticResource BoolToDimOpacityConverter}}"
                                                              Tooltip="{loc:Loc ChannelSettings}" Grid.Row="1"/>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
-                                                             CommandParameter="{Binding .}" Grid.Row="2"/>
+                                                             CommandParameter="{Binding .}"
+                                                             Opacity="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=ShowPickTrackHint, Converter={StaticResource BoolToDimOpacityConverter}}"
+                                                             Grid.Row="2"/>
                                 </Grid>
                             </Grid>
                             <BoxView Grid.Column="1"

@@ -12,6 +12,8 @@
             <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <converters:BoolToActiveStrokeConverter x:Key="BoolToActiveStrokeConverter" />
             <converters:BoolToTutorialHighlightConverter x:Key="BoolToTutorialHighlightConverter" />
+            <converters:BoolToShowOpacityConverter x:Key="BoolToShowOpacityConverter" />
+            <converters:BoolToDimOpacityConverter x:Key="BoolToDimOpacityConverter" />
             <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />

@@ -26,14 +26,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
-            <Label Text="{loc:Loc ChaptersHeader}" FontSize="20"/>
-            <tutorial:TutorialHintView IsVisible="{Binding ShowTutorialHint}"
-                                        TitleText="{Binding TutorialHintTitle}"
-                                        DescriptionText="{Binding TutorialHintDescription}"
-                                        SkipCommand="{Binding SkipTutorialCommand}"/>
-        </VerticalStackLayout>
-
+        <Label Grid.Row="0" Text="{loc:Loc ChaptersHeader}" FontSize="20" Margin="0,0,0,8"/>
 
         <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
                            IsVisible="{Binding Loading.IsLoading}"
@@ -65,46 +58,52 @@
                         </VisualStateManager.VisualStateGroups>
                         <Grid ColumnDefinitions="*,56">
                             <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Grid Grid.Column="1">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=NavigateCommand}"
-                                        CommandParameter="{Binding .}"/>
-                                </Grid.GestureRecognizers>
-                                <Label Text="{x:Static icons:SolidFont.ChevronRight}"
-                                       FontFamily="FontSolid"
-                                       FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"
-                                       TextColor="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=ShowOpenHint, Converter={StaticResource BoolToTutorialHighlightConverter}}"/>
-                            </Grid>
+                            <tutorial:TutorialCoachMark Grid.Column="1"
+                                    IsActive="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=ShowOpenHint}"
+                                    HintTitle="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=TutorialHintTitle}"
+                                    HintDescription="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=TutorialHintDescription}"
+                                    SkipCommand="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=SkipTutorialCommand}">
+                                <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=NavigateCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Grid.GestureRecognizers>
+                                    <Label Text="{x:Static icons:SolidFont.ChevronRight}"
+                                           FontFamily="FontSolid"
+                                           FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"
+                                           TextColor="{Binding Source={RelativeSource AncestorType={x:Type local:SessionListViewModel}}, Path=ShowOpenHint, Converter={StaticResource BoolToTutorialHighlightConverter}}"/>
+                                </Grid>
+                            </tutorial:TutorialCoachMark>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
+        <!-- Voile qui assombrit la liste pendant l'étape "créer un chapitre". -->
+        <BoxView Grid.Row="1" Color="Black" Opacity="0.55"
+                 InputTransparent="True"
+                 IsVisible="{Binding ShowCreateHint}"/>
+
         <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
-            <VerticalStackLayout HorizontalOptions="Center" Spacing="0">
-                <tutorial:TutorialArrowView IsActive="{Binding ShowCreateHint}"/>
-                <Grid>
-                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                                                 Command="{Binding CreateCommand}"
-                                                 Tooltip="{loc:Loc BtnNewChapter}"/>
-                    <Border StrokeShape="RoundRectangle 12"
-                            Stroke="{DynamicResource AppAccent}"
-                            StrokeThickness="3"
-                            BackgroundColor="Transparent"
-                            Margin="-5"
-                            InputTransparent="True"
-                            IsVisible="{Binding ShowCreateHint}"/>
-                </Grid>
-            </VerticalStackLayout>
+            <tutorial:TutorialCoachMark IsActive="{Binding ShowCreateHint}"
+                                         HintTitle="{Binding TutorialHintTitle}"
+                                         HintDescription="{Binding TutorialHintDescription}"
+                                         SkipCommand="{Binding SkipTutorialCommand}">
+                <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                                             Command="{Binding CreateCommand}"
+                                             Tooltip="{loc:Loc BtnNewChapter}"/>
+            </tutorial:TutorialCoachMark>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"
+                                         Opacity="{Binding ShowCreateHint, Converter={StaticResource BoolToDimOpacityConverter}}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
                                          Tooltip="{loc:Loc BtnDelete}"
+                                         Opacity="{Binding ShowCreateHint, Converter={StaticResource BoolToDimOpacityConverter}}"
                                          IsEnabled="{Binding SelectedSession, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>

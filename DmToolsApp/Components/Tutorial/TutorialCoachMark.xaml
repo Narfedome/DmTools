@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+      xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+      x:Class="DmToolsApp.Components.Tutorial.TutorialCoachMark"
+      x:Name="root"
+      RowDefinitions="Auto,Auto"
+      RowSpacing="0">
+
+    <!-- Bulle + flèche : ligne toujours réservée en layout, seule l'opacité bascule 0/1 pour ne
+         jamais décaler la cible en dessous quand l'étape s'active/se désactive. -->
+    <VerticalStackLayout Grid.Row="0" Spacing="0" HorizontalOptions="Center"
+                          Opacity="{Binding Source={x:Reference root}, Path=IsActive, Converter={StaticResource BoolToShowOpacityConverter}}"
+                          InputTransparent="{Binding Source={x:Reference root}, Path=IsActive, Converter={StaticResource InverseBoolConverter}}">
+        <Border BackgroundColor="{DynamicResource AppAccent}"
+                StrokeShape="RoundRectangle 8"
+                StrokeThickness="0"
+                Padding="10,8"
+                Margin="0,0,0,2">
+            <Grid ColumnDefinitions="*,auto" ColumnSpacing="8" MaximumWidthRequest="220">
+                <VerticalStackLayout Grid.Column="0">
+                    <Label Text="{Binding Source={x:Reference root}, Path=HintTitle}"
+                           FontAttributes="Bold" FontSize="14" TextColor="White"/>
+                    <Label Text="{Binding Source={x:Reference root}, Path=HintDescription}"
+                           FontSize="12" TextColor="White" Opacity="0.9"/>
+                </VerticalStackLayout>
+                <Button Grid.Column="1"
+                        Text="{x:Static icons:SolidFont.Xmark}"
+                        FontFamily="FontSolid" FontSize="12"
+                        TextColor="White" BackgroundColor="Transparent"
+                        Padding="4" VerticalOptions="Start"
+                        Command="{Binding Source={x:Reference root}, Path=SkipCommand}"/>
+            </Grid>
+        </Border>
+        <Label x:Name="ArrowLabel"
+               Text="{x:Static icons:SolidFont.ChevronDown}"
+               FontFamily="FontSolid" FontSize="18"
+               TextColor="{DynamicResource AppAccent}"
+               HorizontalOptions="Center"/>
+    </VerticalStackLayout>
+
+    <!-- Cible réelle (TargetContent) + anneau de mise en évidence, superposé au-dessus (ZIndex)
+         quel que soit l'ordre d'insertion dynamique du contenu cible en code-behind. -->
+    <Grid Grid.Row="1" x:Name="TargetHost">
+        <Border StrokeShape="RoundRectangle 12"
+                Stroke="{DynamicResource AppAccent}"
+                StrokeThickness="3"
+                BackgroundColor="Transparent"
+                Margin="-5"
+                ZIndex="1"
+                InputTransparent="True"
+                IsVisible="{Binding Source={x:Reference root}, Path=IsActive}"/>
+    </Grid>
+</Grid>
