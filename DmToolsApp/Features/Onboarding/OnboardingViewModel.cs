@@ -51,10 +51,10 @@ namespace DmToolsApp.Features.Onboarding
         }
 
         [RelayCommand]
-        private async Task Start()
+        private void Start()
         {
             Preferences.Default.Set("has_launched", true);
-            await _tutorial.StartAsync();
+            _tutorial.Start();
             Application.Current!.Windows[0].Page = _shell;
         }
     }

@@ -152,7 +152,7 @@ namespace DmToolsApp.Features.Settings
         {
             try
             {
-                await _tutorial.StartAsync();
+                _tutorial.Start();
                 await Shell.Current.GoToAsync("//CampaignPage");
             }
             catch (Exception ex)

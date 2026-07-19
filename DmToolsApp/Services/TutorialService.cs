@@ -46,12 +46,28 @@ namespace DmToolsApp.Services
         public bool IsActive { get; private set; }
         public string? CurrentStep { get; private set; }
 
-        public async Task StartAsync()
+        /// <summary>
+        /// Démarre immédiatement la séquence (aucune attente réseau/disque sur ce chemin) : le
+        /// seeding des pistes d'exemple tourne en arrière-plan et ne peut donc jamais bloquer une
+        /// transition d'écran (onboarding, redémarrage du tutoriel depuis les Réglages). L'étape
+        /// "choisir une piste" n'arrive que plusieurs actions plus tard, largement le temps que le
+        /// seeding se termine.
+        /// </summary>
+        public void Start()
+        {
+            IsActive = true;
+            CurrentStep = Order[0];
+            _ = SeedTracksIfNeededAsync();
+        }
+
+        private async Task SeedTracksIfNeededAsync()
         {
             // Le rejeu du tutoriel ("Revoir le tutoriel" dans les Réglages) n'a pas besoin de
-            // ré-extraire/hasher les pistes d'exemple à chaque fois : un flag suffit, on évite
-            // ainsi un aller-retour disque + hash perceptible à chaque redémarrage du tutoriel.
-            if (!Preferences.Default.Get("tutorial_tracks_seeded", false))
+            // ré-extraire/hasher les pistes d'exemple à chaque fois : un flag suffit.
+            if (Preferences.Default.Get("tutorial_tracks_seeded", false))
+                return;
+
+            try
             {
                 await SeedExampleTrackAsync(MusicExampleAssetName,
                     LocalizationService.Instance["TutorialMusicTrackTitle"],
@@ -61,9 +77,13 @@ namespace DmToolsApp.Services
                     LocalizationService.Instance["LibCategoryAmbience"]);
                 Preferences.Default.Set("tutorial_tracks_seeded", true);
             }
-
-            IsActive = true;
-            CurrentStep = Order[0];
+            catch (Exception ex)
+            {
+                // Best-effort : si le seeding échoue (asset introuvable, fichier corrompu...), le
+                // tutoriel continue quand même - l'étape "choisir une piste" n'aura simplement pas
+                // d'exemple prêt à l'emploi, plutôt que de bloquer tout le reste.
+                System.Diagnostics.Debug.WriteLine($"[TutorialService] Échec du seeding des pistes d'exemple : {ex}");
+            }
         }
 
         /// <summary>
