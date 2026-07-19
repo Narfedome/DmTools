@@ -471,4 +471,70 @@
   <data name="LibCategoryMusic" xml:space="preserve">
     <value>Musique</value>
   </data>
+  <data name="SettingsTutorialTitle" xml:space="preserve">
+    <value>Tutoriel</value>
+  </data>
+  <data name="SettingsTutorialDesc" xml:space="preserve">
+    <value>Revoir le tutoriel</value>
+  </data>
+  <data name="TutorialCreateCampaignTitle" xml:space="preserve">
+    <value>Bienvenue !</value>
+  </data>
+  <data name="TutorialCreateCampaignDesc" xml:space="preserve">
+    <value>Commencez par créer votre première campagne avec le bouton + ci-dessous.</value>
+  </data>
+  <data name="TutorialCreateChapterTitle" xml:space="preserve">
+    <value>Un chapitre</value>
+  </data>
+  <data name="TutorialCreateChapterDesc" xml:space="preserve">
+    <value>Chaque campagne se découpe en chapitres. Créez-en un avec le bouton +.</value>
+  </data>
+  <data name="TutorialCreateSceneTitle" xml:space="preserve">
+    <value>Une scène</value>
+  </data>
+  <data name="TutorialCreateSceneDesc" xml:space="preserve">
+    <value>Une scène regroupe les sons d'un moment de jeu (une taverne, un combat...). Créez-en une.</value>
+  </data>
+  <data name="TutorialLaunchSceneTitle" xml:space="preserve">
+    <value>Lancez la scène</value>
+  </data>
+  <data name="TutorialLaunchSceneDesc" xml:space="preserve">
+    <value>Appuyez sur ▶ Lancer pour ouvrir cette scène dans l'AudioMixer.</value>
+  </data>
+  <data name="TutorialAddChannelTitle" xml:space="preserve">
+    <value>Ajoutez un son</value>
+  </data>
+  <data name="TutorialAddChannelDesc" xml:space="preserve">
+    <value>Chaque channel joue un son en boucle. Ajoutez-en un avec le bouton +.</value>
+  </data>
+  <data name="TutorialPickTrackTitle" xml:space="preserve">
+    <value>Choisissez une musique</value>
+  </data>
+  <data name="TutorialPickTrackDesc" xml:space="preserve">
+    <value>Appuyez sur l'icône livre du channel et choisissez "Musique (exemple libre de droit)".</value>
+  </data>
+  <data name="TutorialAddSecondChannelTitle" xml:space="preserve">
+    <value>Superposez un second son</value>
+  </data>
+  <data name="TutorialAddSecondChannelDesc" xml:space="preserve">
+    <value>On peut jouer plusieurs sons en même temps : musique + ambiance. Ajoutez un second channel.</value>
+  </data>
+  <data name="TutorialPickSecondTrackTitle" xml:space="preserve">
+    <value>Choisissez une ambiance</value>
+  </data>
+  <data name="TutorialPickSecondTrackDesc" xml:space="preserve">
+    <value>Sur ce nouveau channel, choisissez cette fois "Ambiance (exemple libre de droit)".</value>
+  </data>
+  <data name="TutorialDoneTitle" xml:space="preserve">
+    <value>Bravo !</value>
+  </data>
+  <data name="TutorialDoneDesc" xml:space="preserve">
+    <value>Vous maîtrisez les bases. Appuyez sur Lecture globale pour entendre les deux sons ensemble, et bon jeu !</value>
+  </data>
+  <data name="TutorialMusicTrackTitle" xml:space="preserve">
+    <value>Musique (exemple libre de droit)</value>
+  </data>
+  <data name="TutorialAmbienceTrackTitle" xml:space="preserve">
+    <value>Ambiance (exemple libre de droit)</value>
+  </data>
 </root>

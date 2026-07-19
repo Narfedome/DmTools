@@ -10,14 +10,34 @@ namespace DmToolsApp.Features.Campaigns
     public partial class CampaignViewModel : BaseViewModel
     {
         private readonly ISceneDataService _sceneDataService;
+        private readonly TutorialService _tutorial;
 
-        public CampaignViewModel(ISceneDataService sceneDataService)
+        public CampaignViewModel(ISceneDataService sceneDataService, TutorialService tutorial)
         {
             _sceneDataService = sceneDataService;
+            _tutorial = tutorial;
         }
 
         [ObservableProperty] private ObservableCollection<Campaign> campaigns = new();
         [ObservableProperty] private Campaign? selectedCampaign;
+
+        public bool ShowTutorialHint => _tutorial.CurrentStep == TutorialService.StepCreateCampaign;
+        public string TutorialHintTitle => Loc["TutorialCreateCampaignTitle"];
+        public string TutorialHintDescription => Loc["TutorialCreateCampaignDesc"];
+
+        private void RefreshTutorialHint()
+        {
+            OnPropertyChanged(nameof(ShowTutorialHint));
+            OnPropertyChanged(nameof(TutorialHintTitle));
+            OnPropertyChanged(nameof(TutorialHintDescription));
+        }
+
+        [RelayCommand]
+        public void SkipTutorial()
+        {
+            _tutorial.Skip();
+            RefreshTutorialHint();
+        }
 
         public async Task InitializeAsync()
         {
@@ -26,6 +46,7 @@ namespace DmToolsApp.Features.Campaigns
                 var list = await _sceneDataService.GetCampaignsAsync();
                 Campaigns = new ObservableCollection<Campaign>(list);
             });
+            RefreshTutorialHint();
         }
 
         [RelayCommand]
@@ -37,6 +58,9 @@ namespace DmToolsApp.Features.Campaigns
             var campaign = new Campaign { Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveCampaignAsync(campaign);
             Campaigns.Add(campaign);
+
+            _tutorial.Complete(TutorialService.StepCreateCampaign);
+            RefreshTutorialHint();
         }
 
         [RelayCommand]

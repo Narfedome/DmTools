@@ -1,0 +1,5 @@
+ambience_example.opus
+- Original: "Forest Ambience" (Forest_Ambience.mp3)
+- Author: TinyWorlds (Rick Hoppmann), made for Ludum Dare 29
+- License: CC0 (Public Domain) - https://opengameart.org/content/forest-ambience
+- Converted from MP3 to Opus 128kbps for size.

@@ -123,6 +123,24 @@
                 </Grid>
             </Border>
 
+            <!-- Revoir le tutoriel -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <Grid ColumnDefinitions="*,auto">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                        <Label Text="{loc:Loc SettingsTutorialTitle}" FontSize="16"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1"
+                           Text="{loc:Loc SettingsTutorialDesc}"
+                           TextColor="{DynamicResource AppAccent}"
+                           FontSize="14"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding RestartTutorialCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Grid>
+            </Border>
+
             <!-- Signaler un bug -->
             <Border Padding="16" StrokeShape="RoundRectangle 8">
                 <Grid ColumnDefinitions="*,auto">

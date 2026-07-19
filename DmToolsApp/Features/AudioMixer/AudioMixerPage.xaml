@@ -7,6 +7,7 @@
              xmlns:models="clr-namespace:DmToolsApp.Models"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:tutorial="clr-namespace:DmToolsApp.Components.Tutorial"
              x:Class="DmToolsApp.Features.AudioMixer.AudioMixerPage"
              x:DataType="local:AudioMixerViewModel">
 
@@ -15,11 +16,18 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <tutorial:TutorialHintView Grid.Row="0"
+                                    IsVisible="{Binding ShowTutorialHint}"
+                                    TitleText="{Binding TutorialHintTitle}"
+                                    DescriptionText="{Binding TutorialHintDescription}"
+                                    SkipCommand="{Binding SkipTutorialCommand}"/>
+
         <!-- Barre de sélection de scène -->
-        <Border Grid.Row="0" Padding="10"
+        <Border Grid.Row="1" Padding="10"
                 IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
@@ -60,7 +68,7 @@
         </Border>
 
         <!-- Global Commands + Add -->
-        <Grid Grid.Row="1" Padding="10" ColumnSpacing="15"
+        <Grid Grid.Row="2" Padding="10" ColumnSpacing="15"
               IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
@@ -92,7 +100,7 @@
              Windows, l'ordre visuel (ZIndex) ne suffit pas à bloquer ses interactions : chaque
              zone interactive est donc aussi désactivée via IsEnabled, en plus du blocage de la
              navigation Shell côté ViewModel. -->
-        <Grid Grid.RowSpan="3"
+        <Grid Grid.RowSpan="4"
               ZIndex="10"
               IsVisible="{Binding Loading.IsLoading}"
               BackgroundColor="#80000000">
@@ -102,7 +110,7 @@
         </Grid>
 
         <!-- Channels -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>

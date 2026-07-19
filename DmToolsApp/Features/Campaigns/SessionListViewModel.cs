@@ -11,12 +11,32 @@ namespace DmToolsApp.Features.Campaigns
     public partial class SessionListViewModel : BaseViewModel, IQueryAttributable
     {
         private readonly ISceneDataService _sceneDataService;
+        private readonly TutorialService _tutorial;
 
-        public SessionListViewModel(ISceneDataService sceneDataService)
+        public SessionListViewModel(ISceneDataService sceneDataService, TutorialService tutorial)
         {
             _sceneDataService = sceneDataService;
+            _tutorial = tutorial;
             WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
                 (r, m) => ((SessionListViewModel)r).OnPropertyChanged(nameof(PageTitle)));
+        }
+
+        public bool ShowTutorialHint => _tutorial.CurrentStep == TutorialService.StepCreateChapter;
+        public string TutorialHintTitle => Loc["TutorialCreateChapterTitle"];
+        public string TutorialHintDescription => Loc["TutorialCreateChapterDesc"];
+
+        private void RefreshTutorialHint()
+        {
+            OnPropertyChanged(nameof(ShowTutorialHint));
+            OnPropertyChanged(nameof(TutorialHintTitle));
+            OnPropertyChanged(nameof(TutorialHintDescription));
+        }
+
+        [RelayCommand]
+        public void SkipTutorial()
+        {
+            _tutorial.Skip();
+            RefreshTutorialHint();
         }
 
         [ObservableProperty] private Campaign? campaign;
@@ -48,6 +68,7 @@ namespace DmToolsApp.Features.Campaigns
                 var list = await _sceneDataService.GetSessionsAsync(Campaign.Id);
                 Sessions = new ObservableCollection<Session>(list);
             });
+            RefreshTutorialHint();
         }
 
         [RelayCommand]
@@ -60,6 +81,9 @@ namespace DmToolsApp.Features.Campaigns
             var session = new Session { CampaignId = Campaign.Id, Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveSessionAsync(session);
             Sessions.Add(session);
+
+            _tutorial.Complete(TutorialService.StepCreateChapter);
+            RefreshTutorialHint();
         }
 
         [RelayCommand]

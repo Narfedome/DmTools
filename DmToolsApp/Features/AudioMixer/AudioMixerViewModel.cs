@@ -17,6 +17,7 @@ namespace DmToolsApp.Features.AudioMixer
         private readonly AudioMixerService _audioMixerService;
         private readonly ILibraryPickerService _pickerService;
         private readonly ISceneDataService _sceneDataService;
+        private readonly TutorialService _tutorial;
 
         private Scene? _activeScene;
         private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
@@ -24,11 +25,49 @@ namespace DmToolsApp.Features.AudioMixer
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
             ILibraryPickerService pickerService,
-            ISceneDataService sceneDataService)
+            ISceneDataService sceneDataService,
+            TutorialService tutorial)
         {
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
+            _tutorial = tutorial;
+        }
+
+        public bool ShowTutorialHint => _tutorial.CurrentStep is
+            TutorialService.StepAddChannel or TutorialService.StepPickTrack or
+            TutorialService.StepAddSecondChannel or TutorialService.StepPickSecondTrack;
+
+        public string TutorialHintTitle => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepAddChannel => Loc["TutorialAddChannelTitle"],
+            TutorialService.StepPickTrack => Loc["TutorialPickTrackTitle"],
+            TutorialService.StepAddSecondChannel => Loc["TutorialAddSecondChannelTitle"],
+            TutorialService.StepPickSecondTrack => Loc["TutorialPickSecondTrackTitle"],
+            _ => string.Empty
+        };
+
+        public string TutorialHintDescription => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepAddChannel => Loc["TutorialAddChannelDesc"],
+            TutorialService.StepPickTrack => Loc["TutorialPickTrackDesc"],
+            TutorialService.StepAddSecondChannel => Loc["TutorialAddSecondChannelDesc"],
+            TutorialService.StepPickSecondTrack => Loc["TutorialPickSecondTrackDesc"],
+            _ => string.Empty
+        };
+
+        private void RefreshTutorialHint()
+        {
+            OnPropertyChanged(nameof(ShowTutorialHint));
+            OnPropertyChanged(nameof(TutorialHintTitle));
+            OnPropertyChanged(nameof(TutorialHintDescription));
+        }
+
+        [RelayCommand]
+        public void SkipTutorial()
+        {
+            _tutorial.Skip();
+            RefreshTutorialHint();
         }
 
         // ── Channels ──────────────────────────────────────────────
@@ -41,6 +80,12 @@ namespace DmToolsApp.Features.AudioMixer
         {
             var channel = new ChannelStripViewModel() { DisplayTrackName = (LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
             CurrentChannels.Add(channel);
+
+            if (_tutorial.CurrentStep == TutorialService.StepAddChannel)
+                _tutorial.Complete(TutorialService.StepAddChannel);
+            else if (_tutorial.CurrentStep == TutorialService.StepAddSecondChannel)
+                _tutorial.Complete(TutorialService.StepAddSecondChannel);
+            RefreshTutorialHint();
         }
 
         [RelayCommand]
@@ -134,6 +179,15 @@ namespace DmToolsApp.Features.AudioMixer
                 channel.DisplayTrackName = selectedTrack.Title;
 
                 await SaveChannelAsSceneTrack(channel);
+
+                bool tutorialFinished = false;
+                if (_tutorial.CurrentStep == TutorialService.StepPickTrack)
+                    tutorialFinished = _tutorial.Complete(TutorialService.StepPickTrack);
+                else if (_tutorial.CurrentStep == TutorialService.StepPickSecondTrack)
+                    tutorialFinished = _tutorial.Complete(TutorialService.StepPickSecondTrack);
+                RefreshTutorialHint();
+                if (tutorialFinished)
+                    await ShowInfoAsync(Loc["TutorialDoneTitle"], Loc["TutorialDoneDesc"]);
             }
             catch (Exception ex)
             {
@@ -389,6 +443,7 @@ namespace DmToolsApp.Features.AudioMixer
 
             _activeScene = matchedScene;
             await LoadScene();
+            RefreshTutorialHint();
         }
 
         [RelayCommand]

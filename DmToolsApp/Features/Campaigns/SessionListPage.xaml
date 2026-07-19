@@ -6,6 +6,7 @@
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
+             xmlns:tutorial="clr-namespace:DmToolsApp.Components.Tutorial"
              x:Class="DmToolsApp.Features.Campaigns.SessionListPage"
              x:DataType="local:SessionListViewModel"
              Title="{Binding PageTitle}">
@@ -27,6 +28,10 @@
 
         <VerticalStackLayout Grid.Row="0" Margin="0,0,0,8">
             <Label Text="{loc:Loc ChaptersHeader}" FontSize="20"/>
+            <tutorial:TutorialHintView IsVisible="{Binding ShowTutorialHint}"
+                                        TitleText="{Binding TutorialHintTitle}"
+                                        DescriptionText="{Binding TutorialHintDescription}"
+                                        SkipCommand="{Binding SkipTutorialCommand}"/>
         </VerticalStackLayout>
 
 

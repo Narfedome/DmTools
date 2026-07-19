@@ -9,6 +9,7 @@ namespace DmToolsApp.Features.Onboarding
     {
         private readonly ThemeService _theme = ThemeService.Instance;
         private readonly AppShell _shell;
+        private readonly TutorialService _tutorial;
 
         public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
 
@@ -21,9 +22,10 @@ namespace DmToolsApp.Features.Onboarding
         [ObservableProperty]
         private AppPalette selectedPalette;
 
-        public OnboardingViewModel(AppShell shell)
+        public OnboardingViewModel(AppShell shell, TutorialService tutorial)
         {
             _shell = shell;
+            _tutorial = tutorial;
             selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
         }
@@ -49,9 +51,10 @@ namespace DmToolsApp.Features.Onboarding
         }
 
         [RelayCommand]
-        private void Start()
+        private async Task Start()
         {
             Preferences.Default.Set("has_launched", true);
+            await _tutorial.StartAsync();
             Application.Current!.Windows[0].Page = _shell;
         }
     }

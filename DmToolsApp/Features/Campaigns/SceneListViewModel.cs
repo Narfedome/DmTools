@@ -14,18 +14,51 @@ namespace DmToolsApp.Features.Campaigns
         private readonly ISceneDataService _sceneDataService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
         private readonly SessionStateService _sessionStateService;
+        private readonly TutorialService _tutorial;
         private Campaign? _campaign;
 
         public SceneListViewModel(
             ISceneDataService sceneDataService,
             AudioMixerViewModel audioMixerViewModel,
-            SessionStateService sessionStateService)
+            SessionStateService sessionStateService,
+            TutorialService tutorial)
         {
             _sceneDataService = sceneDataService;
             _audioMixerViewModel = audioMixerViewModel;
             _sessionStateService = sessionStateService;
+            _tutorial = tutorial;
             WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
                 (r, m) => ((SceneListViewModel)r).OnPropertyChanged(nameof(PageTitle)));
+        }
+
+        public bool ShowTutorialHint => _tutorial.CurrentStep is TutorialService.StepCreateScene or TutorialService.StepLaunchScene;
+
+        public string TutorialHintTitle => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateScene => Loc["TutorialCreateSceneTitle"],
+            TutorialService.StepLaunchScene => Loc["TutorialLaunchSceneTitle"],
+            _ => string.Empty
+        };
+
+        public string TutorialHintDescription => _tutorial.CurrentStep switch
+        {
+            TutorialService.StepCreateScene => Loc["TutorialCreateSceneDesc"],
+            TutorialService.StepLaunchScene => Loc["TutorialLaunchSceneDesc"],
+            _ => string.Empty
+        };
+
+        private void RefreshTutorialHint()
+        {
+            OnPropertyChanged(nameof(ShowTutorialHint));
+            OnPropertyChanged(nameof(TutorialHintTitle));
+            OnPropertyChanged(nameof(TutorialHintDescription));
+        }
+
+        [RelayCommand]
+        public void SkipTutorial()
+        {
+            _tutorial.Skip();
+            RefreshTutorialHint();
         }
 
         [ObservableProperty] private Session? session;
@@ -59,6 +92,7 @@ namespace DmToolsApp.Features.Campaigns
                 var list = await _sceneDataService.GetScenesAsync(Session.Id);
                 Scenes = new ObservableCollection<Scene>(list);
             });
+            RefreshTutorialHint();
         }
 
         [RelayCommand]
@@ -71,6 +105,9 @@ namespace DmToolsApp.Features.Campaigns
             var scene = new Scene { SessionId = Session.Id, Title = name.CapitalizeFirst() };
             await _sceneDataService.SaveSceneAsync(scene);
             Scenes.Add(scene);
+
+            _tutorial.Complete(TutorialService.StepCreateScene);
+            RefreshTutorialHint();
         }
 
         [RelayCommand]
@@ -99,6 +136,7 @@ namespace DmToolsApp.Features.Campaigns
         public async Task Launch(Scene scene)
         {
             if (_campaign == null || Session == null) return;
+            _tutorial.Complete(TutorialService.StepLaunchScene);
             await _audioMixerViewModel.LoadFromPlayAsync(_campaign, Session, scene);
             _sessionStateService.SetActive(true);
             await Shell.Current.GoToAsync("//AudioMixerPage");

@@ -13,6 +13,7 @@ namespace DmToolsApp.Features.Settings
         private readonly IStorageService _storageService;
         private readonly AudioPlayerService _audioPlayerService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
+        private readonly TutorialService _tutorial;
 
         // Windows exige 4 segments (Major.Minor.Build.Revision) pour l'identité de package - le 4e
         // (Revision) est une valeur fixe du csproj sans intérêt pour l'utilisateur, on l'aligne sur
@@ -146,6 +147,13 @@ namespace DmToolsApp.Features.Settings
         public async Task ReportBug() =>
             await Launcher.OpenAsync(new Uri("https://docs.google.com/forms/d/e/1FAIpQLSdg2q1o01eGZsFvd0qIwOqYEVKDwBikQ0g7FWLSWHenKqeW0g/viewform?usp=dialog"));
 
+        [RelayCommand]
+        public async Task RestartTutorial()
+        {
+            await _tutorial.StartAsync();
+            await Shell.Current.GoToAsync("//CampaignsTab");
+        }
+
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 
         public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
@@ -163,11 +171,12 @@ namespace DmToolsApp.Features.Settings
         [ObservableProperty]
         private string selectedThemeOption;
 
-        public SettingsViewModel(IStorageService storageService, AudioPlayerService audioPlayerService, AudioMixerViewModel audioMixerViewModel)
+        public SettingsViewModel(IStorageService storageService, AudioPlayerService audioPlayerService, AudioMixerViewModel audioMixerViewModel, TutorialService tutorial)
         {
             _storageService = storageService;
             _audioPlayerService = audioPlayerService;
             _audioMixerViewModel = audioMixerViewModel;
+            _tutorial = tutorial;
             selectedLanguage = Loc.Language;
             selectedPalette  = _theme.Palette;
             RebuildThemeOptions();
