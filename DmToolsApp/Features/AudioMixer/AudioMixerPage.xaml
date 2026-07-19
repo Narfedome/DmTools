@@ -19,7 +19,8 @@
         </Grid.RowDefinitions>
 
         <!-- Barre de sélection de scène -->
-        <Border Grid.Row="0" Padding="10">
+        <Border Grid.Row="0" Padding="10"
+                IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -59,7 +60,8 @@
         </Border>
 
         <!-- Global Commands + Add -->
-        <Grid Grid.Row="1" Padding="10" ColumnSpacing="15">
+        <Grid Grid.Row="1" Padding="10" ColumnSpacing="15"
+              IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
@@ -85,8 +87,10 @@
                      Tooltip="{loc:Loc BtnAddChannel}" />
         </Grid>
 
-        <!-- Overlay de chargement de scène : couvre toute la page et absorbe les taps (fond
-             semi-transparent) pendant la (re)création des channel strips, en plus du blocage de la
+        <!-- Overlay de chargement de scène : couvre toute la page (fond semi-transparent) pendant
+             la (re)création des channel strips. Le CollectionView étant un contrôle natif sur
+             Windows, l'ordre visuel (ZIndex) ne suffit pas à bloquer ses interactions : chaque
+             zone interactive est donc aussi désactivée via IsEnabled, en plus du blocage de la
              navigation Shell côté ViewModel. -->
         <Grid Grid.RowSpan="3"
               ZIndex="10"
@@ -98,7 +102,8 @@
         </Grid>
 
         <!-- Channels -->
-        <Border Grid.Row="2">
+        <Border Grid.Row="2"
+                IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="corevm:ChannelStripViewModel">
