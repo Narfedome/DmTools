@@ -6,8 +6,24 @@
                x:TypeArguments="system:String"
                x:Class="DmToolsApp.Components.Dialogs.PromptDialog"
                BackgroundColor="Transparent"
-               Padding="0">
+               Padding="0"
+               VerticalOptions="Start"
+               Margin="0,80,0,0">
+    <!-- Ancrée en haut (pas centrée) : quand le clavier s'ouvre, le popup ne se repositionne pas de
+         façon fiable sur Android (relayout pas toujours redéclenché par AdjustResize) — une carte
+         centrée verticalement finit alors trop bas, ses boutons masqués par le clavier. Ancrée en
+         haut, sa position ne dépend plus de la hauteur disponible du tout.
+         VerticalOptions/Margin sont posés sur le Popup racine, pas sur le Border : les poser
+         seulement sur le Border laissait le Popup lui-même considérer tout son ancien espace alloué
+         comme "à l'intérieur", donc taper sur le voile visuellement vide au-dessus/à côté de la carte
+         ne fermait plus le dialogue. -->
     <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+        <!-- ScrollView : sur mobile, le clavier peut laisser moins de hauteur que le contenu (surtout
+             en paysage) — sans lui, les boutons Annuler/OK deviennent inatteignables.
+             MaximumHeightRequest fixé en code-behind (fraction de la hauteur d'écran), cf. CreateItemDialog.
+             VerticalOptions="Start" pour que la carte s'ajuste au contenu au lieu de toujours remplir
+             tout l'espace alloué jusqu'au plafond. -->
+        <ScrollView x:Name="ContentScroll" VerticalOptions="Start">
         <VerticalStackLayout Spacing="16">
             <Label x:Name="TitleLabel"
                    FontAttributes="Bold" FontSize="16"
@@ -26,5 +42,6 @@
                         Clicked="OnOkClicked"/>
             </Grid>
         </VerticalStackLayout>
+        </ScrollView>
     </Border>
 </toolkit:Popup>

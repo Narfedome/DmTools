@@ -2,6 +2,7 @@ using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Maui.Views;
 using DmToolsApp.Models;
+using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
 
 namespace DmToolsApp.Components.Dialogs;
@@ -9,12 +10,14 @@ namespace DmToolsApp.Components.Dialogs;
 public enum CreateItemKind { Campaign, Session, Scene }
 
 /// <summary>
-/// Formulaire générique de création (Campagne/Chapitre/Scène) : le type et le parent sont pré-remplis
-/// sur la sélection courante de l'accordéon (cf. CampaignViewModel.Create) mais restent modifiables.
-/// Les champs de sélection reprennent le pattern "bouton + ActionSheetDialog" déjà utilisé par
-/// l'AudioMixer pour choisir chapitre/scène (cf. AudioMixerViewModel.SelectSession/SelectScene),
-/// plutôt que le Picker natif qui détonne avec le thème de l'appli. Retourne true si l'utilisateur a
-/// validé ; l'appelant lit alors SelectedKind/Name/SelectedCampaign/SelectedSession.
+/// Formulaire générique de création/édition (Campagne/Chapitre/Scène) : le type et le parent sont
+/// pré-remplis sur la sélection courante de l'accordéon (cf. CampaignViewModel.Create/Edit) mais
+/// restent modifiables — éditer un Chapitre/une Scène permet donc aussi de le/la déplacer vers une
+/// autre Campagne/un autre Chapitre. Les champs de sélection reprennent le pattern "bouton +
+/// ActionSheetDialog" déjà utilisé par l'AudioMixer pour choisir chapitre/scène (cf.
+/// AudioMixerViewModel.SelectSession/SelectScene), plutôt que le Picker natif qui détonne avec le
+/// thème de l'appli. Retourne true si l'utilisateur a validé ; l'appelant lit alors
+/// SelectedKind/Name/SelectedCampaign/SelectedSession.
 /// </summary>
 public partial class CreateItemDialog : Popup<bool>
 {
@@ -28,19 +31,27 @@ public partial class CreateItemDialog : Popup<bool>
     private Campaign? _selectedCampaign;
     private Session? _selectedSession;
 
+    /// <param name="lockType">Édition d'un élément existant : changer sa nature (Campagne/Chapitre/
+    /// Scène) n'a pas de sens, seul le nom et le parent (déplacement) restent modifiables.</param>
     public CreateItemDialog(
         List<Campaign> campaigns,
         Func<int, Task<List<Session>>> loadSessions,
         CreateItemKind initialKind,
         Campaign? initialCampaign,
-        Session? initialSession)
+        Session? initialSession,
+        string? initialName = null,
+        bool lockType = false)
     {
         InitializeComponent();
+        ContentScroll.MaximumHeightRequest = DialogSizing.MaxContentHeight();
         _campaigns = campaigns;
         _loadSessions = loadSessions;
         // Pas de campagne existante : seul "Campagne" a un sens, les autres n'auraient aucun parent.
         _kind = campaigns.Count == 0 ? CreateItemKind.Campaign : initialKind;
 
+        TitleLabel.Text = Loc[lockType ? "DialogEditItem" : "DialogCreateItem"];
+        NameEntry.Text = initialName;
+        TypeButton.IsEnabled = !lockType;
         UpdateTypeButtonText();
         UpdateFieldVisibility();
 
@@ -53,6 +64,7 @@ public partial class CreateItemDialog : Popup<bool>
             UpdateTypeButtonText();
             UpdateFieldVisibility();
             NameEntry.Focus();
+            NameEntry.CursorPosition = NameEntry.Text?.Length ?? 0;
         };
     }
 
@@ -126,7 +138,19 @@ public partial class CreateItemDialog : Popup<bool>
         _ => string.Empty,
     };
 
-    private void UpdateTypeButtonText() => TypeButton.Text = NounFor(_kind);
+    private static string IconFor(CreateItemKind kind) => kind switch
+    {
+        CreateItemKind.Campaign => SolidFont.Map,
+        CreateItemKind.Session => SolidFont.Bookmark,
+        CreateItemKind.Scene => SolidFont.MasksTheater,
+        _ => string.Empty,
+    };
+
+    private void UpdateTypeButtonText()
+    {
+        TypeButton.Text = NounFor(_kind);
+        TypeButton.Icon = IconFor(_kind);
+    }
 
     private void UpdateFieldVisibility()
     {

@@ -7,6 +7,7 @@ public partial class PromptDialog : Popup<string?>
     public PromptDialog(string title, string message, string placeholder, string initialValue, string confirmLabel, string cancelLabel)
     {
         InitializeComponent();
+        ContentScroll.MaximumHeightRequest = DialogSizing.MaxContentHeight();
 
         TitleLabel.Text = title;
         MessageLabel.Text = message;
@@ -17,7 +18,13 @@ public partial class PromptDialog : Popup<string?>
         CancelButton.Text = cancelLabel;
 
         // Focus direct sur le champ de saisie à l'ouverture, pour pouvoir taper sans clic préalable.
-        Opened += (_, _) => InputEntry.Focus();
+        // Sans CursorPosition, le curseur reste par défaut au début du texte pré-rempli (rename) —
+        // gênant pour ajouter la fin d'un nom existant.
+        Opened += (_, _) =>
+        {
+            InputEntry.Focus();
+            InputEntry.CursorPosition = InputEntry.Text?.Length ?? 0;
+        };
     }
 
     async void OnOkClicked(object? sender, EventArgs e) => await CloseAsync(InputEntry.Text);

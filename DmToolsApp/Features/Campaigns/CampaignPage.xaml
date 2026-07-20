@@ -121,16 +121,19 @@
             </DataTemplate>
 
             <DataTemplate x:Key="SceneTemplate" x:DataType="local:SceneRow">
-                <Grid ColumnDefinitions="40,4,*,70" ColumnSpacing="8" Padding="0,8" MinimumHeightRequest="48">
+                <Grid ColumnDefinitions="40,4,16,*,70" ColumnSpacing="8" Padding="0,8" MinimumHeightRequest="48">
                     <Grid.GestureRecognizers>
                         <TapGestureRecognizer
                             Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=SelectCommand}"
                             CommandParameter="{Binding .}"/>
                     </Grid.GestureRecognizers>
                     <BoxView Grid.Column="1" Style="{StaticResource SelectionMarkerStyle}"/>
-                    <Label Grid.Column="2" Text="{Binding Scene.Title}" FontSize="14" VerticalOptions="Center"
+                    <Label Grid.Column="2" Text="{x:Static icons:SolidFont.MasksTheater}"
+                           FontFamily="FontSolid" FontSize="12"
+                           VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
+                    <Label Grid.Column="3" Text="{Binding Scene.Title}" FontSize="14" VerticalOptions="Center"
                            TextColor="{DynamicResource AppTextMuted}"/>
-                    <Grid Grid.Column="3">
+                    <Grid Grid.Column="4">
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=LaunchCommand}"
@@ -189,8 +192,8 @@
                                          Command="{Binding CreateCommand}"
                                          Tooltip="{loc:Loc DialogCreateItem}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
-                                         Command="{Binding RenameCommand}"
-                                         Tooltip="{loc:Loc BtnRename}"
+                                         Command="{Binding EditCommand}"
+                                         Tooltip="{loc:Loc BtnEditItem}"
                                          IsEnabled="{Binding SelectedRow, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"

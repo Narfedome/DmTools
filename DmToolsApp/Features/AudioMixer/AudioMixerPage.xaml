@@ -29,13 +29,12 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0"
+                <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"
+                        Icon="{x:Static icons:SolidFont.Bookmark}" IconSize="13"
                         Text="{Binding SelectedSessionLabel}"
                         Command="{Binding SelectSessionCommand}"
-                        BackgroundColor="Transparent"
                         TextColor="{DynamicResource AppAccent}"
-                        FontSize="14"
-                        Padding="8,4"/>
+                        FontSize="14"/>
 
                 <components:FaIconButtonView Grid.Column="1"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
@@ -43,13 +42,12 @@
                         IsEnabled="{Binding CanGoPrevScene}"
                         Tooltip="{loc:Loc MixerPrevScene}" />
 
-                <Button Grid.Column="2"
+                <components:IconTextButton Grid.Column="2" HorizontalOptions="Center"
+                        Icon="{x:Static icons:SolidFont.MasksTheater}" IconSize="13"
                         Text="{Binding SelectedSceneLabel}"
                         Command="{Binding SelectSceneCommand}"
-                        BackgroundColor="Transparent"
                         TextColor="{DynamicResource AppAccent}"
-                        FontSize="14"
-                        Padding="8,4"/>
+                        FontSize="14"/>
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"

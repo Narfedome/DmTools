@@ -444,6 +444,12 @@
   <data name="DialogCreateItem" xml:space="preserve">
     <value>Create</value>
   </data>
+  <data name="DialogEditItem" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="BtnEditItem" xml:space="preserve">
+    <value>Edit</value>
+  </data>
   <data name="FieldType" xml:space="preserve">
     <value>Type</value>
   </data>
