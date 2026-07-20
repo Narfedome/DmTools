@@ -9,82 +9,152 @@
              x:Class="DmToolsApp.Features.Campaigns.CampaignPage"
              x:DataType="local:CampaignViewModel">
 
-    <Shell.TitleView>
-        <Label Text="{loc:Loc CampaignsHeader}"
-               FontSize="18" FontAttributes="Bold"
-               VerticalOptions="Center"
-               TextColor="{DynamicResource AppTextPrimary}"/>
-    </Shell.TitleView>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Le liseré (RowBorderStyle/ExpandableRowBorderStyle) reste dédié à l'état ouvert/fermé
+                 (accent si IsExpanded, gris sinon — Campagne/Chapitre seulement). La sélection, elle,
+                 se marque par une petite barre verticale à gauche de la ligne plutôt qu'un 2e liseré
+                 (redondant visuellement avec le premier) — jamais via la sélection native du
+                 CollectionView (SelectionMode="None" : rendu natif trop différent d'une plateforme à
+                 l'autre) ni via VisualStateManager (états Normal/Selected pas fiables après les
+                 Insert/Remove de l'accordéon). -->
+            <Style x:Key="RowBorderStyle" TargetType="Border">
+                <Setter Property="StrokeThickness" Value="2"/>
+                <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
+                <Setter Property="Margin" Value="0,4"/>
+                <Setter Property="Padding" Value="12,10"/>
+                <Setter Property="MinimumHeightRequest" Value="52"/>
+                <Setter Property="Stroke" Value="Grey"/>
+            </Style>
+
+            <Style x:Key="ExpandableRowBorderStyle" TargetType="Border" BasedOn="{StaticResource RowBorderStyle}">
+                <Style.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsExpanded}" Value="True">
+                        <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Couleur fixe (pas une DynamicResource liée au thème/palette) : comme dans la
+                 Bibliothèque (LibraryTrackView, Stroke="LightSkyBlue" sur l'état Selected), pour que la
+                 sélection ressorte quel que soit le thème choisi, et pour rester cohérent visuellement
+                 avec l'indicateur de sélection déjà utilisé ailleurs dans l'appli. -->
+            <Style x:Key="SelectionMarkerStyle" TargetType="BoxView">
+                <Setter Property="WidthRequest" Value="4"/>
+                <Setter Property="Margin" Value="0,6"/>
+                <Setter Property="Color" Value="LightSkyBlue"/>
+                <Setter Property="IsVisible" Value="{Binding IsSelected}"/>
+            </Style>
+
+            <DataTemplate x:Key="CampaignTemplate" x:DataType="local:CampaignRow">
+                <Border Style="{StaticResource ExpandableRowBorderStyle}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleCampaignCommand}"
+                            CommandParameter="{Binding .}"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="4,*,44" ColumnSpacing="10">
+                        <BoxView Grid.Column="0" Style="{StaticResource SelectionMarkerStyle}"/>
+                        <Label Grid.Column="1" Text="{Binding Campaign.Title}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Label Grid.Column="2" Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                               FontFamily="FontSolid" FontSize="16"
+                               HorizontalOptions="Center" VerticalOptions="Center"
+                               TextColor="{DynamicResource AppTextMuted}"/>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SessionTemplate" x:DataType="local:SessionRow">
+                <Border Style="{StaticResource ExpandableRowBorderStyle}" Margin="24,4,0,4">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleSessionCommand}"
+                            CommandParameter="{Binding .}"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="4,*,44" ColumnSpacing="10">
+                        <BoxView Grid.Column="0" Style="{StaticResource SelectionMarkerStyle}"/>
+                        <Label Grid.Column="1" Text="{Binding Session.Title}" FontSize="15" VerticalOptions="Center"/>
+                        <Label Grid.Column="2" Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                               FontFamily="FontSolid" FontSize="15"
+                               HorizontalOptions="Center" VerticalOptions="Center"
+                               TextColor="{DynamicResource AppTextMuted}"/>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SceneTemplate" x:DataType="local:SceneRow">
+                <Border Style="{StaticResource RowBorderStyle}" Margin="48,4,0,4">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=SelectCommand}"
+                            CommandParameter="{Binding .}"/>
+                    </Border.GestureRecognizers>
+                    <Grid ColumnDefinitions="4,*,80" ColumnSpacing="10">
+                        <BoxView Grid.Column="0" Style="{StaticResource SelectionMarkerStyle}"/>
+                        <Label Grid.Column="1" Text="{Binding Scene.Title}" FontSize="14" VerticalOptions="Center"/>
+                        <Grid Grid.Column="2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=LaunchCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            <Label Text="{loc:Loc BtnLaunch}"
+                                   FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
+                                   TextColor="{DynamicResource AppAccent}"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+
+            <local:ExplorerRowTemplateSelector x:Key="RowTemplateSelector"
+                                                CampaignTemplate="{StaticResource CampaignTemplate}"
+                                                SessionTemplate="{StaticResource SessionTemplate}"
+                                                SceneTemplate="{StaticResource SceneTemplate}"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <components:WatermarkedLayout>
     <Grid Padding="10" RowSpacing="4">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-
-
-        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
+        <ActivityIndicator Grid.Row="0" IsRunning="{Binding Loading.IsLoading}"
                            IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Campaigns}"
-                        SelectedItem="{Binding SelectedCampaign}"
-                        SelectionMode="Single">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Campaign">
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10"
-                            MinimumHeightRequest="52">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="Grey"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                        <Grid ColumnDefinitions="*,56">
-                            <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" VerticalOptions="Center"/>
-                            <Grid Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=NavigateCommand}"
-                                        CommandParameter="{Binding .}"/>
-                                </Grid.GestureRecognizers>
-                                <Label Text="{x:Static icons:SolidFont.ChevronRight}"
-                                       FontFamily="FontSolid"
-                                       FontSize="18"
-                                       TextColor="{DynamicResource AppTextMuted}"/>
-                            </Grid>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <!-- État vide : aucune campagne -->
+        <VerticalStackLayout Grid.Row="0" IsVisible="{Binding HasCampaigns, Converter={StaticResource InverseBoolConverter}}"
+                             VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="24">
+            <Label Text="{x:Static icons:SolidFont.Map}" FontFamily="FontSolid" FontSize="40"
+                   TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
+            <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="18" FontAttributes="Bold"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+            <Label Text="{loc:Loc EmptyCampaignsBody}" FontSize="14" TextColor="{DynamicResource AppTextMuted}"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+            <Button Text="{loc:Loc DialogCreateItem}" Command="{Binding CreateCommand}" Margin="0,8,0,0"/>
+        </VerticalStackLayout>
 
-        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+        <CollectionView Grid.Row="0"
+                        ItemsSource="{Binding Rows}"
+                        SelectionMode="None"
+                        IsVisible="{Binding HasCampaigns}"
+                        ItemTemplate="{StaticResource RowTemplateSelector}"/>
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Margin="0,8">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
-                                         Tooltip="{loc:Loc BtnNewCampaign}"/>
+                                         Tooltip="{loc:Loc DialogCreateItem}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"
-                                         IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
+                                         IsEnabled="{Binding SelectedRow, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
                                          Tooltip="{loc:Loc BtnDelete}"
-                                         IsEnabled="{Binding SelectedCampaign, Converter={StaticResource IsNotNullConverter}}"/>
+                                         IsEnabled="{Binding SelectedRow, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>
     </Grid>
     </components:WatermarkedLayout>

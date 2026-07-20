@@ -47,7 +47,22 @@ namespace DmToolsApp
                     fonts.AddFont("Font Awesome 7 Brands-Regular-400.otf", "FontBrands");
                     fonts.AddFont("Font Awesome 7 Free-Solid-900.otf", "FontSolid");
                     fonts.AddFont("rpgawesome-webfont.ttf", "RpgAwesome");
-                });
+                })
+#if WINDOWS
+                .ConfigureMauiHandlers(handlers =>
+                {
+                    // Sur Windows, ListViewBase.SingleSelectionFollowsFocus vaut true par défaut : le
+                    // premier élément réalisé d'un CollectionView prend le focus clavier au chargement
+                    // et s'affiche "sélectionné" (bordure accent) sans qu'aucun tap n'ait eu lieu, alors
+                    // que SelectedItem reste bien null côté ViewModel — trompeur pour l'utilisateur.
+                    Microsoft.Maui.Controls.Handlers.Items.CollectionViewHandler.Mapper.AppendToMapping("NoFocusFollowsSelection", (handler, view) =>
+                    {
+                        if (handler.PlatformView is Microsoft.UI.Xaml.Controls.ListViewBase listViewBase)
+                            listViewBase.SingleSelectionFollowsFocus = false;
+                    });
+                })
+#endif
+                ;
             builder.AddAudio();
 
             // Le dispatcher UI du ChannelStripViewModel (projet Core, sans dépendance MAUI) est
@@ -91,10 +106,6 @@ namespace DmToolsApp
             builder.Services.AddSingleton<AppShell>();
             builder.Services.AddTransient<CampaignViewModel>();
             builder.Services.AddTransient<CampaignPage>();
-            builder.Services.AddTransient<SessionListViewModel>();
-            builder.Services.AddTransient<SessionListPage>();
-            builder.Services.AddTransient<SceneListViewModel>();
-            builder.Services.AddTransient<SceneListPage>();
             builder.Services.AddTransient<SceneTracksViewModel>();
             builder.Services.AddTransient<SceneTracksPage>();
 
