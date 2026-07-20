@@ -81,7 +81,7 @@ namespace DmToolsApp.Services
                 // Piste importée avant l'introduction de ImagePath : on persiste la pochette
                 // maintenant qu'on l'a extraite, pour ne plus jamais avoir à reparser ce fichier.
                 track.ImagePath = _fileService.SaveCoverThumbnail(bytes);
-                _ = _libraryDataService.SaveLibraryItemAsync(track);
+                _ = PersistImagePathAsync(track.Id, track.ImagePath);
 
                 var image = ImageSource.FromStream(() => new MemoryStream(bytes));
                 _cache[track.FilePath] = image;
@@ -90,6 +90,27 @@ namespace DmToolsApp.Services
             finally
             {
                 CoverLoadThrottle.Release();
+            }
+        }
+
+        /// <summary>
+        /// Persistance en arrière-plan du chemin de vignette fraîchement extrait : l'affichage de
+        /// la pochette n'attend pas l'écriture SQLite (effet de bord d'optimisation, auto-réparant
+        /// — en cas d'échec, la pochette sera simplement ré-extraite au prochain affichage).
+        /// L'exception est observée et tracée : un échec systématique (base verrouillée, disque
+        /// plein...) resterait sinon invisible à jamais, avec ré-extraction et vignette orpheline
+        /// à chaque affichage.
+        /// </summary>
+        private async Task PersistImagePathAsync(int trackId, string imagePath)
+        {
+            try
+            {
+                await _libraryDataService.UpdateTrackImagePathAsync(trackId, imagePath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[CoverArtService] Échec de la persistance de la vignette (track {trackId}) : {ex}");
             }
         }
 

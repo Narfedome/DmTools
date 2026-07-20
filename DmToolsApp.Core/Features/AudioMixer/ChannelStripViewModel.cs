@@ -27,9 +27,18 @@ namespace DmToolsApp.Components
             get => _player;
             set
             {
+                if (ReferenceEquals(_player, value))
+                    return;
+
                 CancelFade();
                 if (_player != null)
+                {
                     _player.PlaybackEnded -= OnPlaybackEnded;
+                    // Le strip est propriétaire de son player : un player remplacé ne sera plus
+                    // jamais utilisé. Sans Dispose, le FileStream sous-jacent reste ouvert sur
+                    // Windows (fichier verrouillé) et le MediaPlayer natif fuit sur Android.
+                    _player.Dispose();
+                }
 
                 _player = value;
                 if (_player != null)
@@ -39,6 +48,16 @@ namespace DmToolsApp.Components
                     _player.PlaybackEnded += OnPlaybackEnded;
                 }
             }
+        }
+
+        /// <summary>
+        /// Libère le player natif du strip (fin de vie : retrait du channel, changement de scène,
+        /// purge de la bibliothèque). Le setter de Player se charge du Dispose effectif.
+        /// </summary>
+        public void DisposePlayer()
+        {
+            Player = null;
+            IsPlaying = false;
         }
 
         /// <summary>

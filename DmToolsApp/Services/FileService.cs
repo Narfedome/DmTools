@@ -100,7 +100,10 @@
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
                 return;
 
-            File.Delete(filePath);
+            // Un fichier encore verrouillé (player pas encore collecté sur Windows) ne doit pas
+            // faire échouer toute une suppression en masse : il sera rattrapé par le nettoyage
+            // des orphelins des réglages.
+            try { File.Delete(filePath); } catch (IOException) { }
         }
 
         private static readonly FilePickerFileType AudioFileTypes = new(new Dictionary<DevicePlatform, IEnumerable<string>>

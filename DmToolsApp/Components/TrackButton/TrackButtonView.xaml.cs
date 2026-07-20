@@ -37,7 +37,18 @@ public partial class TrackButtonView : ContentView
     protected override void OnHandlerChanged()
     {
         base.OnHandlerChanged();
+
+        // Handler null = vue détachée de l'arbre visuel : on désabonne le ViewModel du service
+        // audio singleton, sinon chaque tuile créée (pagination, rechargements) reste accrochée
+        // au service à vie. Ré-attachée (recyclage), la vue se réabonne et resynchronise.
+        if (Handler == null)
+        {
+            ViewModel?.Detach();
+            return;
+        }
+
         EnsureViewModel();
+        ViewModel?.Attach();
     }
 
     private void EnsureViewModel()

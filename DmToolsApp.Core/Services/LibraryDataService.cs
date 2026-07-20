@@ -15,6 +15,10 @@ namespace DmToolsApp.Services
 
         public async Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType)
         {
+            // Toutes les méthodes attendent la fin des créations de tables/migrations :
+            // SQLiteAsyncConnection ne garantit pas l'ordre d'exécution entre opérations, une
+            // requête lancée trop tôt au premier démarrage pouvait tomber sur "no such table".
+            await _db.Initialization;
             var result = new List<LibraryItem>();
 
             if (currentLibraryType == typeof(Track))
@@ -34,6 +38,7 @@ namespace DmToolsApp.Services
 
         public async Task SaveLibraryItemAsync(LibraryItem item)
         {
+            await _db.Initialization;
             switch (item)
             {
                 case Track track:
@@ -63,6 +68,7 @@ namespace DmToolsApp.Services
 
         public async Task DeleteLibraryItem(LibraryItem libraryItem)
         {
+            await _db.Initialization;
             switch (libraryItem)
             {
                 case Track track:
@@ -78,6 +84,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<Track>> DeleteAllTracksAsync()
         {
+            await _db.Initialization;
             var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
 
             await _db.Connection.DeleteAllAsync<SceneTrackEntity>();
@@ -93,6 +100,7 @@ namespace DmToolsApp.Services
         /// </summary>
         public async Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category)
         {
+            await _db.Initialization;
             if (currentLibraryType == typeof(Track))
             {
                 var query = _db.Connection.Table<TrackEntity>();
@@ -119,6 +127,7 @@ namespace DmToolsApp.Services
         /// </summary>
         public async Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids)
         {
+            await _db.Initialization;
             var deleted = new List<LibraryItem>();
 
             foreach (var id in ids)
@@ -170,6 +179,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null)
         {
+            await _db.Initialization;
             var result = new List<LibraryItem>();
 
             if (currentLibraryType == typeof(Track))
@@ -207,6 +217,8 @@ namespace DmToolsApp.Services
             if (string.IsNullOrEmpty(hash))
                 return null;
 
+            await _db.Initialization;
+
             var entity = await _db.Connection.Table<TrackEntity>()
                 .Where(t => t.Hash == hash && t.Id != excludeId)
                 .FirstOrDefaultAsync();
@@ -216,6 +228,7 @@ namespace DmToolsApp.Services
 
         public async Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType)
         {
+            await _db.Initialization;
             var typeName = currentLibraryType.Name;
             var categories = await _db.Connection.Table<CategoryEntity>().Where(c => c.LibraryType == typeName).ToListAsync();
             return categories.Select(c => c.Name).OrderBy(c => c, StringComparer.OrdinalIgnoreCase).ToList();
@@ -226,6 +239,7 @@ namespace DmToolsApp.Services
             if (string.IsNullOrWhiteSpace(name))
                 return;
 
+            await _db.Initialization;
             var typeName = currentLibraryType.Name;
             var existing = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (existing == null)
@@ -234,6 +248,7 @@ namespace DmToolsApp.Services
 
         public async Task RenameCategoryAsync(Type currentLibraryType, string oldName, string newName)
         {
+            await _db.Initialization;
             var typeName = currentLibraryType.Name;
             var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == oldName && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (entity == null)
@@ -264,6 +279,7 @@ namespace DmToolsApp.Services
 
         public async Task DeleteCategoryAsync(Type currentLibraryType, string name)
         {
+            await _db.Initialization;
             var typeName = currentLibraryType.Name;
             var entity = await _db.Connection.Table<CategoryEntity>().Where(c => c.Name == name && c.LibraryType == typeName).FirstOrDefaultAsync();
             if (entity != null)
@@ -281,15 +297,30 @@ namespace DmToolsApp.Services
             }
         }
 
-        public Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId)
+        /// <summary>
+        /// Met à jour UNIQUEMENT le chemin de vignette d'une track (écriture de cache de pochette
+        /// en arrière-plan, cf. CoverArtService). Contrairement à SaveLibraryItemAsync, ne réécrit
+        /// pas toute la ligne : une sauvegarde différée qui s'entrelace avec une édition utilisateur
+        /// faite depuis une autre instance du modèle n'écraserait sinon ses autres champs (titre...).
+        /// </summary>
+        public async Task UpdateTrackImagePathAsync(int trackId, string imagePath)
         {
-            return _db.Connection.Table<TrackEntity>()
+            await _db.Initialization;
+            await _db.Connection.ExecuteAsync(
+                "UPDATE TrackEntity SET ImagePath = ? WHERE Id = ?", imagePath, trackId);
+        }
+
+        public async Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId)
+        {
+            await _db.Initialization;
+            return await _db.Connection.Table<TrackEntity>()
                 .Where(t => t.FilePath == filePath && t.Id != excludeId)
                 .CountAsync();
         }
 
         public async Task<HashSet<string>> GetAllReferencedFilePathsAsync()
         {
+            await _db.Initialization;
             var paths = new HashSet<string>();
 
             var tracks = await _db.Connection.Table<TrackEntity>().ToListAsync();
@@ -320,6 +351,7 @@ namespace DmToolsApp.Services
         Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType);
         Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null);
         Task<Track?> FindTrackByHashAsync(string hash, int excludeId);
+        Task UpdateTrackImagePathAsync(int trackId, string imagePath);
         Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId);
         Task<HashSet<string>> GetAllReferencedFilePathsAsync();
         Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType);

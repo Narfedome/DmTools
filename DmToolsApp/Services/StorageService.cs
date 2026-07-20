@@ -103,7 +103,12 @@ namespace DmToolsApp.Services
             var deletedTracks = await _libraryDataService.DeleteAllTracksAsync();
 
             foreach (var track in deletedTracks)
+            {
                 _fileService.DeleteTrackFromLocal(track.FilePath);
+                // Les vignettes de pochette accompagnent leurs tracks : toutes supprimées, plus
+                // aucune pochette n'est référencée (les sorts ont leurs propres images).
+                _fileService.DeleteTrackFromLocal(track.ImagePath);
+            }
 
             return deletedTracks.Count;
         }

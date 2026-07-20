@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -17,15 +17,6 @@
     <resheader name="version">2.0</resheader>
     <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
     <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
                 
     There are any number of "resheader" rows that contain simple 
     name/value pairs.
@@ -135,15 +126,6 @@
   <data name="TabSettings" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="MainTitle" xml:space="preserve">
-    <value>Home</value>
-  </data>
-  <data name="MainChooseCampaign" xml:space="preserve">
-    <value>Choose a campaign</value>
-  </data>
-  <data name="BtnPlay" xml:space="preserve">
-    <value>▶ Play</value>
-  </data>
   <data name="CampaignsHeader" xml:space="preserve">
     <value>Your Campaigns</value>
   </data>
@@ -213,9 +195,6 @@
   <data name="MixerNextScene" xml:space="preserve">
     <value>Next scene</value>
   </data>
-  <data name="MixerLoadScene" xml:space="preserve">
-    <value>Load scene</value>
-  </data>
   <data name="MixerGlobal" xml:space="preserve">
     <value>Global</value>
   </data>
@@ -227,9 +206,6 @@
   </data>
   <data name="MixerStopAll" xml:space="preserve">
     <value>Stop All</value>
-  </data>
-  <data name="ChannelFadeOut" xml:space="preserve">
-    <value>Fade Out</value>
   </data>
   <data name="ChannelLoop" xml:space="preserve">
     <value>Loop</value>
@@ -293,6 +269,9 @@
   </data>
   <data name="LibImportResult" xml:space="preserve">
     <value>{0} track(s) imported ({1} duplicate(s) reused)</value>
+  </data>
+  <data name="LibImportResultErrors" xml:space="preserve">
+    <value>{0} file(s) could not be imported (unreadable or corrupted)</value>
   </data>
   <data name="LibImportInProgress" xml:space="preserve">
     <value>Importing...</value>
@@ -372,17 +351,14 @@
   <data name="SettingsSupportDesc" xml:space="preserve">
     <value>Buy me a coffee ☕</value>
   </data>
+  <data name="SettingsReportBugTitle" xml:space="preserve">
+    <value>Report a bug</value>
+  </data>
+  <data name="SettingsReportBugDesc" xml:space="preserve">
+    <value>Open the form</value>
+  </data>
   <data name="SettingsVersion" xml:space="preserve">
     <value>Version</value>
-  </data>
-  <data name="SettingsFont" xml:space="preserve">
-    <value>Font</value>
-  </data>
-  <data name="SettingsFontDefault" xml:space="preserve">
-    <value>Classic</value>
-  </data>
-  <data name="SettingsFontPirata" xml:space="preserve">
-    <value>Pirata One</value>
   </data>
   <data name="SettingsStorageTitle" xml:space="preserve">
     <value>Storage</value>
@@ -438,14 +414,14 @@
   <data name="OnboardingLanguage" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="OnboardingFont" xml:space="preserve">
-    <value>Font</value>
-  </data>
   <data name="OnboardingStart" xml:space="preserve">
     <value>Get started</value>
   </data>
   <data name="ErrorTitle" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="ErrorTrackFileMissing" xml:space="preserve">
+    <value>The audio file for this track could not be found.</value>
   </data>
   <data name="PromptName" xml:space="preserve">
     <value>Name:</value>

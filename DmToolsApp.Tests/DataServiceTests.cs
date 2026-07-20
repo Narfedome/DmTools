@@ -1,4 +1,5 @@
 using DmToolsApp.Data;
+using DmToolsApp.Data.Entities;
 using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
@@ -141,6 +142,130 @@ public class SceneDataServiceTests : DatabaseTestBase
         Assert.True(loaded.FadeIn);
         Assert.True(loaded.FadeOut);
     }
+
+    [Fact]
+    public async Task UpdateSceneTrackSettings_PersistsSettings_ButPreservesAutoPlay()
+    {
+        var library = new LibraryDataService(Db);
+        var track = new Track { Title = "Wind" };
+        await library.SaveLibraryItemAsync(track);
+
+        var sceneTrack = new SceneTrack { SceneId = 1, Track = track, Volume = 1.0, AutoPlay = true };
+        await Service.SaveSceneTrackAsync(sceneTrack);
+
+        // La sauvegarde automatique du mixer ne doit jamais écraser l'AutoPlay, qui est un
+        // réglage explicite de l'utilisateur.
+        await Service.UpdateSceneTrackSettingsAsync(sceneTrack.Id, volume: 0.4, isLooping: false, fadeIn: true, fadeOut: true);
+
+        var loaded = (await Service.GetSceneTracksAsync(1)).Single();
+        Assert.Equal(0.4, loaded.Volume);
+        Assert.False(loaded.IsLooping);
+        Assert.True(loaded.FadeIn);
+        Assert.True(loaded.FadeOut);
+        Assert.True(loaded.AutoPlay);
+    }
+
+    [Fact]
+    public async Task DeleteScene_CascadesToSceneTracks()
+    {
+        var library = new LibraryDataService(Db);
+        var track = new Track { Title = "Storm" };
+        await library.SaveLibraryItemAsync(track);
+
+        var scene = new Scene { SessionId = 1, Title = "Bataille" };
+        await Service.SaveSceneAsync(scene);
+        await Service.SaveSceneTrackAsync(new SceneTrack { SceneId = scene.Id, Track = track });
+
+        await Service.DeleteSceneAsync(scene);
+
+        Assert.Equal(0, await Db.Connection.Table<SceneTrackEntity>().CountAsync());
+    }
+
+    [Fact]
+    public async Task DeleteSession_CascadesToScenesAndSceneTracks()
+    {
+        var library = new LibraryDataService(Db);
+        var track = new Track { Title = "Storm" };
+        await library.SaveLibraryItemAsync(track);
+
+        var session = new Session { CampaignId = 1, Title = "Chapitre" };
+        await Service.SaveSessionAsync(session);
+        var scene = new Scene { SessionId = session.Id, Title = "Bataille" };
+        await Service.SaveSceneAsync(scene);
+        await Service.SaveSceneTrackAsync(new SceneTrack { SceneId = scene.Id, Track = track });
+
+        await Service.DeleteSessionAsync(session);
+
+        Assert.Equal(0, await Db.Connection.Table<SceneEntity>().CountAsync());
+        Assert.Equal(0, await Db.Connection.Table<SceneTrackEntity>().CountAsync());
+    }
+
+    [Fact]
+    public async Task DeleteCampaign_CascadesToSessionsScenesAndSceneTracks_WithoutTouchingOthers()
+    {
+        var library = new LibraryDataService(Db);
+        var track = new Track { Title = "Storm" };
+        await library.SaveLibraryItemAsync(track);
+
+        var campaign = new Campaign { Title = "Condamnée" };
+        await Service.SaveCampaignAsync(campaign);
+        var session = new Session { CampaignId = campaign.Id, Title = "Chapitre" };
+        await Service.SaveSessionAsync(session);
+        var scene = new Scene { SessionId = session.Id, Title = "Bataille" };
+        await Service.SaveSceneAsync(scene);
+        await Service.SaveSceneTrackAsync(new SceneTrack { SceneId = scene.Id, Track = track });
+
+        // Une seconde campagne complète qui doit rester intacte.
+        var other = new Campaign { Title = "Épargnée" };
+        await Service.SaveCampaignAsync(other);
+        var otherSession = new Session { CampaignId = other.Id, Title = "Autre chapitre" };
+        await Service.SaveSessionAsync(otherSession);
+        var otherScene = new Scene { SessionId = otherSession.Id, Title = "Autre scène" };
+        await Service.SaveSceneAsync(otherScene);
+        await Service.SaveSceneTrackAsync(new SceneTrack { SceneId = otherScene.Id, Track = track });
+
+        await Service.DeleteCampaignAsync(campaign);
+
+        Assert.Empty(await Service.GetSessionsAsync(campaign.Id));
+        Assert.Equal(0, await Db.Connection.Table<SceneEntity>().Where(s => s.SessionId == session.Id).CountAsync());
+        Assert.Equal(0, await Db.Connection.Table<SceneTrackEntity>().Where(st => st.SceneId == scene.Id).CountAsync());
+
+        Assert.Single(await Service.GetSessionsAsync(other.Id));
+        Assert.Single(await Service.GetScenesAsync(otherSession.Id));
+        Assert.Single(await Service.GetSceneTracksAsync(otherScene.Id));
+    }
+}
+
+public class AppDatabaseMigrationTests
+{
+    [Fact]
+    public async Task Initialization_PurgesOrphansLeftByOldNonCascadingDeletes()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dmtools-tests-{Guid.NewGuid():N}.db3");
+        var db = new AppDatabase(path);
+        try
+        {
+            await db.Initialization;
+
+            // Simule l'état laissé par les anciennes suppressions sans cascade : enfants sans parent.
+            await db.Connection.InsertAsync(new SessionEntity { CampaignId = 999, Title = "Orphelin" });
+            await db.Connection.InsertAsync(new SceneEntity { SessionId = 999, Title = "Orpheline" });
+            await db.Connection.InsertAsync(new SceneTrackEntity { SceneId = 999, TrackId = 999 });
+
+            // Relance l'initialisation (nouveau démarrage de l'appli sur la même base).
+            var reopened = new AppDatabase(path);
+            await reopened.Initialization;
+
+            Assert.Equal(0, await reopened.Connection.Table<SessionEntity>().CountAsync());
+            Assert.Equal(0, await reopened.Connection.Table<SceneEntity>().CountAsync());
+            Assert.Equal(0, await reopened.Connection.Table<SceneTrackEntity>().CountAsync());
+        }
+        finally
+        {
+            await db.Connection.CloseAsync();
+            File.Delete(path);
+        }
+    }
 }
 
 public class LibraryDataServiceTests : DatabaseTestBase
@@ -192,6 +317,42 @@ public class LibraryDataServiceTests : DatabaseTestBase
         Assert.NotNull(await Service.FindTrackByHashAsync("AAA", excludeId: 0));
         Assert.Null(await Service.FindTrackByHashAsync("AAA", excludeId: track.Id));
         Assert.Null(await Service.FindTrackByHashAsync("BBB", excludeId: 0));
+    }
+
+    [Fact]
+    public async Task UpdateTrackImagePath_OnlyTouchesImagePath_EvenIfInMemoryModelDiverged()
+    {
+        var track = MakeTrack("Tavern", category: "Musique", hash: "AAA");
+        await Service.SaveLibraryItemAsync(track);
+
+        // Simule une édition concurrente depuis une autre instance : la sauvegarde différée de la
+        // pochette ne doit pas réintroduire l'ancien titre (c'est tout l'intérêt de l'UPDATE ciblé
+        // par rapport à SaveLibraryItemAsync, qui réécrit la ligne entière).
+        var edited = MakeTrack("Tavern renamed", category: "Ambiance", hash: "AAA");
+        edited.Id = track.Id;
+        await Service.SaveLibraryItemAsync(edited);
+
+        await Service.UpdateTrackImagePathAsync(track.Id, @"C:\covers\tavern.jpg");
+
+        var reloaded = (Track)(await Service.GetAllItemsTypeAsync(typeof(Track))).Single();
+        Assert.Equal(@"C:\covers\tavern.jpg", reloaded.ImagePath);
+        Assert.Equal("Tavern renamed", reloaded.Title);
+        Assert.Equal("Ambiance", reloaded.Category);
+    }
+
+    [Fact]
+    public async Task UpdateTrackImagePath_WithUnknownId_IsANoOp()
+    {
+        var track = MakeTrack("Tavern");
+        await Service.SaveLibraryItemAsync(track);
+
+        // Id 0 (modèle jamais persisté) ou inconnu : aucune ligne modifiée, aucune exception -
+        // l'ancien SaveLibraryItemAsync aurait lui INSÉRÉ une track fantôme pour un Id à 0.
+        await Service.UpdateTrackImagePathAsync(0, @"C:\covers\ghost.jpg");
+        await Service.UpdateTrackImagePathAsync(9999, @"C:\covers\ghost.jpg");
+
+        var reloaded = (Track)(await Service.GetAllItemsTypeAsync(typeof(Track))).Single();
+        Assert.Equal(string.Empty, reloaded.ImagePath);
     }
 
     [Fact]

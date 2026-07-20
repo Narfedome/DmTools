@@ -3,7 +3,7 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:system="clr-namespace:System;assembly=mscorlib"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               x:TypeArguments="system:String"
+               x:TypeArguments="system:Int32"
                x:Class="DmToolsApp.Components.Dialogs.ActionSheetDialog"
                BackgroundColor="Transparent"
                Padding="0">

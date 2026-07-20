@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using Plugin.Maui.Audio;
 using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Library

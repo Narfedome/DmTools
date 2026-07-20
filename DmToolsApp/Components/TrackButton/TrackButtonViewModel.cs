@@ -19,6 +19,37 @@ namespace DmToolsApp.Components.TrackButton
             _audioService.OnStateChanged += OnAudioChanged;
         }
 
+        /// <summary>
+        /// Réabonne le ViewModel quand sa vue revient à l'écran (recyclage) et resynchronise
+        /// l'état de lecture manqué pendant la déconnexion.
+        /// </summary>
+        public void Attach()
+        {
+            _audioService.OnStateChanged -= OnAudioChanged;
+            _audioService.OnStateChanged += OnAudioChanged;
+
+            if (CurrentTrack != null)
+            {
+                CurrentTrack.PropertyChanged -= OnTrackChanged;
+                CurrentTrack.PropertyChanged += OnTrackChanged;
+            }
+
+            UpdateFromTrack(CurrentTrack);
+        }
+
+        /// <summary>
+        /// Désabonne le ViewModel du service audio (singleton) et de la track quand sa vue quitte
+        /// l'écran : sans ça, chaque tuile jamais créée restait accrochée au service à vie
+        /// (fuite mémoire croissante au fil des rechargements de la bibliothèque).
+        /// </summary>
+        public void Detach()
+        {
+            _audioService.OnStateChanged -= OnAudioChanged;
+
+            if (CurrentTrack != null)
+                CurrentTrack.PropertyChanged -= OnTrackChanged;
+        }
+
         private void OnAudioChanged(string? currentFile)
         {
             IsPlaying = CurrentTrack != null && currentFile == CurrentTrack.FilePath;
@@ -89,12 +120,20 @@ namespace DmToolsApp.Components.TrackButton
         private ImageSource? coverImage;
 
         [RelayCommand]
-        private void TogglePlay()
+        private async Task TogglePlay()
         {
             if (CurrentTrack == null)
                 return;
 
-            _audioService.Toggle(CurrentTrack.FilePath);
+            try
+            {
+                _audioService.Toggle(CurrentTrack.FilePath);
+            }
+            catch (Exception ex)
+            {
+                // Fichier manquant ou illisible : message plutôt que crash de l'appli.
+                await ShowErrorAsync(ex);
+            }
         }
     }
 }

@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- NU1603 : cf. commentaire détaillé dans DmToolsApp.Core.csproj (métadonnée buggée de Plugin.Maui.Audio) -->
+    <NoWarn>$(NoWarn);NU1603</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

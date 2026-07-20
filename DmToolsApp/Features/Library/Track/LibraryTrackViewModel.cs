@@ -6,10 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
-using Plugin.Maui.Audio;
 using System.Collections.ObjectModel;
-using TagLib.Matroska;
-using Track = DmToolsApp.Models.Library.Track;
 
 namespace DmToolsApp.Features.Library
 {
@@ -307,12 +304,16 @@ namespace DmToolsApp.Features.Library
 
             var deleted = await _libraryDataService.DeleteItemsAsync(typeof(Track), ids);
 
+            // Ne supprime les fichiers physiques (audio ET vignette de pochette) que s'ils ne sont
+            // plus référencés par aucune autre track (dédup : plusieurs tracks peuvent partager le
+            // même fichier et la même pochette).
+            var referenced = await _libraryDataService.GetAllReferencedFilePathsAsync();
             foreach (var track in deleted.OfType<Track>())
             {
-                // Ne supprime le fichier physique que si aucune autre track ne le référence encore (dédup)
-                var remainingRefs = await _libraryDataService.CountTracksWithFilePathAsync(track.FilePath, track.Id);
-                if (remainingRefs == 0)
+                if (!referenced.Contains(track.FilePath))
                     _fileService.DeleteTrackFromLocal(track.FilePath);
+                if (!string.IsNullOrEmpty(track.ImagePath) && !referenced.Contains(track.ImagePath))
+                    _fileService.DeleteTrackFromLocal(track.ImagePath);
             }
 
             foreach (var item in TrackItems.Where(t => ids.Contains(t.Id)).ToList())
@@ -373,6 +374,7 @@ namespace DmToolsApp.Features.Library
 
             int imported = 0;
             int duplicates = 0;
+            int failed = 0;
 
             var popupView = new ImportProgressPopupView();
             popupView.ViewModel.Title = Loc["LibImportInProgress"];
@@ -448,7 +450,7 @@ namespace DmToolsApp.Features.Library
 
                         imported++;
                     }
-                    catch { /* fichier invalide, on passe au suivant */ }
+                    catch { failed++; /* fichier invalide, on passe au suivant */ }
                     finally
                     {
                         // Nettoie la copie laissée par FilePicker dans le cache Android une fois le fichier
@@ -465,7 +467,13 @@ namespace DmToolsApp.Features.Library
             }
 
             await RefreshCategoriesAsync();
-            await ShowInfoAsync(Loc["LibImport"], string.Format(Loc["LibImportResult"], imported, duplicates));
+
+            // Les fichiers en échec (illisibles, corrompus...) sont signalés plutôt que passés
+            // sous silence : sans ça l'utilisateur ne savait pas pourquoi il manquait des pistes.
+            var resultMessage = string.Format(Loc["LibImportResult"], imported, duplicates);
+            if (failed > 0)
+                resultMessage += "\n" + string.Format(Loc["LibImportResultErrors"], failed);
+            await ShowInfoAsync(Loc["LibImport"], resultMessage);
         }
 
         /// <summary>

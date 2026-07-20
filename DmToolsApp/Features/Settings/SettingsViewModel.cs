@@ -14,7 +14,18 @@ namespace DmToolsApp.Features.Settings
         private readonly AudioPlayerService _audioPlayerService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
 
-        public string AppVersion => AppInfo.Current.VersionString;
+        // Windows exige 4 segments (Major.Minor.Build.Revision) pour l'identité de package - le 4e
+        // (Revision) est une valeur fixe du csproj sans intérêt pour l'utilisateur, on l'aligne sur
+        // le format 3 segments affiché nativement sur les autres plateformes.
+        public string AppVersion
+        {
+            get
+            {
+                var raw = AppInfo.Current.VersionString;
+                var parts = raw.Split('.');
+                return parts.Length > 3 ? string.Join('.', parts.Take(3)) : raw;
+            }
+        }
 
         [ObservableProperty]
         private string storageUsedText = string.Empty;
@@ -81,6 +92,11 @@ namespace DmToolsApp.Features.Settings
 
             try
             {
+                // Vide le mixer avant de supprimer : des strips chargés (même en pause) gardent
+                // leurs fichiers ouverts (verrouillés sur Windows) et pointeraient de toute façon
+                // vers des pistes qui n'existent plus.
+                _audioMixerViewModel.ClearChannels();
+
                 var deleted = await _storageService.DeleteAllTracksAsync();
                 await InitializeAsync();
                 await ShowInfoAsync(Loc["SettingsStorageTitle"], string.Format(Loc["SettingsStorageDeleteAllResult"], deleted));
@@ -125,6 +141,10 @@ namespace DmToolsApp.Features.Settings
         [RelayCommand]
         public async Task OpenCoffeeLink() =>
             await Launcher.OpenAsync(new Uri("https://buymeacoffee.com/narfedome"));
+
+        [RelayCommand]
+        public async Task ReportBug() =>
+            await Launcher.OpenAsync(new Uri("https://docs.google.com/forms/d/e/1FAIpQLSdg2q1o01eGZsFvd0qIwOqYEVKDwBikQ0g7FWLSWHenKqeW0g/viewform?usp=dialog"));
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 

@@ -22,9 +22,10 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<!-- NU1903: vulnérabilité connue SQLitePCLRaw, mise à jour bloquée par dépendances transitives -->
+		<!-- NU1603: métadonnée buggée de Plugin.Maui.Audio 4.0.0 (cf. commentaire détaillé dans
+		     DmToolsApp.Core.csproj) -->
 		<!-- MVVMTK0045: partial properties AOT - refactoring trop large, pas de cible WinRT stricte -->
-		<NoWarn>$(NoWarn);NU1903;MVVMTK0045</NoWarn>
+		<NoWarn>$(NoWarn);NU1603;MVVMTK0045</NoWarn>
 
 		<!-- Enable XAML source generation for faster build times and improved performance.
 		     This generates C# code from XAML at compile time instead of runtime inflation.
@@ -81,8 +82,9 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.80" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
-		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+		<!-- 1.11.285 embarque SQLitePCLRaw 3.x / SQLite 3.53 (CVE-2025-6965 corrigée) : le pin
+		     SQLitePCLRaw.bundle_green 2.x qui alignait les binaires natifs n'a plus lieu d'être. -->
+		<PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
 		<PackageReference Include="TagLibSharp" Version="2.3.0" />
 	</ItemGroup>
 
@@ -211,8 +213,13 @@
 	     généré séparément à garder en synchro.
 	     _GetAndroidPackageName est la cible qui fige _AndroidVersionName = $(ApplicationDisplayVersion)
 	     pour le manifeste Android ; elle tourne très tôt (via AndroidPrepareForBuild, avant CoreCompile),
-	     donc on doit y accrocher ce calcul explicitement sous peine de packager la version statique. -->
-	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion;_GetAndroidPackageName">
+	     donc on doit y accrocher ce calcul explicitement sous peine de packager la version statique.
+	     Idem côté Windows : MauiGeneratePackageAppxManifest (package Resizetizer) lit
+	     ApplicationDisplayVersion pour générer Package.appxmanifest, puis GetAssemblyAttributes en
+	     extrait la version pour l'embarquer en AssemblyMetadataAttribute (ce que AppInfo.VersionString
+	     lit vraiment au runtime, l'appli étant non empaquetée) - les deux doivent tourner APRÈS ce
+	     calcul, sous peine de packager/embarquer la version statique par défaut du csproj. -->
+	<Target Name="SetVersionFromGit" BeforeTargets="CoreCompile;_GenerateJavaStubs;GetAssemblyVersion;_GetAndroidPackageName;MauiGeneratePackageAppxManifest;GetAssemblyAttributes">
 		<Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low">
 			<Output TaskParameter="ConsoleOutput" PropertyName="_GitCommitCount" />
 		</Exec>
@@ -233,6 +240,13 @@
 		<ItemGroup Condition="Exists('$(_AndroidStampDirectory)_GenerateJavaStubs.stamp')">
 			<_StampToDelete Include="$(_AndroidStampDirectory)_GenerateJavaStubs.stamp" />
 		</ItemGroup>
+
+		<!-- Idem côté Windows : le stamp de MauiGeneratePackageAppxManifest ne surveille en incrémental
+		     que le Package.appxmanifest source, jamais cette propriété. -->
+		<ItemGroup Condition="Exists('$(IntermediateOutputPath)mauimanifest.stamp')">
+			<_StampToDelete Include="$(IntermediateOutputPath)mauimanifest.stamp" />
+		</ItemGroup>
+
 		<Delete Files="@(_StampToDelete)" Condition="'@(_StampToDelete)' != ''" />
 	</Target>
 
