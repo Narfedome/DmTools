@@ -40,9 +40,11 @@ AllowNoIcons=yes
 ;PrivilegesRequired=lowest
 ; Hors de DmToolsApp (et gitignoré) : ce ne sont que des artefacts de build, pas du code source
 ; à versionner - cf. suppression du dossier Pack.
-OutputDir=D:\Dev\DmTools\Installer
+; Chemins relatifs à {#SourcePath} (dossier de ce .iss, donc DmToolsApp\) plutôt qu'en dur : le repo
+; a déjà bougé une fois (D:\Dev\DmTools -> D:\Dev\perso\DmTools) et avait cassé la compil silencieusement.
+OutputDir={#SourcePath}..\Installer
 OutputBaseFilename=DmToolsInstaller-{#MyAppVersion}
-SetupIconFile=D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\appicon.ico
+SetupIconFile={#SourcePath}bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\appicon.ico
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -54,8 +56,8 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\Dev\DmTools\DmToolsApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourcePath}bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
