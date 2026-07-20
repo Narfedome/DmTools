@@ -5,6 +5,7 @@ namespace DmToolsApp.Features.Campaigns;
 public partial class CampaignPage : ContentPage
 {
     private readonly CampaignViewModel _vm;
+    private bool _initialized;
 
     public CampaignPage(CampaignViewModel vm)
     {
@@ -17,11 +18,14 @@ public partial class CampaignPage : ContentPage
     {
         base.OnNavigatedTo(args);
 
-        // Cf. LibraryTrackPage : une popup thémée qui se ferme redéclenche la navigation, mais le
-        // ViewModel a déjà mis à jour Campaigns localement (Create/Rename/Delete) — pas besoin de tout recharger.
-        if (args.WasPreviousPageACommunityToolkitPopupPage())
+        // Une popup thémée qui se ferme redéclenche la navigation, mais le ViewModel a déjà mis à
+        // jour Rows localement (Create/Rename/Delete) — pas besoin de tout recharger. De même, revenir
+        // du Mixer (changement d'onglet) ne doit pas réinitialiser l'arborescence dépliée : seul le
+        // tout premier affichage charge les campagnes.
+        if (args.WasPreviousPageACommunityToolkitPopupPage() || _initialized)
             return;
 
+        _initialized = true;
         await _vm.InitializeAsync();
     }
 }

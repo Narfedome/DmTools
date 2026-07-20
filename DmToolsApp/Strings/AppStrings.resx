@@ -141,20 +141,11 @@
   <data name="TracksHeader" xml:space="preserve">
     <value>Pistes audio</value>
   </data>
-  <data name="NavCampaign" xml:space="preserve">
-    <value>Campagne</value>
+  <data name="EmptyCampaignsTitle" xml:space="preserve">
+    <value>Créez votre première campagne</value>
   </data>
-  <data name="NavChapter" xml:space="preserve">
-    <value>Chapitre</value>
-  </data>
-  <data name="BtnNewCampaign" xml:space="preserve">
-    <value>Nouvelle campagne</value>
-  </data>
-  <data name="BtnNewChapter" xml:space="preserve">
-    <value>Nouveau chapitre</value>
-  </data>
-  <data name="BtnNewScene" xml:space="preserve">
-    <value>Nouvelle scène</value>
+  <data name="EmptyCampaignsBody" xml:space="preserve">
+    <value>Les campagnes regroupent vos chapitres, scènes et pistes d'ambiance.</value>
   </data>
   <data name="BtnRename" xml:space="preserve">
     <value>Renommer</value>
@@ -450,14 +441,20 @@
   <data name="DialogDeleteTrackConfirm" xml:space="preserve">
     <value>"{0}" sera supprimé définitivement. Confirmer ?</value>
   </data>
-  <data name="DialogNewCampaign" xml:space="preserve">
-    <value>Nouvelle campagne</value>
+  <data name="DialogCreateItem" xml:space="preserve">
+    <value>Créer</value>
   </data>
-  <data name="DialogNewChapter" xml:space="preserve">
-    <value>Nouveau chapitre</value>
+  <data name="FieldType" xml:space="preserve">
+    <value>Type</value>
   </data>
-  <data name="DialogNewScene" xml:space="preserve">
-    <value>Nouvelle scène</value>
+  <data name="NounCampaign" xml:space="preserve">
+    <value>Campagne</value>
+  </data>
+  <data name="NounChapter" xml:space="preserve">
+    <value>Chapitre</value>
+  </data>
+  <data name="NounScene" xml:space="preserve">
+    <value>Scène</value>
   </data>
   <data name="DialogNewCategory" xml:space="preserve">
     <value>Nouvelle catégorie</value>

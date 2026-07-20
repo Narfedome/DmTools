@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:system="clr-namespace:System;assembly=mscorlib"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+               x:TypeArguments="system:Boolean"
+               x:Class="DmToolsApp.Components.Dialogs.CreateItemDialog"
+               BackgroundColor="Transparent"
+               Padding="0">
+    <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+        <VerticalStackLayout Spacing="16">
+            <Label Text="{loc:Loc DialogCreateItem}"
+                   FontAttributes="Bold" FontSize="16"
+                   TextColor="{DynamicResource AppText}"/>
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="{loc:Loc FieldType}" FontSize="13" TextColor="{DynamicResource AppTextMuted}"/>
+                <Button x:Name="TypeButton" Clicked="OnTypeButtonClicked"
+                        BackgroundColor="Transparent" TextColor="{DynamicResource AppAccent}"
+                        HorizontalOptions="Start" Padding="8,4"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="CampaignField" Spacing="4">
+                <Label Text="{loc:Loc NounCampaign}" FontSize="13" TextColor="{DynamicResource AppTextMuted}"/>
+                <Button x:Name="CampaignButton" Clicked="OnCampaignButtonClicked"
+                        BackgroundColor="Transparent" TextColor="{DynamicResource AppAccent}"
+                        HorizontalOptions="Start" Padding="8,4"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="SessionField" Spacing="4">
+                <Label Text="{loc:Loc NounChapter}" FontSize="13" TextColor="{DynamicResource AppTextMuted}"/>
+                <Button x:Name="SessionButton" Clicked="OnSessionButtonClicked"
+                        BackgroundColor="Transparent" TextColor="{DynamicResource AppAccent}"
+                        HorizontalOptions="Start" Padding="8,4"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="4">
+                <Label Text="{loc:Loc PromptName}" FontSize="13" TextColor="{DynamicResource AppTextMuted}"/>
+                <Entry x:Name="NameEntry"/>
+            </VerticalStackLayout>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                        Text="{loc:Loc BtnCancel}"
+                        Style="{StaticResource DialogSecondaryButton}"
+                        Clicked="OnCancelClicked"/>
+                <Button Grid.Column="1"
+                        Text="{loc:Loc BtnSave}"
+                        Clicked="OnSaveClicked"/>
+            </Grid>
+        </VerticalStackLayout>
+    </Border>
+</toolkit:Popup>

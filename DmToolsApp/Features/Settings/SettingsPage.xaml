@@ -5,15 +5,7 @@
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Settings.SettingsPage"
-             x:DataType="local:SettingsViewModel"
-             Title="{loc:Loc SettingsTitle}">
-
-    <Shell.TitleView>
-        <Label Text="{loc:Loc SettingsTitle}"
-               FontSize="18" FontAttributes="Bold"
-               VerticalOptions="Center"
-               TextColor="{DynamicResource AppTextPrimary}"/>
-    </Shell.TitleView>
+             x:DataType="local:SettingsViewModel">
 
     <components:WatermarkedLayout>
     <ScrollView>
