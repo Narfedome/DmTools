@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DmToolsApp.Features.ImportExport"
+             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
+             xmlns:components="clr-namespace:DmToolsApp.Components"
+             x:Class="DmToolsApp.Features.ImportExport.ImportExportPage"
+             x:DataType="local:ImportExportViewModel"
+             Title="{loc:Loc ImportExportTitle}">
+
+    <components:WatermarkedLayout>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <!-- Export -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Loc ImportExportSectionExport}" FontSize="16" FontAttributes="Bold"/>
+
+                    <Grid ColumnDefinitions="*,auto">
+                        <Label Grid.Column="0" Text="{loc:Loc ImportExportLevelLabel}" VerticalOptions="Center" FontSize="15"/>
+                        <Button Grid.Column="1"
+                                Text="{Binding SelectedLevelLabel}"
+                                Command="{Binding SelectLevelCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{DynamicResource AppAccent}"
+                                FontSize="14"
+                                Padding="8,4"/>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,auto" IsVisible="{Binding RequiresCampaignSelection}">
+                        <Label Grid.Column="0" Text="{loc:Loc ImportExportCampaignLabel}" VerticalOptions="Center" FontSize="15"/>
+                        <Button Grid.Column="1"
+                                Text="{Binding SelectedCampaign.Title}"
+                                Command="{Binding SelectCampaignCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{DynamicResource AppAccent}"
+                                FontSize="14"
+                                Padding="8,4"/>
+                    </Grid>
+
+                    <Button Text="{loc:Loc ImportExportExportButton}"
+                            Command="{Binding ExportCommand}"
+                            HorizontalOptions="Fill"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Import -->
+            <Border Padding="16" StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{loc:Loc ImportExportSectionImport}" FontSize="16" FontAttributes="Bold"/>
+                    <Button Text="{loc:Loc ImportExportImportButton}"
+                            Command="{Binding ImportCommand}"
+                            HorizontalOptions="Fill"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+    </components:WatermarkedLayout>
+</ContentPage>

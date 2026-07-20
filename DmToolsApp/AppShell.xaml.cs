@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Extensions;
 using DmToolsApp.Features.Campaigns;
+using DmToolsApp.Features.ImportExport;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
@@ -18,6 +19,7 @@ namespace DmToolsApp
             Routing.RegisterRoute(nameof(LibraryTrackEditPage), typeof(LibraryTrackEditPage));
             Routing.RegisterRoute(nameof(CategoryListPage), typeof(CategoryListPage));
             Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));
+            Routing.RegisterRoute(nameof(ImportExportPage), typeof(ImportExportPage));
 
             sessionStateService.StateChanged += () =>
             {

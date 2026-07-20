@@ -4,6 +4,7 @@ using DmToolsApp.Components;
 using DmToolsApp.Data;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Features.Campaigns;
+using DmToolsApp.Features.ImportExport;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Models;
@@ -82,12 +83,14 @@ namespace DmToolsApp
             builder.Services.AddSingleton<AudioPlayerService>();
             builder.Services.AddSingleton<AudioMixerService>();
             builder.Services.AddSingleton<FileService>();
+            builder.Services.AddSingleton<ITrackFileStore>(sp => sp.GetRequiredService<FileService>());
             builder.Services.AddSingleton<ILibraryPickerService, LibraryPickerService>();
             builder.Services.AddSingleton<ILibraryPickerNavigationService, LibraryPickerNavigationService>();
             builder.Services.AddSingleton<ILibraryDataService, LibraryDataService>();
             builder.Services.AddSingleton<CoverArtService>();
             builder.Services.AddSingleton<IStorageService, StorageService>();
             builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
+            builder.Services.AddSingleton<IImportExportService, ImportExportService>();
             builder.Services.AddSingleton<SessionStateService>();
             builder.Services.AddTransient<OnboardingViewModel>();
             builder.Services.AddTransient<OnboardingPage>();
@@ -108,6 +111,8 @@ namespace DmToolsApp
             builder.Services.AddTransient<CampaignPage>();
             builder.Services.AddTransient<SceneTracksViewModel>();
             builder.Services.AddTransient<SceneTracksPage>();
+            builder.Services.AddTransient<ImportExportViewModel>();
+            builder.Services.AddTransient<ImportExportPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

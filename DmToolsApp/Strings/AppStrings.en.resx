@@ -474,4 +474,70 @@
   <data name="LibCategoryMusic" xml:space="preserve">
     <value>Music</value>
   </data>
+  <data name="ImportExportTitle" xml:space="preserve">
+    <value>Import / Export</value>
+  </data>
+  <data name="ImportExportSettingsDesc" xml:space="preserve">
+    <value>Export or import your campaigns and library</value>
+  </data>
+  <data name="ImportExportOpenButton" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="ImportExportSectionExport" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ImportExportSectionImport" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="ImportExportLevelLabel" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="ImportExportLevelTitle" xml:space="preserve">
+    <value>Choose an export level</value>
+  </data>
+  <data name="ImportExportLevel1" xml:space="preserve">
+    <value>Structure only (campaign, chapters, scenes)</value>
+  </data>
+  <data name="ImportExportLevel2" xml:space="preserve">
+    <value>Structure + channels (with audio)</value>
+  </data>
+  <data name="ImportExportLevel3" xml:space="preserve">
+    <value>Audio library only</value>
+  </data>
+  <data name="ImportExportLevel4" xml:space="preserve">
+    <value>Full backup (everything)</value>
+  </data>
+  <data name="ImportExportCampaignLabel" xml:space="preserve">
+    <value>Campaign</value>
+  </data>
+  <data name="ImportExportCampaignTitle" xml:space="preserve">
+    <value>Choose a campaign</value>
+  </data>
+  <data name="ImportExportSelectCampaignFirst" xml:space="preserve">
+    <value>Choose a campaign first.</value>
+  </data>
+  <data name="ImportExportNoCampaigns" xml:space="preserve">
+    <value>No campaign to export.</value>
+  </data>
+  <data name="ImportExportExportButton" xml:space="preserve">
+    <value>Export…</value>
+  </data>
+  <data name="ImportExportImportButton" xml:space="preserve">
+    <value>Import a file…</value>
+  </data>
+  <data name="ImportExportPickFile" xml:space="preserve">
+    <value>Choose a .dmpack file</value>
+  </data>
+  <data name="ImportExportExportInProgress" xml:space="preserve">
+    <value>Exporting...</value>
+  </data>
+  <data name="ImportExportImportInProgress" xml:space="preserve">
+    <value>Importing...</value>
+  </data>
+  <data name="ImportExportExportSuccess" xml:space="preserve">
+    <value>Export saved: {0}</value>
+  </data>
+  <data name="ImportExportImportSummary" xml:space="preserve">
+    <value>{0} campaign(s) imported, {1} track(s) copied, {2} reused, {3} rejected, {4} spell(s) imported.</value>
+  </data>
 </root>

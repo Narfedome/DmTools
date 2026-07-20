@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Features.AudioMixer;
+using DmToolsApp.Features.ImportExport;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
@@ -145,6 +146,10 @@ namespace DmToolsApp.Features.Settings
         [RelayCommand]
         public async Task ReportBug() =>
             await Launcher.OpenAsync(new Uri("https://docs.google.com/forms/d/e/1FAIpQLSdg2q1o01eGZsFvd0qIwOqYEVKDwBikQ0g7FWLSWHenKqeW0g/viewform?usp=dialog"));
+
+        [RelayCommand]
+        public async Task OpenImportExport() =>
+            await Shell.Current.GoToAsync(nameof(ImportExportPage));
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 
