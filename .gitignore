@@ -365,3 +365,10 @@ FodyWeavers.xsd
 # Installeur Windows genere par Build-Installer.ps1 / Installer.iss - artefact de build, pas du
 # code source (cf. suppression du dossier DmToolsApp/Pack qui versionnait ces binaires par erreur)
 /Installer/
+
+# Config locale de Build-Release.ps1 (mots de passe de la keystore Android de release) - propre
+# a chaque machine, ne doit jamais etre commitee. Cf. Build-Release.local.ps1.example.
+/Build-Release.local.ps1
+
+# Keystore de signature Android de release - recuperee depuis le Drive partage, jamais commitee.
+/dmtools-release.keystore

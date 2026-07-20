@@ -7,9 +7,14 @@
     La version suit le meme schema que la cible SetVersionFromGit du csproj :
     AppVersionMajor.AppVersionMinor.<nombre de commits git> - lu ici depuis le csproj pour
     ne jamais s'en ecarter silencieusement.
-    L'installeur Windows finit dans D:\Dev\DmTools\Installer. L'APK Android reste ou
-    dotnet publish le genere (bin\Release\net10.0-android\publish\) : le csproj gere deja
-    tout seul le format et la signature, pas besoin d'y toucher.
+    Les deux artefacts finissent sous D:\Dev\DmTools\Installer, dans des sous-dossiers Windows\
+    et Android\, avec un nom de fichier fixe (DmToolsInstaller.exe / DmTools.apk) : pas de numero
+    de version dans le nom, pour que le fichier mis a disposition du public (lien de telechargement,
+    etc.) puisse etre remplace tel quel a chaque nouvelle version sans changer le lien. La signature
+    Android vient de la keystore de release partagee si dmtools-release.keystore est present a la
+    racine du repo (recupere depuis le Drive partage, jamais commite) et que Build-Release.local.ps1
+    definit ses identifiants (a creer une fois par machine depuis Build-Release.local.ps1.example) ;
+    sinon elle retombe sur le debug.keystore local, qui differe d'un PC a l'autre.
 
 .PARAMETER SkipWindows
     N'effectue que la publication Android.
@@ -33,13 +38,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot    = $PSScriptRoot
-$csprojPath  = Join-Path $repoRoot "DmToolsApp\DmToolsApp.csproj"
-$issPath     = Join-Path $repoRoot "DmToolsApp\Installer.iss"
-$isccPath    = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-$outputDir   = Join-Path $repoRoot "Installer"
+$repoRoot         = $PSScriptRoot
+$csprojPath       = Join-Path $repoRoot "DmToolsApp\DmToolsApp.csproj"
+$issPath          = Join-Path $repoRoot "DmToolsApp\Installer.iss"
+$isccPath         = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+$outputDir        = Join-Path $repoRoot "Installer"
+$outputDirWindows = Join-Path $outputDir "Windows"
+$outputDirAndroid = Join-Path $outputDir "Android"
 
-New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+New-Item -ItemType Directory -Force -Path $outputDirWindows, $outputDirAndroid | Out-Null
+
+# --- Config locale (jamais commitee, cf. .gitignore) : chemin + mots de passe de la keystore de
+#     release, propres a chaque machine. Copier Build-Release.local.ps1.example -> Build-Release.local.ps1
+#     et renseigner les 4 valeurs une seule fois par PC. ---
+$localConfigPath = Join-Path $repoRoot "Build-Release.local.ps1"
+if (Test-Path $localConfigPath) {
+    . $localConfigPath
+}
 
 # --- Version : major.minor du csproj + patch = nombre de commits git (identique a la cible
 #     SetVersionFromGit du csproj, pour que l'installeur, l'APK et l'appli affichent le meme numero) ---
@@ -62,19 +77,52 @@ if (-not $SkipWindows) {
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish (Windows) a echoue (code $LASTEXITCODE)." }
 
     Write-Host "=== Windows : compilation de l'installeur ===" -ForegroundColor Cyan
-    & $isccPath "/DMyAppVersion=$version" $issPath
+    # /O et /F surchargent OutputDir/OutputBaseFilename du .iss : nom de fichier fixe (sans version)
+    # pour que le lien de telechargement public n'ait jamais besoin de changer.
+    & $isccPath "/DMyAppVersion=$version" "/O$outputDirWindows" "/FDmToolsInstaller" $issPath
     if ($LASTEXITCODE -ne 0) { throw "ISCC a echoue (code $LASTEXITCODE)." }
 
-    Write-Host "Installeur : $outputDir\DmToolsInstaller-$version.exe" -ForegroundColor Green
+    Write-Host "Installeur : $outputDirWindows\DmToolsInstaller.exe" -ForegroundColor Green
 }
 
-# --- Android : publish. Le csproj gere tout en interne (AndroidPackageFormat=apk force en
-#     config Release, signature avec le keystore de debug faute de keystore perso configure) -
-#     l'APK signe sort directement dans bin\Release\net10.0-android\publish\. ---
+# --- Android : publish. Le csproj gere le format (AndroidPackageFormat=apk force en config
+#     Release) ; la signature vient de la keystore de release partagee, attendue a la racine du
+#     repo sous dmtools-release.keystore (gitignoree - cf. .gitignore) : recuperer le fichier
+#     depuis le Drive partage et le deposer a cote de ce script suffit, aucun chemin a configurer.
+#     Sans ce fichier, dotnet publish retombe sur le debug.keystore auto-genere par machine, ce
+#     qui produit une signature differente d'un PC a l'autre et fait refuser les mises a jour par
+#     Android ("app not installed as package conflicts with an existing package"). ---
 if (-not $SkipAndroid) {
     Write-Host "`n=== Android : publication ===" -ForegroundColor Cyan
-    dotnet publish $csprojPath -f net10.0-android -c Release
+
+    $keystorePath  = Join-Path $repoRoot "dmtools-release.keystore"
+    $keystoreAlias = $env:DMTOOLS_KEYSTORE_ALIAS
+    $storePass     = $env:DMTOOLS_KEYSTORE_STOREPASS
+    $keyPass       = $env:DMTOOLS_KEYSTORE_KEYPASS
+
+    $signingArgs = @()
+    if ((Test-Path $keystorePath) -and $keystoreAlias -and $storePass -and $keyPass) {
+        Write-Host "Signature : keystore de release ($keystorePath)" -ForegroundColor DarkGray
+        $signingArgs = @(
+            "-p:AndroidKeyStore=true"
+            "-p:AndroidSigningKeyStore=$keystorePath"
+            "-p:AndroidSigningKeyAlias=$keystoreAlias"
+            "-p:AndroidSigningStorePass=$storePass"
+            "-p:AndroidSigningKeyPass=$keyPass"
+        )
+    } else {
+        Write-Warning "dmtools-release.keystore absent de la racine du repo (ou identifiants manquants dans Build-Release.local.ps1) : signature avec le debug.keystore local (differente d'un PC a l'autre, a eviter pour une release distribuee)."
+    }
+
+    dotnet publish $csprojPath -f net10.0-android -c Release @signingArgs
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish (Android) a echoue (code $LASTEXITCODE)." }
 
-    Write-Host "APK : $repoRoot\DmToolsApp\bin\Release\net10.0-android\publish\com.narfedome.dmtoolsapp-Signed.apk" -ForegroundColor Green
+    # Copie sous un nom fixe (sans version) dans Installer\Android\, a cote de l'installeur Windows :
+    # meme raison que pour l'exe, le lien de telechargement public n'a jamais besoin de changer.
+    $publishedApk = Join-Path $repoRoot "DmToolsApp\bin\Release\net10.0-android\publish\com.narfedome.dmtoolsapp-Signed.apk"
+    if (-not (Test-Path $publishedApk)) { throw "APK signe introuvable a '$publishedApk'." }
+    $apkPath = Join-Path $outputDirAndroid "DmTools.apk"
+    Copy-Item -Path $publishedApk -Destination $apkPath -Force
+
+    Write-Host "APK : $apkPath" -ForegroundColor Green
 }
