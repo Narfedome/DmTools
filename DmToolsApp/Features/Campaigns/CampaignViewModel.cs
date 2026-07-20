@@ -36,6 +36,12 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty] private ExplorerRow? selectedRow;
         [ObservableProperty] private bool hasCampaigns;
 
+        // Reste false pendant le court instant entre l'affichage de la page et le vrai début du
+        // chargement (Loading.IsLoading ne passe à true qu'à l'intérieur de InitializeAsync) : sans ce
+        // garde-fou, HasCampaigns valait encore false par défaut durant cette fenêtre et l'état vide
+        // (bouton "Créer") s'affichait brièvement avant le spinner.
+        [ObservableProperty] private bool isInitialized;
+
         // IsSelected vit sur la ligne elle-même : le style de sélection (cf. CampaignPage.xaml) se lie
         // dessus plutôt que sur la sélection native du CollectionView (SelectionMode="None"), dont le
         // rendu par défaut diverge trop entre Windows et Android.
@@ -57,13 +63,35 @@ namespace DmToolsApp.Features.Campaigns
                 Rows = new ObservableCollection<ExplorerRow>(campaigns.Select(c => new CampaignRow(c)));
                 HasCampaigns = campaigns.Count > 0;
                 SelectedRow = null;
+                IsInitialized = true;
             });
         }
 
         // ── Expand / collapse ─────────────────────────────────────
 
-        // Ouvrir une ligne et la sélectionner (pour Renommer/Supprimer) sont fondus en un seul geste :
-        // avoir les deux états dissociés rendait peu clair quelle campagne/chapitre était "actif".
+        // Ouvrir une ligne et la sélectionner (pour Renommer/Supprimer) sont fondus en un seul geste.
+        // Deux commandes distinctes selon la zone tapée (cf. CampaignPage.xaml) :
+        // - Open* (corps de la ligne) n'ouvre jamais que — ne referme jamais un volet déjà ouvert,
+        //   pour qu'on puisse retaper une campagne/un chapitre pour le sélectionner (Renommer/
+        //   Supprimer) sans le refermer sous ses pieds pendant qu'on navigue dedans.
+        // - Toggle* (le chevron uniquement) fait un vrai bascule, y compris la fermeture : son
+        //   affordance visuelle appelle explicitement ce geste.
+        // Dans les deux cas, un volet s'auto-referme dès qu'un AUTRE élément du même niveau s'ouvre
+        // (cf. ExpandCampaignAsync/ExpandSessionAsync).
+        [RelayCommand]
+        public async Task OpenCampaign(CampaignRow row)
+        {
+            SelectedRow = row;
+            if (!row.IsExpanded) await ExpandCampaignAsync(row);
+        }
+
+        [RelayCommand]
+        public async Task OpenSession(SessionRow row)
+        {
+            SelectedRow = row;
+            if (!row.IsExpanded) await ExpandSessionAsync(row);
+        }
+
         [RelayCommand]
         public async Task ToggleCampaign(CampaignRow row)
         {
@@ -233,8 +261,11 @@ namespace DmToolsApp.Features.Campaigns
             {
                 case CampaignRow campaignRow:
                     if (!await ConfirmDeleteAsync(campaignRow.Campaign.Title)) return;
+                    // DeleteCampaignAsync cascade déjà les Session/Scene/SceneTrack en base ; ici il
+                    // faut aussi retirer ses éventuelles lignes Chapitre/Scène dépliées de Rows, sinon
+                    // elles restent affichées, orphelines, sans plus aucune campagne au-dessus d'elles.
                     await _sceneDataService.DeleteCampaignAsync(campaignRow.Campaign);
-                    Rows.Remove(campaignRow);
+                    RemoveSubtree(campaignRow);
                     HasCampaigns = Rows.OfType<CampaignRow>().Any();
                     break;
                 case SessionRow sessionRow:

@@ -4,16 +4,9 @@
              x:Class="DmToolsApp.Features.Library.LibrarySpellPage"
              xmlns:views="clr-namespace:DmToolsApp.Features.Library"
              xmlns:local="clr-namespace:DmToolsApp.Features.Library"
-             xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
-             x:DataType="local:LibrarySpellViewModel">
-
-    <Shell.TitleView>
-        <Label Text="{loc:Loc TabLibrary}"
-               FontSize="18" FontAttributes="Bold"
-               VerticalOptions="Center"
-               TextColor="{DynamicResource AppTextPrimary}"/>
-    </Shell.TitleView>
+             x:DataType="local:LibrarySpellViewModel"
+             Shell.NavBarIsVisible="False">
 
     <components:WatermarkedLayout>
         <views:LibrarySpellView IsCrud="True" />
