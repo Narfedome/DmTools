@@ -220,35 +220,75 @@ namespace DmToolsApp.Features.Campaigns
             }
         }
 
-        // ── Rename / Delete (ciblent SelectedRow, quel que soit son niveau) ─
+        // ── Édition (réutilise le formulaire de création, type verrouillé) ───
 
+        // Réutilise CreateItemDialog plutôt qu'un simple prompt texte : puisque le Campagne/Chapitre
+        // parent y est déjà modifiable pour la création, éditer un Chapitre ou une Scène permet du
+        // même coup de le/la déplacer vers une autre Campagne/un autre Chapitre (le Type, lui, reste
+        // verrouillé — changer la nature d'un élément existant n'a pas de sens).
         [RelayCommand]
-        public async Task Rename()
+        public async Task Edit()
         {
+            var campaigns = Rows.OfType<CampaignRow>().Select(r => r.Campaign).ToList();
+
             switch (SelectedRow)
             {
                 case CampaignRow campaignRow:
                 {
-                    string? name = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: campaignRow.Campaign.Title);
+                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                        CreateItemKind.Campaign, null, null, campaignRow.Campaign.Title, lockType: true);
+                    if (await ShowDialogAsync(dialog) != true) return;
+                    string name = dialog.Name.Trim();
                     if (string.IsNullOrWhiteSpace(name)) return;
+
                     campaignRow.Campaign.Title = name.CapitalizeFirst();
                     await _sceneDataService.SaveCampaignAsync(campaignRow.Campaign);
                     break;
                 }
                 case SessionRow sessionRow:
                 {
-                    string? name = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: sessionRow.Session.Title);
-                    if (string.IsNullOrWhiteSpace(name)) return;
+                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                        CreateItemKind.Session, sessionRow.ParentCampaign, null, sessionRow.Session.Title, lockType: true);
+                    if (await ShowDialogAsync(dialog) != true) return;
+                    string name = dialog.Name.Trim();
+                    if (string.IsNullOrWhiteSpace(name) || dialog.SelectedCampaign == null) return;
+
                     sessionRow.Session.Title = name.CapitalizeFirst();
+                    bool moved = dialog.SelectedCampaign.Id != sessionRow.Session.CampaignId;
+                    sessionRow.Session.CampaignId = dialog.SelectedCampaign.Id;
                     await _sceneDataService.SaveSessionAsync(sessionRow.Session);
+
+                    if (moved)
+                    {
+                        RemoveSubtree(sessionRow);
+                        var targetCampaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialog.SelectedCampaign.Id);
+                        if (targetCampaignRow != null && targetCampaignRow.IsExpanded)
+                            Rows.Insert(EndOfSubtree(targetCampaignRow), new SessionRow(sessionRow.Session, dialog.SelectedCampaign));
+                        SelectedRow = null;
+                    }
                     break;
                 }
                 case SceneRow sceneRow:
                 {
-                    string? name = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: sceneRow.Scene.Title);
-                    if (string.IsNullOrWhiteSpace(name)) return;
+                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                        CreateItemKind.Scene, sceneRow.ParentCampaign, sceneRow.ParentSession, sceneRow.Scene.Title, lockType: true);
+                    if (await ShowDialogAsync(dialog) != true) return;
+                    string name = dialog.Name.Trim();
+                    if (string.IsNullOrWhiteSpace(name) || dialog.SelectedCampaign == null || dialog.SelectedSession == null) return;
+
                     sceneRow.Scene.Title = name.CapitalizeFirst();
+                    bool moved = dialog.SelectedSession.Id != sceneRow.Scene.SessionId;
+                    sceneRow.Scene.SessionId = dialog.SelectedSession.Id;
                     await _sceneDataService.SaveSceneAsync(sceneRow.Scene);
+
+                    if (moved)
+                    {
+                        Rows.Remove(sceneRow);
+                        var targetSessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialog.SelectedSession.Id);
+                        if (targetSessionRow != null && targetSessionRow.IsExpanded)
+                            Rows.Insert(EndOfSubtree(targetSessionRow), new SceneRow(sceneRow.Scene, dialog.SelectedSession, dialog.SelectedCampaign));
+                        SelectedRow = null;
+                    }
                     break;
                 }
             }
