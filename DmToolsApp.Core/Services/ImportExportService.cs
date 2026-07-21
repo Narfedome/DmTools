@@ -376,6 +376,14 @@ namespace DmToolsApp.Services
                     FilePath = localPath
                 };
                 await _libraryDataService.SaveLibraryItemAsync(track);
+
+                // La catégorie du manifeste n'est autrement enregistrée que pour un backup complet
+                // (via manifest.Library.Categories) : pour les autres niveaux d'export, une catégorie
+                // "custom" (ni Musique/Ambiance/SFX) resterait un simple texte sur la track, invisible
+                // dans le sélecteur/la gestion des catégories tant qu'elle n'existe pas ici aussi.
+                if (!string.IsNullOrEmpty(track.Category))
+                    await _libraryDataService.EnsureCategoryAsync(typeof(Track), track.Category);
+
                 result.TracksCopied++;
                 return track.Id;
             }

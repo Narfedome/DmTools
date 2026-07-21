@@ -304,6 +304,30 @@ public class ImportExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportImport_AudioLibraryOnly_RegistersCustomTrackCategory()
+    {
+        // manifest.Library.Categories n'est rempli qu'en FullBackup : ce niveau d'export est
+        // justement celui qui ne passe pas par là, pour vérifier que la catégorie custom d'une
+        // track est quand même enregistrée (et pas juste posée en texte sur la track importée).
+        await using var source = await ImportExportTestContext.CreateAsync();
+        var wavPath = CreateWavFile();
+        var track = new Track { Title = "Machin", Category = "Bidule", FilePath = wavPath, Hash = TrackTagHelper.ComputeSha256(wavPath) };
+        await source.Library.SaveLibraryItemAsync(track);
+
+        using var zipStream = new MemoryStream();
+        await source.Service.ExportAsync(new ExportRequest { Level = ExportLevel.AudioLibraryOnly }, zipStream);
+
+        await using var dest = await ImportExportTestContext.CreateAsync();
+        zipStream.Position = 0;
+        var result = await dest.Service.ImportAsync(zipStream);
+
+        Assert.Equal(1, result.TracksCopied);
+        var imported = (await dest.Library.GetAllItemsTypeAsync(typeof(Track))).OfType<Track>().Single();
+        Assert.Equal("Bidule", imported.Category);
+        Assert.Contains("Bidule", await dest.Library.GetCategoryNamesAsync(typeof(Track)));
+    }
+
+    [Fact]
     public async Task ExportImport_FullBackup_IncludesAllCampaignsAndLibrary()
     {
         await using var source = await ImportExportTestContext.CreateAsync();
