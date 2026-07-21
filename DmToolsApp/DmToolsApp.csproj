@@ -42,8 +42,8 @@
 		<ApplicationId>com.narfedome.dmtoolsapp</ApplicationId>
 
 		<!-- Versions — patch auto-incrémenté via git au build, major/minor à la main -->
-		<AppVersionMajor>0</AppVersionMajor>
-		<AppVersionMinor>2</AppVersionMinor>
+		<AppVersionMajor>1</AppVersionMajor>
+		<AppVersionMinor>0</AppVersionMinor>
 		<ApplicationDisplayVersion>$(AppVersionMajor).$(AppVersionMinor).0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
