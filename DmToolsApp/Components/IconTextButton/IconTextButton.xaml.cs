@@ -59,6 +59,17 @@ public partial class IconTextButton : ContentView
         set => SetValue(TextColorProperty, value);
     }
 
+    // Non contraint par défaut (même valeur que le défaut MAUI de MaximumWidthRequest) : n'affecte
+    // aucun usage existant tant qu'on ne le fixe pas explicitement (cf. TrackEditDialog.FileButton,
+    // dont le nom de fichier peut largement dépasser la largeur de la carte).
+    public static readonly BindableProperty TextMaximumWidthProperty =
+        BindableProperty.Create(nameof(TextMaximumWidth), typeof(double), typeof(IconTextButton), double.PositiveInfinity);
+    public double TextMaximumWidth
+    {
+        get => (double)GetValue(TextMaximumWidthProperty);
+        set => SetValue(TextMaximumWidthProperty, value);
+    }
+
     public static readonly BindableProperty FontSizeProperty =
         BindableProperty.Create(nameof(FontSize), typeof(double), typeof(IconTextButton), 14.0);
     public double FontSize

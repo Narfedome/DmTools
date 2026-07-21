@@ -30,7 +30,6 @@
             <ShellContent x:Name="TracksContent" Title="{loc:Loc TabLibrary}" ContentTemplate="{DataTemplate library:LibraryTrackPage}" />
             <ShellContent x:Name="SpellsContent" Title="{loc:Loc TabLibrary}" ContentTemplate="{DataTemplate library:LibrarySpellPage}" IsVisible="False" />
             <ShellContent Route="LibrarySpellEditPage" ContentTemplate="{DataTemplate library:LibrarySpellEditPage}" IsVisible="False" />
-            <ShellContent Route="LibraryTrackEditPage" ContentTemplate="{DataTemplate library:LibraryTrackEditPage}" IsVisible="False" />
         </Tab>
 
         <Tab x:Name="SettingsTab"

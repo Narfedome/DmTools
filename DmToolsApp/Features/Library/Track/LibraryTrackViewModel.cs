@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
+using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
@@ -335,24 +336,22 @@ namespace DmToolsApp.Features.Library
             if (SelectedTrackItem == null)
                 return;
 
-            var copy = SelectedTrackItem.Clone();
-            await Shell.Current.GoToAsync(nameof(LibraryTrackEditPage),
-            new Dictionary<string, object>
-            {
-                 { "Item", copy }
-            });
+            await ShowTrackEditDialogAsync((Track)SelectedTrackItem.Clone());
         }
 
         [RelayCommand]
         public async Task CreateItem()
         {
-            var newItem = new Track();
+            await ShowTrackEditDialogAsync(new Track());
+        }
 
-            await Shell.Current.GoToAsync(nameof(LibraryTrackEditPage),
-                new Dictionary<string, object>
-                {
-                       { "Item", newItem }
-                });
+        // La persistance (dédup par hash, copie locale, sauvegarde) vit dans
+        // TrackEditDialogViewModel.Save, pas ici : ce ViewModel n'a plus qu'à afficher le dialogue.
+        private async Task ShowTrackEditDialogAsync(Track item)
+        {
+            var categories = await _libraryDataService.GetCategoryNamesAsync(typeof(Track));
+            var dialogViewModel = new TrackEditDialogViewModel(item, categories, _libraryDataService, _fileService, _audioPlayerService);
+            await ShowDialogAsync(new TrackEditDialog(dialogViewModel));
         }
 
         [RelayCommand]
