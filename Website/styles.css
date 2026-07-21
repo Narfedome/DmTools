@@ -289,6 +289,11 @@ section > .container > p.section-intro {
   object-fit: cover;
   object-position: top center;
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.screen-item:hover .screen-frame img {
+  transform: scale(1.06);
 }
 
 .screen-caption {
