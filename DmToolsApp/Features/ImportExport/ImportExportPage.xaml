@@ -17,25 +17,33 @@
                 <VerticalStackLayout Spacing="12">
                     <Label Text="{loc:Loc ImportExportSectionExport}" FontSize="16" FontAttributes="Bold"/>
 
-                    <Grid ColumnDefinitions="*,auto">
-                        <Label Grid.Column="0" Text="{loc:Loc ImportExportLevelLabel}" VerticalOptions="Center" FontSize="15"/>
+                    <!-- auto,* (pas *,auto) : le libellé fixe garde toute sa place, la valeur (qui peut
+                         être un titre de campagne arbitrairement long) prend le reste et tronque au lieu
+                         de pousser le libellé à se réduire jusqu'à ne plus afficher qu'une lettre par
+                         ligne. -->
+                    <Grid ColumnDefinitions="auto,*">
+                        <Label Grid.Column="0" Text="{loc:Loc ImportExportLevelLabel}" VerticalOptions="Center" FontSize="15" Margin="0,0,8,0"/>
                         <Button Grid.Column="1"
                                 Text="{Binding SelectedLevelLabel}"
                                 Command="{Binding SelectLevelCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="{DynamicResource AppAccent}"
                                 FontSize="14"
+                                Style="{StaticResource TruncatedButtonStyle}"
+                                HorizontalOptions="End"
                                 Padding="8,4"/>
                     </Grid>
 
-                    <Grid ColumnDefinitions="*,auto" IsVisible="{Binding RequiresCampaignSelection}">
-                        <Label Grid.Column="0" Text="{loc:Loc ImportExportCampaignLabel}" VerticalOptions="Center" FontSize="15"/>
+                    <Grid ColumnDefinitions="auto,*" IsVisible="{Binding RequiresCampaignSelection}">
+                        <Label Grid.Column="0" Text="{loc:Loc ImportExportCampaignLabel}" VerticalOptions="Center" FontSize="15" Margin="0,0,8,0"/>
                         <Button Grid.Column="1"
                                 Text="{Binding SelectedCampaign.Title}"
                                 Command="{Binding SelectCampaignCommand}"
                                 BackgroundColor="Transparent"
                                 TextColor="{DynamicResource AppAccent}"
                                 FontSize="14"
+                                LineBreakMode="TailTruncation"
+                                HorizontalOptions="End"
                                 Padding="8,4"/>
                     </Grid>
 

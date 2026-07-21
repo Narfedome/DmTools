@@ -242,6 +242,73 @@
         <Setter Property="HorizontalTextAlignment" Value="Center" />
     </Style>
 
+    <!-- Pour tout Label/Button affichant un nom généré par l'utilisateur (titre de campagne, de
+         piste, de catégorie...) qui doit tenir sur une seule ligne plutôt que de wrapper et casser la
+         mise en page d'une ligne/carte. Ne remplace pas les cas où un contrôle a aussi besoin d'une
+         largeur bornée (WidthRequest/TextMaximumWidth) pour empêcher un débordement visuel dans une
+         colonne "*" ou "Auto" voisine - voir CampaignPage/ImportExportPage/AudioMixerPage pour des
+         exemples des deux.
+         Un Style explicite remplace entièrement le Style implicite du TargetType (pas de cascade en
+         MAUI) : ces deux styles reprennent donc les mêmes setters de base que les styles Label/Button
+         par défaut ci-dessus, pour ne pas perdre couleurs/police/police/état Disabled en les appliquant. -->
+    <Style TargetType="Label" x:Key="TruncatedLabelStyle">
+        <Setter Property="TextColor" Value="{DynamicResource AppText}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="LineBreakMode" Value="TailTruncation"/>
+        <Setter Property="MaxLines" Value="1"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{DynamicResource AppTextMuted}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <Style TargetType="Button" x:Key="TruncatedButtonStyle">
+        <Setter Property="TextColor" Value="{DynamicResource AppBackground}" />
+        <Setter Property="BackgroundColor" Value="{DynamicResource AppAccent}" />
+        <Setter Property="FontFamily" Value="OpenSansRegular"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderWidth" Value="0"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="14,10"/>
+        <Setter Property="MinimumHeightRequest" Value="44"/>
+        <Setter Property="MinimumWidthRequest" Value="44"/>
+        <Setter Property="LineBreakMode" Value="TailTruncation"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.85" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                            <Setter Property="Scale" Value="0.97" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
     <Style TargetType="Picker">
         <Setter Property="TextColor" Value="{DynamicResource AppText}" />
         <Setter Property="TitleColor" Value="{DynamicResource AppTextMuted}" />

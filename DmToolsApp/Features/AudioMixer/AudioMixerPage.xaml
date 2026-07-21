@@ -29,11 +29,16 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- TextMaximumWidth : sans borne (défaut = infini), un titre de session/scène long
+                     déborde de sa colonne "*" et chevauche son voisin au lieu d'être tronqué (le
+                     composant gère déjà LineBreakMode="TailTruncation" en interne, encore fallait-il
+                     lui donner une largeur à respecter). -->
                 <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"
                         Icon="{x:Static icons:SolidFont.Bookmark}" IconSize="13"
                         Text="{Binding SelectedSessionLabel}"
                         Command="{Binding SelectSessionCommand}"
                         TextColor="{DynamicResource AppAccent}"
+                        TextMaximumWidth="100"
                         FontSize="14"/>
 
                 <components:FaIconButtonView Grid.Column="1"
@@ -47,6 +52,7 @@
                         Text="{Binding SelectedSceneLabel}"
                         Command="{Binding SelectSceneCommand}"
                         TextColor="{DynamicResource AppAccent}"
+                        TextMaximumWidth="100"
                         FontSize="14"/>
 
                 <components:FaIconButtonView Grid.Column="3"

@@ -85,7 +85,7 @@
                             <!-- Label au lieu de l'image -->
                             <Label Text="{Binding Title}"
                         HorizontalOptions="Center"
-                        VerticalOptions="Center" LineBreakMode="TailTruncation"
+                        VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"
                         Grid.Row="1"/>
                         </Grid>
                     </Border>

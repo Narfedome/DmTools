@@ -75,7 +75,7 @@
                         <Label Grid.Column="1" Text="{x:Static icons:SolidFont.Map}"
                                FontFamily="FontSolid" FontSize="15"
                                VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                         <!-- Le Grid remplit toute la cellule (pas de HorizontalOptions/VerticalOptions="Center" dessus) :
                              sinon il se réduit à la taille de l'icône et la zone de tap réelle devient minuscule,
                              bien plus petite que la colonne réservée. Seul le Label à l'intérieur se centre. -->
@@ -110,7 +110,7 @@
                     <Label Grid.Column="2" Text="{x:Static icons:SolidFont.Bookmark}"
                            FontFamily="FontSolid" FontSize="13"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                    <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="15" VerticalOptions="Center"/>
+                    <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="15" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                     <!-- Même raison que le chevron Campagne ci-dessus : le Grid remplit toute la cellule
                          plutôt que de se réduire à la taille de l'icône. -->
                     <Grid Grid.Column="4">
@@ -139,7 +139,7 @@
                            FontFamily="FontSolid" FontSize="12"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
                     <Label Grid.Column="3" Text="{Binding Scene.Title}" FontSize="14" VerticalOptions="Center"
-                           TextColor="{DynamicResource AppTextMuted}"/>
+                           TextColor="{DynamicResource AppTextMuted}" Style="{StaticResource TruncatedLabelStyle}"/>
                     <Grid Grid.Column="4">
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer

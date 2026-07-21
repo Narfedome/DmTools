@@ -31,7 +31,7 @@
         </Grid>
         <Label Text="{Binding DisplayTrackName}"
                HorizontalOptions="Center"
-               LineBreakMode="TailTruncation" Margin="0,30,0,0"
+               Style="{StaticResource TruncatedLabelStyle}" Margin="0,30,0,0"
                WidthRequest="80" Rotation="-90" />
     </VerticalStackLayout>
 </ContentView>

@@ -20,8 +20,7 @@
             <Label Text="{Binding CurrentFileName}"
                    FontSize="14"
                    TextColor="{DynamicResource AppTextMuted}"
-                   LineBreakMode="TailTruncation"
-                   MaxLines="1"/>
+                   Style="{StaticResource TruncatedLabelStyle}"/>
             <Label Text="{Binding ProgressText}"
                    FontSize="14"
                    TextColor="{DynamicResource AppTextMuted}"/>

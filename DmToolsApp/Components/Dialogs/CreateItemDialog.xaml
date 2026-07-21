@@ -47,7 +47,8 @@
                                                 Icon="{Binding TypeButtonIcon}"
                                                 IsEnabled="{Binding TypeButtonEnabled}"
                                                 Command="{Binding SelectTypeCommand}"
-                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
+                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"
+                                                TextMaximumWidth="150"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
             </VerticalStackLayout>
@@ -59,7 +60,8 @@
                                                 Text="{Binding CampaignButtonText}"
                                                 Icon="{x:Static icons:SolidFont.Map}"
                                                 Command="{Binding SelectCampaignCommand}"
-                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
+                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"
+                                                TextMaximumWidth="150"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
             </VerticalStackLayout>
@@ -71,7 +73,8 @@
                                                 Text="{Binding SessionButtonText}"
                                                 Icon="{x:Static icons:SolidFont.Bookmark}"
                                                 Command="{Binding SelectSessionCommand}"
-                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
+                                                FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"
+                                                TextMaximumWidth="150"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
             </VerticalStackLayout>

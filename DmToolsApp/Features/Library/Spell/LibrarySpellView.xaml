@@ -58,7 +58,7 @@
                                 Padding="20" />
                             <Label Text="{Binding Title}"
                                    Grid.Row="1"
-                                   LineBreakMode="TailTruncation"
+                                   Style="{StaticResource TruncatedLabelStyle}"
                                    HorizontalOptions="Center"
                                    Margin="5"/>
                         </Grid>

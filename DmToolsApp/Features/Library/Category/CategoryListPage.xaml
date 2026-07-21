@@ -51,7 +51,7 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Label Text="{Binding .}" FontSize="16" VerticalOptions="Center"/>
+                        <Label Text="{Binding .}" FontSize="16" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
