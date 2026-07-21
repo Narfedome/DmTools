@@ -117,7 +117,19 @@ namespace DmToolsApp.Features.ImportExport
                 await _importExportService.ExportAsync(request, stream, progress);
                 stream.Position = 0;
 
-                var fileName = SanitizeFileName($"{SelectedCampaign?.Title ?? "bibliotheque"}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
+                // Basé sur le niveau choisi, pas juste sur SelectedCampaign : cette propriété peut
+                // rester une valeur résiduelle d'une sélection précédente (Structure) alors que le
+                // niveau actuel (Bibliothèque seule, Backup complet) n'a plus de campagne unique -
+                // sans ce switch, le fichier récupérait un nom de campagne sans rapport avec son contenu.
+                var baseName = _selectedLevel switch
+                {
+                    ExportLevel.StructureOnly => $"{SelectedCampaign?.Title ?? "Campagne"}-Structure",
+                    ExportLevel.StructureWithChannels => $"{SelectedCampaign?.Title ?? "Campagne"}Structure-WithAudio",
+                    ExportLevel.AudioLibraryOnly => "Library",
+                    ExportLevel.FullBackup => "All",
+                    _ => "Export"
+                };
+                var fileName = SanitizeFileName($"{baseName}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
                 var savedPath = await _fileService.SaveExportPackageAsync(fileName, stream, CancellationToken.None);
 
                 await page.ClosePopupAsync();
