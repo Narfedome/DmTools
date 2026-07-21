@@ -27,19 +27,19 @@ namespace DmToolsApp
             // tuiles WidthRequest=120 (LibraryTrackView.xaml) plafonne à 3 colonnes quelle que soit la
             // largeur dispo — une fenêtre plus large ne ferait qu'ajouter du vide autour. Le mixeur
             // (ChannelStripView, WidthRequest=50) défile horizontalement plutôt que d'avoir besoin de
-            // place. Le vrai plancher, c'est la TabBar du Shell (AppShell.xaml, 3 onglets Campagnes/
-            // Bibliothèque/Paramètres) : sous ~480px elle bascule en menu "..." replié (testé), ce qui
-            // casse la navigation avant même que le contenu des pages ne pose problème. Sur Windows/Mac
-            // Catalyst, sans bornes la fenêtre est librement redimensionnable en format très large, ce
-            // qui casse cette mise en page pensée pour du portrait. Ignoré sur Android/iOS (le
-            // windowing n'y a pas cours).
+            // place. Le vrai plancher, c'est la TabBar du Shell (AppShell.xaml) : 3 onglets (Campagnes/
+            // Bibliothèque/Paramètres) tiennent dès ~480px, mais un 4ᵉ apparaît ("AudioMixer") dès
+            // qu'une scène est active - testé, il faut ~590px pour que les 4 tiennent sans repli en
+            // menu "...". 600 laisse une petite marge. Sur Windows/Mac Catalyst, sans bornes la fenêtre
+            // est librement redimensionnable en format très large, ce qui casse cette mise en page
+            // pensée pour du portrait. Ignoré sur Android/iOS (le windowing n'y a pas cours).
             return new Window(page)
             {
-                Width = 480,
+                Width = 600,
                 Height = 800,
-                MinimumWidth = 480,
+                MinimumWidth = 600,
                 MinimumHeight = 640,
-                MaximumWidth = 560,
+                MaximumWidth = 680,
             };
         }
     }
