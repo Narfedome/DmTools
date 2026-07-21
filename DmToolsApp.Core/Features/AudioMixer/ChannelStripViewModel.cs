@@ -134,12 +134,6 @@ namespace DmToolsApp.Components
         }
 
         [RelayCommand]
-        public void ToggleLoop()
-        {
-            IsLooping = !IsLooping;
-        }
-
-        [RelayCommand]
         public void TogglePlay()
         {
             if (Player == null)

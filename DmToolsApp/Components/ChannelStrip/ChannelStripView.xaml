@@ -14,11 +14,6 @@
                                      Command="{Binding StopPlaybackCommand}"
                                      Tooltip="{loc:Loc ChannelStop}"
                                      HorizontalOptions="Center" />
-        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Repeat}"
-                                     Command="{Binding ToggleLoopCommand}"
-                                     Tooltip="{loc:Loc ChannelLoop}"
-                                     Opacity="{Binding IsLooping, Converter={StaticResource BoolToOpacityConverter}}"
-                                     HorizontalOptions="Center" />
         <Grid HeightRequest="150" WidthRequest="50">
             <Label Text="{Binding DisplayVolume}"
                HorizontalOptions="Center" />
