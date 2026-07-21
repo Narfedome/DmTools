@@ -76,7 +76,10 @@
                                FontFamily="FontSolid" FontSize="15"
                                VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
                         <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
-                        <Grid Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center">
+                        <!-- Le Grid remplit toute la cellule (pas de HorizontalOptions/VerticalOptions="Center" dessus) :
+                             sinon il se réduit à la taille de l'icône et la zone de tap réelle devient minuscule,
+                             bien plus petite que la colonne réservée. Seul le Label à l'intérieur se centre. -->
+                        <Grid Grid.Column="3">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleCampaignCommand}"
@@ -84,6 +87,7 @@
                             </Grid.GestureRecognizers>
                             <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
                                    FontFamily="FontSolid" FontSize="16"
+                                   HorizontalOptions="Center" VerticalOptions="Center"
                                    TextColor="{DynamicResource AppTextMuted}"/>
                         </Grid>
                     </Grid>
@@ -107,7 +111,9 @@
                            FontFamily="FontSolid" FontSize="13"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
                     <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="15" VerticalOptions="Center"/>
-                    <Grid Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center">
+                    <!-- Même raison que le chevron Campagne ci-dessus : le Grid remplit toute la cellule
+                         plutôt que de se réduire à la taille de l'icône. -->
+                    <Grid Grid.Column="4">
                         <Grid.GestureRecognizers>
                             <TapGestureRecognizer
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleSessionCommand}"
@@ -115,6 +121,7 @@
                         </Grid.GestureRecognizers>
                         <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
                                FontFamily="FontSolid" FontSize="15"
+                               HorizontalOptions="Center" VerticalOptions="Center"
                                TextColor="{DynamicResource AppTextMuted}"/>
                     </Grid>
                 </Grid>
