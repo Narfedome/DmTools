@@ -2,28 +2,13 @@ using CommunityToolkit.Maui.Views;
 
 namespace DmToolsApp.Components.Dialogs;
 
+/// <summary>Pur wrapper XAML lié à ConfirmDialogViewModel : toute la logique y vit, pas ici.</summary>
 public partial class ConfirmDialog : Popup<bool>
 {
-    public ConfirmDialog(string title, string message, string confirmLabel, string? cancelLabel)
+    public ConfirmDialog(ConfirmDialogViewModel viewModel)
     {
         InitializeComponent();
-
-        TitleLabel.Text = title;
-        MessageLabel.Text = message;
-        PrimaryButton.Text = confirmLabel;
-
-        if (cancelLabel == null)
-        {
-            SecondaryButton.IsVisible = false;
-            Grid.SetColumnSpan(PrimaryButton, 2);
-        }
-        else
-        {
-            SecondaryButton.Text = cancelLabel;
-        }
+        BindingContext = viewModel;
+        viewModel.CloseRequested += async result => await CloseAsync(result);
     }
-
-    async void OnPrimaryClicked(object? sender, EventArgs e) => await CloseAsync(true);
-
-    async void OnSecondaryClicked(object? sender, EventArgs e) => await CloseAsync(false);
 }

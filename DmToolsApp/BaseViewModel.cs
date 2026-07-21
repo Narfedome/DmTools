@@ -32,26 +32,26 @@ public abstract partial class BaseViewModel : ObservableObject
     // représenter "null". Toujours vérifier WasDismissedByTappingOutsideOfPopup d'abord.
     protected async Task<bool> ConfirmAsync(string title, string message)
     {
-        var popup = new ConfirmDialog(title, message, Loc["DialogYes"], Loc["DialogNo"]);
+        var popup = new ConfirmDialog(new ConfirmDialogViewModel(title, message, Loc["DialogYes"], Loc["DialogNo"]));
         var result = await CurrentPage.ShowPopupAsync<bool>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
         return !result.WasDismissedByTappingOutsideOfPopup && result.Result is true;
     }
 
     protected Task ShowErrorAsync(Exception ex)
     {
-        var popup = new ConfirmDialog(Loc["ErrorTitle"], ex.Message, Loc["DialogOk"], null);
+        var popup = new ConfirmDialog(new ConfirmDialogViewModel(Loc["ErrorTitle"], ex.Message, Loc["DialogOk"], null));
         return CurrentPage.ShowPopupAsync<bool>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
     }
 
     protected Task ShowInfoAsync(string title, string message)
     {
-        var popup = new ConfirmDialog(title, message, Loc["DialogOk"], null);
+        var popup = new ConfirmDialog(new ConfirmDialogViewModel(title, message, Loc["DialogOk"], null));
         return CurrentPage.ShowPopupAsync<bool>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
     }
 
     protected async Task<string?> ShowPromptAsync(string title, string message, string placeholder = "", string initialValue = "")
     {
-        var popup = new PromptDialog(title, message, placeholder, initialValue, Loc["DialogYes"], Loc["DialogNo"]);
+        var popup = new PromptDialog(new PromptDialogViewModel(title, message, placeholder, initialValue, Loc["DialogYes"], Loc["DialogNo"]));
         var result = await CurrentPage.ShowPopupAsync<string?>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
         return result.WasDismissedByTappingOutsideOfPopup ? null : result.Result;
     }
@@ -78,7 +78,7 @@ public abstract partial class BaseViewModel : ObservableObject
     /// </summary>
     protected async Task<int> ShowActionSheetIndexAsync(string title, params string[] options)
     {
-        var popup = new ActionSheetDialog(title, options, Loc["BtnCancel"]);
+        var popup = new ActionSheetDialog(new ActionSheetDialogViewModel(title, options, Loc["BtnCancel"]));
         var result = await CurrentPage.ShowPopupAsync<int>(popup, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = true }, CancellationToken.None);
         // Tap à côté de la popup : Result vaut default(int) = 0, qu'il ne faut surtout pas
         // confondre avec la première option.

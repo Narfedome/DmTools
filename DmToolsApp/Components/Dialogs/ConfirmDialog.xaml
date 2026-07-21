@@ -3,26 +3,30 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:system="clr-namespace:System;assembly=mscorlib"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:dialogs="clr-namespace:DmToolsApp.Components.Dialogs"
                x:TypeArguments="system:Boolean"
                x:Class="DmToolsApp.Components.Dialogs.ConfirmDialog"
+               x:DataType="dialogs:ConfirmDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0">
     <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
         <VerticalStackLayout Spacing="16">
-            <Label x:Name="TitleLabel"
+            <Label Text="{Binding Title}"
                    FontAttributes="Bold" FontSize="16"
                    TextColor="{DynamicResource AppText}"/>
-            <Label x:Name="MessageLabel"
+            <Label Text="{Binding Message}"
                    FontSize="14"
                    TextColor="{DynamicResource AppTextMuted}"/>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button x:Name="SecondaryButton"
-                        Grid.Column="0"
+                <Button Grid.Column="0"
+                        Text="{Binding CancelLabel}"
+                        IsVisible="{Binding HasCancel}"
                         Style="{StaticResource DialogSecondaryButton}"
-                        Clicked="OnSecondaryClicked"/>
-                <Button x:Name="PrimaryButton"
-                        Grid.Column="1"
-                        Clicked="OnPrimaryClicked"/>
+                        Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="1"
+                        Grid.ColumnSpan="{Binding ConfirmButtonColumnSpan}"
+                        Text="{Binding ConfirmLabel}"
+                        Command="{Binding ConfirmCommand}"/>
             </Grid>
         </VerticalStackLayout>
     </Border>

@@ -3,43 +3,35 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:system="clr-namespace:System;assembly=mscorlib"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:dialogs="clr-namespace:DmToolsApp.Components.Dialogs"
                x:TypeArguments="system:String"
                x:Class="DmToolsApp.Components.Dialogs.PromptDialog"
+               x:DataType="dialogs:PromptDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0"
                VerticalOptions="Start"
                Margin="0,80,0,0">
-    <!-- Ancrée en haut (pas centrée) : quand le clavier s'ouvre, le popup ne se repositionne pas de
-         façon fiable sur Android (relayout pas toujours redéclenché par AdjustResize) — une carte
-         centrée verticalement finit alors trop bas, ses boutons masqués par le clavier. Ancrée en
-         haut, sa position ne dépend plus de la hauteur disponible du tout.
-         VerticalOptions/Margin sont posés sur le Popup racine, pas sur le Border : les poser
-         seulement sur le Border laissait le Popup lui-même considérer tout son ancien espace alloué
-         comme "à l'intérieur", donc taper sur le voile visuellement vide au-dessus/à côté de la carte
-         ne fermait plus le dialogue. -->
+    <!-- Même ancrage/raisons qu'CreateItemDialog (cf. ses commentaires) : ancré en haut plutôt que
+         centré pour rester stable quand le clavier s'ouvre. -->
     <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
-        <!-- ScrollView : sur mobile, le clavier peut laisser moins de hauteur que le contenu (surtout
-             en paysage) — sans lui, les boutons Annuler/OK deviennent inatteignables.
-             MaximumHeightRequest fixé en code-behind (fraction de la hauteur d'écran), cf. CreateItemDialog.
-             VerticalOptions="Start" pour que la carte s'ajuste au contenu au lieu de toujours remplir
-             tout l'espace alloué jusqu'au plafond. -->
         <ScrollView x:Name="ContentScroll" VerticalOptions="Start">
         <VerticalStackLayout Spacing="16">
-            <Label x:Name="TitleLabel"
+            <Label Text="{Binding Title}"
                    FontAttributes="Bold" FontSize="16"
                    TextColor="{DynamicResource AppText}"/>
-            <Label x:Name="MessageLabel"
+            <Label Text="{Binding Message}"
+                   IsVisible="{Binding HasMessage}"
                    FontSize="14"
                    TextColor="{DynamicResource AppTextMuted}"/>
-            <Entry x:Name="InputEntry"/>
+            <Entry x:Name="InputEntry" Text="{Binding Text}" Placeholder="{Binding Placeholder}"/>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button x:Name="CancelButton"
-                        Grid.Column="0"
+                <Button Grid.Column="0"
+                        Text="{Binding CancelLabel}"
                         Style="{StaticResource DialogSecondaryButton}"
-                        Clicked="OnCancelClicked"/>
-                <Button x:Name="OkButton"
-                        Grid.Column="1"
-                        Clicked="OnOkClicked"/>
+                        Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="1"
+                        Text="{Binding ConfirmLabel}"
+                        Command="{Binding ConfirmCommand}"/>
             </Grid>
         </VerticalStackLayout>
         </ScrollView>
