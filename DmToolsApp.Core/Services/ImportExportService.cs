@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using DmToolsApp.Models;
@@ -15,17 +17,29 @@ namespace DmToolsApp.Services
     /// l'appli utilise, avec dédup des tracks par hash (FindTrackByHashAsync).
     ///
     /// Le zip lu à l'import est traité comme non fiable (peut venir d'un tiers) : toute entrée dont le
-    /// nom ne correspond pas exactement au format attendu ("manifest.json" ou "tracks/&lt;hash
-    /// SHA256&gt;.&lt;ext&gt;") fait rejeter l'archive entière avant la moindre extraction, ce qui
-    /// élimine tout risque de zip-slip. La taille déclarée de chaque entrée et le total sont plafonnés
-    /// pour se prémunir d'un zip-bomb, et le hash de chaque fichier extrait est revérifié avant d'être
-    /// accepté en bibliothèque.
+    /// nom ne correspond pas exactement au format attendu ("manifest.json", "manifest.sig" ou
+    /// "tracks/&lt;hash SHA256&gt;.&lt;ext&gt;") fait rejeter l'archive entière avant la moindre
+    /// extraction, ce qui élimine tout risque de zip-slip. La taille déclarée de chaque entrée et le
+    /// total sont plafonnés pour se prémunir d'un zip-bomb, et le hash de chaque fichier extrait est
+    /// revérifié avant d'être accepté en bibliothèque.
+    ///
+    /// Le manifeste est signé (HMAC-SHA256, clé fixe embarquée dans l'appli) : toute édition du
+    /// manifest.json après export (titres, volumes, structure de campagne...), par exemple via un
+    /// logiciel de zip, invalide la signature et fait rejeter l'archive à l'import. Ça détecte aussi
+    /// une corruption accidentelle du fichier. Ce n'est en revanche pas une protection contre un
+    /// attaquant qui décompile l'appli pour en extraire la clé et forger une nouvelle signature — ce
+    /// n'est pas l'objectif ici, seulement d'empêcher une modification "à la main" silencieuse.
     /// </summary>
     public class ImportExportService : IImportExportService
     {
         private const int FormatVersion = 1;
         private const long MaxTrackEntryBytes = 500L * 1024 * 1024;
         private const long MaxTotalUncompressedBytes = 2L * 1024 * 1024 * 1024;
+        private const string ManifestEntryName = "manifest.json";
+        private const string SignatureEntryName = "manifest.sig";
+
+        private static readonly byte[] ManifestSignatureKey =
+            Convert.FromHexString("61d46ee3f647bca5824870dc1330e22e9f5201b2b395c17cba19f27e790ef21e");
 
         private static readonly Regex TrackEntryPattern = new(@"^tracks/[a-fA-F0-9]{64}\.[a-z0-9]{1,5}$", RegexOptions.Compiled);
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
@@ -120,9 +134,26 @@ namespace DmToolsApp.Services
                 progress?.Report(new ExportProgress { CurrentItem = track.Title, Processed = ++processed, Total = allTracksById.Count });
             }
 
-            var manifestEntry = zip.CreateEntry("manifest.json", CompressionLevel.Optimal);
+            var manifestBytes = JsonSerializer.SerializeToUtf8Bytes(manifest, JsonOptions);
+
+            var manifestEntry = zip.CreateEntry(ManifestEntryName, CompressionLevel.Optimal);
             using (var manifestStream = manifestEntry.Open())
-                await JsonSerializer.SerializeAsync(manifestStream, manifest, JsonOptions, cancellationToken);
+                await manifestStream.WriteAsync(manifestBytes, cancellationToken);
+
+            var signatureEntry = zip.CreateEntry(SignatureEntryName, CompressionLevel.Optimal);
+            using (var signatureStream = signatureEntry.Open())
+            {
+                var signatureHex = Encoding.ASCII.GetBytes(Convert.ToHexString(ComputeManifestSignature(manifestBytes)));
+                await signatureStream.WriteAsync(signatureHex, cancellationToken);
+            }
+        }
+
+        /// <summary>Internal (pas private) uniquement pour permettre aux tests de signer un manifeste
+        /// forgé à la main lorsqu'ils veulent isoler une autre cause de rejet.</summary>
+        internal static byte[] ComputeManifestSignature(byte[] manifestBytes)
+        {
+            using var hmac = new HMACSHA256(ManifestSignatureKey);
+            return hmac.ComputeHash(manifestBytes);
         }
 
         private async Task<CampaignExport> BuildCampaignExportAsync(Campaign campaign, bool includeChannels, HashSet<int> trackIdsToInclude, CancellationToken cancellationToken)
@@ -188,15 +219,39 @@ namespace DmToolsApp.Services
 
             ValidateArchiveEntries(zip);
 
-            var manifestEntry = zip.GetEntry("manifest.json")
+            var manifestEntry = zip.GetEntry(ManifestEntryName)
                 ?? throw new InvalidDataException("Fichier .dmpack invalide : manifeste manquant.");
+            var signatureEntry = zip.GetEntry(SignatureEntryName)
+                ?? throw new InvalidDataException("Fichier .dmpack invalide : signature manquante.");
 
-            ExportManifest manifest;
+            byte[] manifestBytes;
             using (var manifestStream = manifestEntry.Open())
+            using (var buffer = new MemoryStream())
             {
-                manifest = await JsonSerializer.DeserializeAsync<ExportManifest>(manifestStream, JsonOptions, cancellationToken)
-                    ?? throw new InvalidDataException("Fichier .dmpack invalide : manifeste illisible.");
+                await manifestStream.CopyToAsync(buffer, cancellationToken);
+                manifestBytes = buffer.ToArray();
             }
+
+            string declaredSignatureHex;
+            using (var signatureStream = signatureEntry.Open())
+            using (var reader = new StreamReader(signatureStream, Encoding.ASCII))
+                declaredSignatureHex = (await reader.ReadToEndAsync(cancellationToken)).Trim();
+
+            byte[] declaredSignature;
+            try
+            {
+                declaredSignature = Convert.FromHexString(declaredSignatureHex);
+            }
+            catch (FormatException)
+            {
+                throw new InvalidDataException("Fichier .dmpack invalide : signature illisible.");
+            }
+
+            if (!CryptographicOperations.FixedTimeEquals(ComputeManifestSignature(manifestBytes), declaredSignature))
+                throw new InvalidDataException("Archive .dmpack corrompue ou modifiée : signature invalide.");
+
+            var manifest = JsonSerializer.Deserialize<ExportManifest>(manifestBytes, JsonOptions)
+                ?? throw new InvalidDataException("Fichier .dmpack invalide : manifeste illisible.");
             ValidateManifest(manifest);
 
             var result = new ImportResult();
@@ -249,7 +304,7 @@ namespace DmToolsApp.Services
             long totalDeclared = 0;
             foreach (var entry in zip.Entries)
             {
-                if (entry.FullName != "manifest.json" && !TrackEntryPattern.IsMatch(entry.FullName))
+                if (entry.FullName != ManifestEntryName && entry.FullName != SignatureEntryName && !TrackEntryPattern.IsMatch(entry.FullName))
                     throw new InvalidDataException($"Entrée d'archive non reconnue : {entry.FullName}");
 
                 if (entry.Length > MaxTrackEntryBytes)

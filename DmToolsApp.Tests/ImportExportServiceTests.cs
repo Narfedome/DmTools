@@ -308,20 +308,67 @@ public class ImportExportServiceTests : IDisposable
         await Assert.ThrowsAsync<InvalidDataException>(() => ctx.Service.ImportAsync(zipStream));
     }
 
+    /// <summary>Écrit manifest.json + une signature manifest.sig valide, comme le ferait un vrai export.</summary>
+    private static void WriteSignedManifest(ZipArchive zip, ExportManifest manifest)
+    {
+        var manifestBytes = JsonSerializer.SerializeToUtf8Bytes(manifest);
+
+        var manifestEntry = zip.CreateEntry("manifest.json", CompressionLevel.Optimal);
+        using (var s = manifestEntry.Open())
+            s.Write(manifestBytes);
+
+        var signatureEntry = zip.CreateEntry("manifest.sig", CompressionLevel.Optimal);
+        using (var s = signatureEntry.Open())
+            s.Write(Encoding.ASCII.GetBytes(Convert.ToHexString(ImportExportService.ComputeManifestSignature(manifestBytes))));
+    }
+
     [Fact]
     public async Task Import_RejectsManifestWithUnsupportedFormatVersion()
     {
         using var zipStream = new MemoryStream();
         using (var zip = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
         {
-            var manifestEntry = zip.CreateEntry("manifest.json", CompressionLevel.Optimal);
-            using var s = manifestEntry.Open();
-            await JsonSerializer.SerializeAsync(s, new ExportManifest { FormatVersion = 99, ExportLevel = 1 });
+            WriteSignedManifest(zip, new ExportManifest { FormatVersion = 99, ExportLevel = 1 });
         }
 
         await using var ctx = await ImportExportTestContext.CreateAsync();
         zipStream.Position = 0;
         await Assert.ThrowsAsync<InvalidDataException>(() => ctx.Service.ImportAsync(zipStream));
+    }
+
+    [Fact]
+    public async Task Import_RejectsManifestTamperedAfterSigning()
+    {
+        await using var source = await ImportExportTestContext.CreateAsync();
+        var campaign = new Campaign { Title = "Original" };
+        await source.Scenes.SaveCampaignAsync(campaign);
+
+        using var zipStream = new MemoryStream();
+        await source.Service.ExportAsync(new ExportRequest { Level = ExportLevel.StructureOnly, CampaignId = campaign.Id }, zipStream);
+
+        // Modifie manifest.json après coup (ex. via un logiciel de zip) sans recalculer manifest.sig :
+        // c'est exactement ce que la signature doit détecter. Flux redimensionnable (contrairement à
+        // MemoryStream(byte[])) car le nouveau titre peut agrandir l'archive.
+        using var tampered = new MemoryStream();
+        zipStream.Position = 0;
+        zipStream.CopyTo(tampered);
+        using (var zip = new ZipArchive(tampered, ZipArchiveMode.Update, leaveOpen: true))
+        {
+            var manifestEntry = zip.GetEntry("manifest.json")!;
+            ExportManifest manifest;
+            using (var s = manifestEntry.Open())
+                manifest = (await JsonSerializer.DeserializeAsync<ExportManifest>(s))!;
+            manifest.Campaigns[0].Title = "Titre modifié après signature";
+
+            manifestEntry.Delete();
+            var replacement = zip.CreateEntry("manifest.json", CompressionLevel.Optimal);
+            using var w = replacement.Open();
+            await JsonSerializer.SerializeAsync(w, manifest);
+        }
+
+        await using var dest = await ImportExportTestContext.CreateAsync();
+        tampered.Position = 0;
+        await Assert.ThrowsAsync<InvalidDataException>(() => dest.Service.ImportAsync(tampered));
     }
 
     [Fact]
