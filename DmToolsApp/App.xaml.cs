@@ -20,13 +20,27 @@ namespace DmToolsApp
             ThemeService.Instance.Initialize();
 
             bool hasLaunched = Preferences.Default.Get("has_launched", false);
-            if (!hasLaunched)
-            {
-                var onboarding = _services.GetRequiredService<OnboardingPage>();
-                return new Window(onboarding);
-            }
+            var page = hasLaunched ? _shell : (Page)_services.GetRequiredService<OnboardingPage>();
 
-            return new Window(_shell);
+            // L'UI est pensée pour un usage mobile (portrait), et rien dans la mise en page ne profite
+            // d'une largeur au-delà de ce que montre la Bibliothèque : GridItemsLayout Span="3" avec des
+            // tuiles WidthRequest=120 (LibraryTrackView.xaml) plafonne à 3 colonnes quelle que soit la
+            // largeur dispo — une fenêtre plus large ne ferait qu'ajouter du vide autour. Le mixeur
+            // (ChannelStripView, WidthRequest=50) défile horizontalement plutôt que d'avoir besoin de
+            // place. Le vrai plancher, c'est la TabBar du Shell (AppShell.xaml, 3 onglets Campagnes/
+            // Bibliothèque/Paramètres) : sous ~480px elle bascule en menu "..." replié (testé), ce qui
+            // casse la navigation avant même que le contenu des pages ne pose problème. Sur Windows/Mac
+            // Catalyst, sans bornes la fenêtre est librement redimensionnable en format très large, ce
+            // qui casse cette mise en page pensée pour du portrait. Ignoré sur Android/iOS (le
+            // windowing n'y a pas cours).
+            return new Window(page)
+            {
+                Width = 480,
+                Height = 800,
+                MinimumWidth = 480,
+                MinimumHeight = 640,
+                MaximumWidth = 560,
+            };
         }
     }
 }
