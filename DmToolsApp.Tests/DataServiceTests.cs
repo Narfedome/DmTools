@@ -372,6 +372,46 @@ public class LibraryDataServiceTests : DatabaseTestBase
     }
 
     [Fact]
+    public async Task GetAllReferencedFilePaths_IncludesTrackAndSpellFilePathsAndImagePaths()
+    {
+        var track = MakeTrack("Tavern");
+        track.ImagePath = @"C:\covers\tavern.jpg";
+        await Service.SaveLibraryItemAsync(track);
+
+        var spell = new Spell { Title = "Boule de feu", FilePath = @"C:\spells\fireball.mp3", ImagePath = @"C:\covers\fireball.jpg" };
+        await Service.SaveLibraryItemAsync(spell);
+
+        var referenced = await Service.GetAllReferencedFilePathsAsync();
+
+        Assert.Contains(track.FilePath, referenced);
+        Assert.Contains(track.ImagePath, referenced);
+        Assert.Contains(spell.FilePath, referenced);
+        Assert.Contains(spell.ImagePath, referenced);
+    }
+
+    [Fact]
+    public async Task GetAllReferencedFilePaths_KeepsSharedFile_ButDropsPathOnlyUsedByDeletedTrack()
+    {
+        // Deux tracks partagent le même fichier physique (dédup par hash à l'import) ; une
+        // troisième a un fichier qui lui est propre. Reproduit exactement le garde-fou utilisé par
+        // LibraryTrackViewModel.DeleteSelectedItems avant de supprimer un fichier du disque : ne
+        // jamais l'effacer tant qu'une autre track vivante le référence encore.
+        var shared1 = MakeTrack("Shared1"); shared1.FilePath = @"C:\tracks\shared.mp3";
+        var shared2 = MakeTrack("Shared2"); shared2.FilePath = @"C:\tracks\shared.mp3";
+        var unique = MakeTrack("Unique"); unique.FilePath = @"C:\tracks\unique.mp3";
+        await Service.SaveLibraryItemAsync(shared1);
+        await Service.SaveLibraryItemAsync(shared2);
+        await Service.SaveLibraryItemAsync(unique);
+
+        await Service.DeleteItemsAsync(typeof(Track), new[] { shared1.Id, unique.Id });
+
+        var referenced = await Service.GetAllReferencedFilePathsAsync();
+
+        Assert.Contains(@"C:\tracks\shared.mp3", referenced);
+        Assert.DoesNotContain(@"C:\tracks\unique.mp3", referenced);
+    }
+
+    [Fact]
     public async Task EnsureCategory_IsIdempotent_AndScopedByLibraryType()
     {
         await Service.EnsureCategoryAsync(typeof(Track), "Musique");

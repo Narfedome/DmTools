@@ -85,4 +85,38 @@ public class TrackTagHelperTests
             File.Delete(pathB);
         }
     }
+
+    // IsDecodableAudio est le dernier rempart avant d'accepter un fichier extrait d'un .dmpack en
+    // bibliothèque (cf. ImportExportService) : un hash déclaré correct ne suffit pas, le contenu
+    // doit être un audio réellement décodable.
+
+    [Fact]
+    public void IsDecodableAudio_ReturnsFalse_ForNonAudioFile()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, "ceci n'est pas un fichier audio");
+            Assert.False(TrackTagHelper.IsDecodableAudio(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void IsDecodableAudio_ReturnsTrue_ForValidAudioFile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"tth-tests-{Guid.NewGuid():N}.wav");
+        try
+        {
+            TestAudioFile.WriteSilentWav(path);
+            Assert.True(TrackTagHelper.IsDecodableAudio(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 }
