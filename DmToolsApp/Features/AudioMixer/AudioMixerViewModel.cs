@@ -165,7 +165,7 @@ namespace DmToolsApp.Features.AudioMixer
                 if (persisted == null)
                     return;
 
-                var dialog = new ChannelSettingsDialog(
+                var dialogViewModel = new ChannelSettingsDialogViewModel(
                     channel.DisplayTrackName ?? persisted.Track.Title,
                     channel.Volume,
                     channel.IsLooping,
@@ -173,14 +173,14 @@ namespace DmToolsApp.Features.AudioMixer
                     channel.IsFadeOut,
                     persisted.AutoPlay);
 
-                var saved = await ShowDialogAsync(dialog);
+                var saved = await ShowDialogAsync(new ChannelSettingsDialog(dialogViewModel));
                 if (!saved)
                     return;
 
-                channel.Volume = dialog.VolumeValue;
-                channel.IsLooping = dialog.IsLoopingValue;
-                channel.IsFadeIn = dialog.FadeInValue;
-                channel.IsFadeOut = dialog.FadeOutValue;
+                channel.Volume = dialogViewModel.Volume;
+                channel.IsLooping = dialogViewModel.IsLooping;
+                channel.IsFadeIn = dialogViewModel.FadeIn;
+                channel.IsFadeOut = dialogViewModel.FadeOut;
 
                 // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée,
                 // redondante avec la sauvegarde immédiate et complète qui suit : on l'annule.
@@ -191,7 +191,7 @@ namespace DmToolsApp.Features.AudioMixer
                 }
 
                 await _sceneDataService.UpdateSceneTrackAsync(
-                    channel.SceneTrackId, dialog.VolumeValue, dialog.IsLoopingValue, dialog.AutoPlayValue, dialog.FadeInValue, dialog.FadeOutValue);
+                    channel.SceneTrackId, dialogViewModel.Volume, dialogViewModel.IsLooping, dialogViewModel.AutoPlay, dialogViewModel.FadeIn, dialogViewModel.FadeOut);
             }
             finally
             {

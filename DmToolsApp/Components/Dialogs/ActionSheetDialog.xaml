@@ -3,21 +3,32 @@
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:system="clr-namespace:System;assembly=mscorlib"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:dialogs="clr-namespace:DmToolsApp.Components.Dialogs"
                x:TypeArguments="system:Int32"
                x:Class="DmToolsApp.Components.Dialogs.ActionSheetDialog"
+               x:DataType="dialogs:ActionSheetDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0">
     <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
         <VerticalStackLayout Spacing="16">
-            <Label x:Name="TitleLabel"
+            <Label Text="{Binding Title}"
                    FontAttributes="Bold" FontSize="16"
                    TextColor="{DynamicResource AppText}"/>
             <ScrollView MaximumHeightRequest="320">
-                <VerticalStackLayout x:Name="OptionsStack" Spacing="8"/>
+                <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Options}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="dialogs:ActionSheetOption">
+                            <Button Text="{Binding Label}"
+                                    Style="{StaticResource DialogOptionButton}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type dialogs:ActionSheetDialogViewModel}}, Path=SelectCommand}"
+                                    CommandParameter="{Binding .}"/>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
             </ScrollView>
-            <Button x:Name="CancelButton"
+            <Button Text="{Binding CancelLabel}"
                     Style="{StaticResource DialogSecondaryButton}"
-                    Clicked="OnCancelClicked"/>
+                    Command="{Binding CancelCommand}"/>
         </VerticalStackLayout>
     </Border>
 </toolkit:Popup>

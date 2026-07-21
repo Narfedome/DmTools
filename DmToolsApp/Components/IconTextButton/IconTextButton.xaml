@@ -44,6 +44,8 @@
         <Label Text="{Binding Source={x:Reference root}, Path=Text}"
                FontSize="{Binding Source={x:Reference root}, Path=FontSize}"
                TextColor="{Binding Source={x:Reference root}, Path=TextColor}"
+               LineBreakMode="TailTruncation"
+               MaximumWidthRequest="{Binding Source={x:Reference root}, Path=TextMaximumWidth}"
                VerticalOptions="Center"/>
     </HorizontalStackLayout>
 </ContentView>

@@ -190,14 +190,14 @@ namespace DmToolsApp.Features.Campaigns
                 _ => (CreateItemKind.Campaign, (Campaign?)null, (Session?)null),
             };
 
-            var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync, initialKind, initialCampaign, initialSession);
-            if (await ShowDialogAsync(dialog) != true) return;
+            var dialogViewModel = new CreateItemDialogViewModel(campaigns, _sceneDataService.GetSessionsAsync, initialKind, initialCampaign, initialSession);
+            if (await ShowDialogAsync(new CreateItemDialog(dialogViewModel)) != true) return;
 
-            string name = dialog.Name.Trim();
+            string name = dialogViewModel.Name.Trim();
             if (string.IsNullOrWhiteSpace(name)) return;
             name = name.CapitalizeFirst();
 
-            switch (dialog.SelectedKind)
+            switch (dialogViewModel.SelectedKind)
             {
                 case CreateItemKind.Campaign:
                 {
@@ -209,22 +209,22 @@ namespace DmToolsApp.Features.Campaigns
                 }
                 case CreateItemKind.Session:
                 {
-                    if (dialog.SelectedCampaign == null) return;
-                    var session = new Session { CampaignId = dialog.SelectedCampaign.Id, Title = name };
+                    if (dialogViewModel.SelectedCampaign == null) return;
+                    var session = new Session { CampaignId = dialogViewModel.SelectedCampaign.Id, Title = name };
                     await _sceneDataService.SaveSessionAsync(session);
 
-                    var campaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialog.SelectedCampaign.Id);
+                    var campaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialogViewModel.SelectedCampaign.Id);
                     if (campaignRow != null && campaignRow.IsExpanded)
                         Rows.Insert(EndOfSubtree(campaignRow), new SessionRow(session, campaignRow.Campaign));
                     break;
                 }
                 case CreateItemKind.Scene:
                 {
-                    if (dialog.SelectedCampaign == null || dialog.SelectedSession == null) return;
-                    var scene = new Scene { SessionId = dialog.SelectedSession.Id, Title = name };
+                    if (dialogViewModel.SelectedCampaign == null || dialogViewModel.SelectedSession == null) return;
+                    var scene = new Scene { SessionId = dialogViewModel.SelectedSession.Id, Title = name };
                     await _sceneDataService.SaveSceneAsync(scene);
 
-                    var sessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialog.SelectedSession.Id);
+                    var sessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialogViewModel.SelectedSession.Id);
                     if (sessionRow != null && sessionRow.IsExpanded)
                         Rows.Insert(EndOfSubtree(sessionRow), new SceneRow(scene, sessionRow.Session, sessionRow.ParentCampaign));
                     break;
@@ -247,10 +247,10 @@ namespace DmToolsApp.Features.Campaigns
             {
                 case CampaignRow campaignRow:
                 {
-                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                    var dialogViewModel = new CreateItemDialogViewModel(campaigns, _sceneDataService.GetSessionsAsync,
                         CreateItemKind.Campaign, null, null, campaignRow.Campaign.Title, lockType: true);
-                    if (await ShowDialogAsync(dialog) != true) return;
-                    string name = dialog.Name.Trim();
+                    if (await ShowDialogAsync(new CreateItemDialog(dialogViewModel)) != true) return;
+                    string name = dialogViewModel.Name.Trim();
                     if (string.IsNullOrWhiteSpace(name)) return;
 
                     campaignRow.Campaign.Title = name.CapitalizeFirst();
@@ -259,46 +259,46 @@ namespace DmToolsApp.Features.Campaigns
                 }
                 case SessionRow sessionRow:
                 {
-                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                    var dialogViewModel = new CreateItemDialogViewModel(campaigns, _sceneDataService.GetSessionsAsync,
                         CreateItemKind.Session, sessionRow.ParentCampaign, null, sessionRow.Session.Title, lockType: true);
-                    if (await ShowDialogAsync(dialog) != true) return;
-                    string name = dialog.Name.Trim();
-                    if (string.IsNullOrWhiteSpace(name) || dialog.SelectedCampaign == null) return;
+                    if (await ShowDialogAsync(new CreateItemDialog(dialogViewModel)) != true) return;
+                    string name = dialogViewModel.Name.Trim();
+                    if (string.IsNullOrWhiteSpace(name) || dialogViewModel.SelectedCampaign == null) return;
 
                     sessionRow.Session.Title = name.CapitalizeFirst();
-                    bool moved = dialog.SelectedCampaign.Id != sessionRow.Session.CampaignId;
-                    sessionRow.Session.CampaignId = dialog.SelectedCampaign.Id;
+                    bool moved = dialogViewModel.SelectedCampaign.Id != sessionRow.Session.CampaignId;
+                    sessionRow.Session.CampaignId = dialogViewModel.SelectedCampaign.Id;
                     await _sceneDataService.SaveSessionAsync(sessionRow.Session);
 
                     if (moved)
                     {
                         RemoveSubtree(sessionRow);
-                        var targetCampaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialog.SelectedCampaign.Id);
+                        var targetCampaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialogViewModel.SelectedCampaign.Id);
                         if (targetCampaignRow != null && targetCampaignRow.IsExpanded)
-                            Rows.Insert(EndOfSubtree(targetCampaignRow), new SessionRow(sessionRow.Session, dialog.SelectedCampaign));
+                            Rows.Insert(EndOfSubtree(targetCampaignRow), new SessionRow(sessionRow.Session, dialogViewModel.SelectedCampaign));
                         SelectedRow = null;
                     }
                     break;
                 }
                 case SceneRow sceneRow:
                 {
-                    var dialog = new CreateItemDialog(campaigns, _sceneDataService.GetSessionsAsync,
+                    var dialogViewModel = new CreateItemDialogViewModel(campaigns, _sceneDataService.GetSessionsAsync,
                         CreateItemKind.Scene, sceneRow.ParentCampaign, sceneRow.ParentSession, sceneRow.Scene.Title, lockType: true);
-                    if (await ShowDialogAsync(dialog) != true) return;
-                    string name = dialog.Name.Trim();
-                    if (string.IsNullOrWhiteSpace(name) || dialog.SelectedCampaign == null || dialog.SelectedSession == null) return;
+                    if (await ShowDialogAsync(new CreateItemDialog(dialogViewModel)) != true) return;
+                    string name = dialogViewModel.Name.Trim();
+                    if (string.IsNullOrWhiteSpace(name) || dialogViewModel.SelectedCampaign == null || dialogViewModel.SelectedSession == null) return;
 
                     sceneRow.Scene.Title = name.CapitalizeFirst();
-                    bool moved = dialog.SelectedSession.Id != sceneRow.Scene.SessionId;
-                    sceneRow.Scene.SessionId = dialog.SelectedSession.Id;
+                    bool moved = dialogViewModel.SelectedSession.Id != sceneRow.Scene.SessionId;
+                    sceneRow.Scene.SessionId = dialogViewModel.SelectedSession.Id;
                     await _sceneDataService.SaveSceneAsync(sceneRow.Scene);
 
                     if (moved)
                     {
                         Rows.Remove(sceneRow);
-                        var targetSessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialog.SelectedSession.Id);
+                        var targetSessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialogViewModel.SelectedSession.Id);
                         if (targetSessionRow != null && targetSessionRow.IsExpanded)
-                            Rows.Insert(EndOfSubtree(targetSessionRow), new SceneRow(sceneRow.Scene, dialog.SelectedSession, dialog.SelectedCampaign));
+                            Rows.Insert(EndOfSubtree(targetSessionRow), new SceneRow(sceneRow.Scene, dialogViewModel.SelectedSession, dialogViewModel.SelectedCampaign));
                         SelectedRow = null;
                     }
                     break;

@@ -101,7 +101,6 @@ namespace DmToolsApp
             builder.Services.AddTransient<CategoryListPage>();
             builder.Services.AddTransient<LibrarySpellViewModel>();
             builder.Services.AddTransient<LibrarySpellEditViewModel>();
-            builder.Services.AddTransient<LibraryTrackEditViewModel>();
             builder.Services.AddTransient<LibrarySpellSelectorPage>();
             builder.Services.AddTransient<LibraryTrackSelectorPage>();
             builder.Services.AddSingleton<AudioMixerViewModel>();

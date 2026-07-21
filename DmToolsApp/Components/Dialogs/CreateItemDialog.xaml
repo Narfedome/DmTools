@@ -6,8 +6,10 @@
                xmlns:loc="clr-namespace:DmToolsApp.Extensions"
                xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
                xmlns:components="clr-namespace:DmToolsApp.Components"
+               xmlns:dialogs="clr-namespace:DmToolsApp.Components.Dialogs"
                x:TypeArguments="system:Boolean"
                x:Class="DmToolsApp.Components.Dialogs.CreateItemDialog"
+               x:DataType="dialogs:CreateItemDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0"
                VerticalOptions="Start"
@@ -30,7 +32,7 @@
              contenu est plus court — sans ça la carte du dialogue restait grande à vide. -->
         <ScrollView x:Name="ContentScroll" VerticalOptions="Start">
         <VerticalStackLayout Spacing="12">
-            <Label x:Name="TitleLabel"
+            <Label Text="{Binding Title}"
                    FontAttributes="Bold" FontSize="16"
                    TextColor="{DynamicResource AppText}"/>
 
@@ -40,27 +42,35 @@
             <VerticalStackLayout Spacing="6">
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{loc:Loc FieldType}" FontSize="13" TextColor="{DynamicResource AppTextMuted}" VerticalOptions="Center"/>
-                    <components:IconTextButton Grid.Column="1" x:Name="TypeButton" Clicked="OnTypeButtonClicked"
+                    <components:IconTextButton Grid.Column="1"
+                                                Text="{Binding TypeButtonText}"
+                                                Icon="{Binding TypeButtonIcon}"
+                                                IsEnabled="{Binding TypeButtonEnabled}"
+                                                Command="{Binding SelectTypeCommand}"
                                                 FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
             </VerticalStackLayout>
 
-            <VerticalStackLayout x:Name="CampaignField" Spacing="6">
+            <VerticalStackLayout Spacing="6" IsVisible="{Binding CampaignFieldVisible}">
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{loc:Loc NounCampaign}" FontSize="13" TextColor="{DynamicResource AppTextMuted}" VerticalOptions="Center"/>
-                    <components:IconTextButton Grid.Column="1" x:Name="CampaignButton" Clicked="OnCampaignButtonClicked"
+                    <components:IconTextButton Grid.Column="1"
+                                                Text="{Binding CampaignButtonText}"
                                                 Icon="{x:Static icons:SolidFont.Map}"
+                                                Command="{Binding SelectCampaignCommand}"
                                                 FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
             </VerticalStackLayout>
 
-            <VerticalStackLayout x:Name="SessionField" Spacing="6">
+            <VerticalStackLayout Spacing="6" IsVisible="{Binding SessionFieldVisible}">
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Grid.Column="0" Text="{loc:Loc NounChapter}" FontSize="13" TextColor="{DynamicResource AppTextMuted}" VerticalOptions="Center"/>
-                    <components:IconTextButton Grid.Column="1" x:Name="SessionButton" Clicked="OnSessionButtonClicked"
+                    <components:IconTextButton Grid.Column="1"
+                                                Text="{Binding SessionButtonText}"
                                                 Icon="{x:Static icons:SolidFont.Bookmark}"
+                                                Command="{Binding SelectSessionCommand}"
                                                 FontSize="14" IconSize="14" TextColor="{DynamicResource AppAccent}"/>
                 </Grid>
                 <BoxView HeightRequest="1" Color="{DynamicResource AppBorder}"/>
@@ -68,17 +78,17 @@
 
             <VerticalStackLayout Spacing="4">
                 <Label Text="{loc:Loc PromptName}" FontSize="13" TextColor="{DynamicResource AppTextMuted}"/>
-                <Entry x:Name="NameEntry"/>
+                <Entry x:Name="NameEntry" Text="{Binding Name}"/>
             </VerticalStackLayout>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Grid.Column="0"
                         Text="{loc:Loc BtnCancel}"
                         Style="{StaticResource DialogSecondaryButton}"
-                        Clicked="OnCancelClicked"/>
+                        Command="{Binding CancelCommand}"/>
                 <Button Grid.Column="1"
                         Text="{loc:Loc BtnSave}"
-                        Clicked="OnSaveClicked"/>
+                        Command="{Binding SaveCommand}"/>
             </Grid>
         </VerticalStackLayout>
         </ScrollView>

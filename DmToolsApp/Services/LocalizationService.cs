@@ -30,6 +30,14 @@ namespace DmToolsApp.Services
 
         public string this[string key] => _rm.GetString(key, _culture) ?? key;
 
+        /// <summary>
+        /// Traduction d'une clé dans une langue précise, sans passer par la culture courante de
+        /// l'instance (donc sans affecter l'UI) : utilisé pour reconnaître un libellé venant d'une
+        /// install dans une autre langue (cf. réconciliation des catégories par défaut à l'import).
+        /// </summary>
+        public static string GetString(string key, string languageCode) =>
+            _rm.GetString(key, new CultureInfo(languageCode)) ?? key;
+
         public string Language
         {
             get => _culture.Name;

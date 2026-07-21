@@ -8,6 +8,7 @@ using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.Library;
 using DmToolsApp.Models;
 using DmToolsApp.Models.ImportExport;
+using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 
 namespace DmToolsApp.Features.ImportExport
@@ -16,10 +17,18 @@ namespace DmToolsApp.Features.ImportExport
     {
         private readonly IImportExportService _importExportService;
         private readonly ISceneDataService _sceneDataService;
+        private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
 
         private List<Campaign> _campaigns = new();
         private ExportLevel _selectedLevel = ExportLevel.StructureOnly;
+
+        // Clés des catégories par défaut (cf. MauiProgram) : ce sont des libellés localisés, pas des
+        // clés stables, donc un import venant d'une install dans une autre langue (ex. Android EN vs
+        // Windows FR) crée sinon des doublons ("Music" + "Musique") au lieu de fusionner sur la même
+        // catégorie logique. Cf. ReconcileDefaultCategoryTranslationsAsync.
+        private static readonly string[] DefaultCategoryKeys =
+            { "LibCategoryMusic", "LibCategoryAmbience", "LibCategorySoundEffect" };
 
         [ObservableProperty]
         private string selectedLevelLabel;
@@ -29,10 +38,15 @@ namespace DmToolsApp.Features.ImportExport
 
         public bool RequiresCampaignSelection => _selectedLevel is ExportLevel.StructureOnly or ExportLevel.StructureWithChannels;
 
-        public ImportExportViewModel(IImportExportService importExportService, ISceneDataService sceneDataService, FileService fileService)
+        public ImportExportViewModel(
+            IImportExportService importExportService,
+            ISceneDataService sceneDataService,
+            ILibraryDataService libraryDataService,
+            FileService fileService)
         {
             _importExportService = importExportService;
             _sceneDataService = sceneDataService;
+            _libraryDataService = libraryDataService;
             _fileService = fileService;
             selectedLevelLabel = LevelLabel(_selectedLevel);
         }
@@ -140,6 +154,7 @@ namespace DmToolsApp.Features.ImportExport
                 });
 
                 var result = await _importExportService.ImportAsync(stream, progress);
+                await ReconcileDefaultCategoryTranslationsAsync();
 
                 // Les campagnes/pistes/sorts importés sont insérés directement en base, sans passer
                 // par les commandes normales (Create/Edit) qui patchent déjà les listes affichées :
@@ -159,6 +174,33 @@ namespace DmToolsApp.Features.ImportExport
             {
                 await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
+            }
+        }
+
+        /// <summary>
+        /// Ramène, pour les catégories par défaut uniquement, toute variante connue dans une autre
+        /// langue vers son libellé dans la langue actuelle de l'appli - les catégories créées par
+        /// l'utilisateur ne sont jamais concernées, elles sont comparées telles quelles. Que la
+        /// catégorie canonique existe déjà ici ou non (l'utilisateur a pu la renommer ou la
+        /// supprimer), une catégorie par défaut réimportée doit malgré tout s'aligner sur la langue
+        /// courante plutôt que de rester dans la langue de l'export : RenameCategoryAsync fusionne
+        /// si la cible existe déjà, ou renomme simplement sinon.
+        /// </summary>
+        private async Task ReconcileDefaultCategoryTranslationsAsync()
+        {
+            foreach (var key in DefaultCategoryKeys)
+            {
+                var canonical = Loc[key];
+
+                foreach (var languageCode in LocalizationService.SupportedLanguages.Keys)
+                {
+                    var variant = LocalizationService.GetString(key, languageCode);
+                    if (string.Equals(variant, canonical, StringComparison.Ordinal))
+                        continue;
+
+                    await _libraryDataService.RenameCategoryAsync(typeof(Track), variant, canonical);
+                    await _libraryDataService.RenameCategoryAsync(typeof(Spell), variant, canonical);
+                }
             }
         }
 
