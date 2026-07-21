@@ -142,6 +142,12 @@
         <Setter Property="PlaceholderColor" Value="{DynamicResource AppTextMuted}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
+        <!-- "Text" embarque CapitalizeSentence (+ Suggestions/Spellcheck) : le clavier natif met une
+             majuscule au premier caractère pendant la frappe, plutôt que de le corriger après coup en
+             code (cf. StringExtensions.CapitalizeFirst, qui ne couvrait que Campagne/Chapitre/Scène et
+             seulement après sauvegarde). Tous les champs de texte de l'appli sont des noms/titres en
+             langage naturel : aucun besoin d'un clavier plus restrictif ici. -->
+        <Setter Property="Keyboard" Value="Text"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -164,6 +170,9 @@
         <Setter Property="PlaceholderColor" Value="{DynamicResource AppTextMuted}" />
         <Setter Property="MinimumHeightRequest" Value="44"/>
         <Setter Property="MinimumWidthRequest" Value="44"/>
+        <!-- Cf. le style Editor ci-dessus : même raison, "Text" pour capitaliser la première lettre
+             directement au clavier plutôt qu'en code après coup. -->
+        <Setter Property="Keyboard" Value="Text"/>
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
