@@ -108,11 +108,6 @@
             <div class="screen-frame"><img src="assets/screenshots/6.png" alt="Réglages de l'application" loading="lazy" /></div>
             <p class="screen-caption">Réglages</p>
           </div>
-          <div class="screen-item desktop-item">
-            <div class="screen-frame desktop">
-              <div class="placeholder"><span class="icon">🖥️</span>Capture à venir (Windows)</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -125,14 +120,12 @@
           <div class="platform-card">
             <div class="icon">🪟</div>
             <h3>Windows</h3>
-            <!-- TODO: remplacer par le vrai lien de partage Drive -->
-            <a class="btn btn-primary" href="#" target="_blank" rel="noopener">Télécharger l'exécutable</a>
+            <a class="btn btn-primary" href="downloads/DmToolsInstaller.exe" download>Télécharger l'exécutable</a>
           </div>
           <div class="platform-card">
             <div class="icon">🤖</div>
             <h3>Android</h3>
-            <!-- TODO: remplacer par le vrai lien de partage Drive -->
-            <a class="btn btn-primary" href="#" target="_blank" rel="noopener">Télécharger l'APK</a>
+            <a class="btn btn-primary" href="downloads/DmTools.apk" download>Télécharger l'APK</a>
             <span class="disclaimer">⚠️ Installation manuelle, hors Play Store : ton téléphone t'avertira, c'est normal — il faudra autoriser l'installation depuis une source inconnue.</span>
           </div>
         </div>
@@ -160,8 +153,27 @@
     </div>
   </footer>
 
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" aria-label="Fermer">&times;</button>
+    <img src="" alt="" />
+  </div>
+
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = lightbox.querySelector("img");
+    document.querySelectorAll(".screen-frame img").forEach((img) => {
+      img.addEventListener("click", () => {
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightbox.classList.add("open");
+      });
+    });
+    lightbox.addEventListener("click", () => lightbox.classList.remove("open"));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") lightbox.classList.remove("open");
+    });
   </script>
 </body>
 </html>

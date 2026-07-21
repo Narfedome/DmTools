@@ -243,11 +243,26 @@ section > .container > p.section-intro {
 }
 
 /* Screenshots */
+/* Colonnes explicites plutôt qu'auto-fit/minmax : à des largeurs de conteneur entre 1x et 2x le
+   minimum (typique en mobile portrait), auto-fit créait 2 colonnes très inégales (ex. 180px / 75px)
+   au lieu d'une seule colonne propre - minmax() autorise une piste à descendre sous son minimum
+   déclaré quand la somme des minimums dépasse l'espace dispo. */
 .screens-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 28px;
-  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .screens-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .screens-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .screen-item {
@@ -265,6 +280,7 @@ section > .container > p.section-intro {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  cursor: zoom-in;
 }
 
 .screen-frame img {
@@ -275,32 +291,48 @@ section > .container > p.section-intro {
   display: block;
 }
 
-.screen-item.desktop-item {
-  grid-column: span 2;
-}
-
-.screen-frame.desktop {
-  aspect-ratio: 16 / 10;
-  border: 2px dashed var(--border);
-}
-
-.screen-frame .placeholder {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.screen-frame .placeholder .icon {
-  font-size: 1.8rem;
-  display: block;
-  margin-bottom: 8px;
-  opacity: 0.6;
-}
-
 .screen-caption {
   text-align: center;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 40px 20px;
+  cursor: zoom-out;
+}
+
+.lightbox.open {
+  display: flex;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 2.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 10px;
 }
 
 /* Download */
