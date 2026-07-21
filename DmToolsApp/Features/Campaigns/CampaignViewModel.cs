@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Extensions;
 using DmToolsApp.Features.AudioMixer;
@@ -30,6 +31,17 @@ namespace DmToolsApp.Features.Campaigns
             _sceneDataService = sceneDataService;
             _audioMixerViewModel = audioMixerViewModel;
             _sessionStateService = sessionStateService;
+
+            // Les mutations normales (Create/Edit/Delete) patchent Rows directement, sans jamais
+            // recharger depuis la base — mais un import ajoute des campagnes par un chemin qui ne
+            // passe par aucune d'elles. CampaignPage ne recharge par ailleurs qu'une seule fois
+            // (cf. son garde _initialized), donc sans ce message les campagnes importées restent
+            // invisibles jusqu'au redémarrage de l'appli.
+            WeakReferenceMessenger.Default.Register<CampaignsUpdatedMessage>(this,
+            async (r, m) =>
+            {
+                await MainThread.InvokeOnMainThreadAsync(InitializeAsync);
+            });
         }
 
         [ObservableProperty] private ObservableCollection<ExplorerRow> rows = new();
@@ -307,22 +319,40 @@ namespace DmToolsApp.Features.Campaigns
                     await _sceneDataService.DeleteCampaignAsync(campaignRow.Campaign);
                     RemoveSubtree(campaignRow);
                     HasCampaigns = Rows.OfType<CampaignRow>().Any();
+                    if (_audioMixerViewModel.IsActiveCampaign(campaignRow.Campaign.Id))
+                        DeactivateMixer();
                     break;
                 case SessionRow sessionRow:
                     if (!await ConfirmDeleteAsync(sessionRow.Session.Title)) return;
                     await _sceneDataService.DeleteSessionAsync(sessionRow.Session);
                     RemoveSubtree(sessionRow);
+                    if (_audioMixerViewModel.IsActiveSession(sessionRow.Session.Id))
+                        DeactivateMixer();
                     break;
                 case SceneRow sceneRow:
                     if (!await ConfirmDeleteAsync(sceneRow.Scene.Title)) return;
                     await _sceneDataService.DeleteSceneAsync(sceneRow.Scene);
                     Rows.Remove(sceneRow);
+                    if (_audioMixerViewModel.IsActiveScene(sceneRow.Scene.Id))
+                        DeactivateMixer();
                     break;
                 default:
                     return;
             }
 
             SelectedRow = null;
+        }
+
+        /// <summary>
+        /// La scène/chapitre/campagne supprimée était affichée dans le mixer (onglet visible dans le
+        /// shell, cf. SessionStateService) : sans ça, l'onglet resterait accessible indéfiniment,
+        /// pointant sur des données qui n'existent plus en base — SetActive(false) n'est autrement
+        /// jamais appelé nulle part.
+        /// </summary>
+        private void DeactivateMixer()
+        {
+            _audioMixerViewModel.ResetActiveScene();
+            _sessionStateService.SetActive(false);
         }
 
         private void RemoveSubtree(ExplorerRow row)

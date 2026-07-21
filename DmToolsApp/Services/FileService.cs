@@ -1,6 +1,8 @@
-﻿namespace DmToolsApp.Services
+﻿using CommunityToolkit.Maui.Storage;
+
+namespace DmToolsApp.Services
 {
-    public class FileService
+    public class FileService : ITrackFileStore
     {
         private readonly string _tracksDirectory;
         private readonly string _assetsDirectory;
@@ -130,6 +132,33 @@
                 PickerTitle = pickerTitle,
                 FileTypes = AudioFileTypes
             });
+        }
+
+        private static readonly FilePickerFileType DmPackFileTypes = new(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.iOS, new[] { "public.data" } },
+            { DevicePlatform.Android, new[] { "application/octet-stream" } },
+            { DevicePlatform.WinUI, new[] { ".dmpack" } },
+            { DevicePlatform.MacCatalyst, new[] { "public.data" } }
+        });
+
+        public async Task<FileResult?> PickImportPackageAsync(string pickerTitle)
+        {
+            return await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = pickerTitle,
+                FileTypes = DmPackFileTypes
+            });
+        }
+
+        /// <summary>
+        /// Ouvre la boîte de dialogue "Enregistrer sous" de la plateforme et y écrit le flux fourni.
+        /// Retourne le chemin choisi par l'utilisateur, ou null si l'enregistrement a été annulé.
+        /// </summary>
+        public async Task<string?> SaveExportPackageAsync(string fileName, Stream stream, CancellationToken cancellationToken)
+        {
+            var result = await FileSaver.Default.SaveAsync(fileName, stream, cancellationToken);
+            return result.IsSuccessful ? result.FilePath : null;
         }
     }
 }

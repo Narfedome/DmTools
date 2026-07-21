@@ -391,6 +391,33 @@ namespace DmToolsApp.Features.AudioMixer
             await LoadScene();
         }
 
+        public bool IsActiveScene(int sceneId) => _activeScene?.Id == sceneId;
+        public bool IsActiveSession(int sessionId) => _activeScene?.SessionId == sessionId;
+        public bool IsActiveCampaign(int campaignId) => SelectedSession?.CampaignId == campaignId;
+
+        /// <summary>
+        /// Réinitialise le mixer quand la campagne/chapitre/scène affichée vient d'être supprimée
+        /// ailleurs (page Campagnes) : libère les players et vide le sélecteur au lieu de laisser le
+        /// mixer pointer sur des données qui n'existent plus en base.
+        /// </summary>
+        public void ResetActiveScene()
+        {
+            ClearChannels();
+            _activeScene = null;
+
+            _suppressHandlers = true;
+            SelectedScene = null;
+            SelectedSession = null;
+            _suppressHandlers = false;
+
+            Scenes.Clear();
+            Sessions.Clear();
+            SceneCount = 0;
+            SceneIndex = 1;
+            OnPropertyChanged(nameof(CanGoPrevScene));
+            OnPropertyChanged(nameof(CanGoNextScene));
+        }
+
         [RelayCommand]
         public async Task SelectSession()
         {

@@ -14,6 +14,28 @@ namespace DmToolsApp.Services
         }
 
         /// <summary>
+        /// Vérifie qu'un fichier est un audio réellement décodable (utilisé à l'import d'un .dmpack :
+        /// un fichier reçu d'un tiers ne doit jamais être accepté en bibliothèque sur la seule foi de
+        /// son extension).
+        /// </summary>
+        public static bool IsDecodableAudio(string filePath)
+        {
+            try
+            {
+                using var tagFile = TagLib.File.Create(filePath);
+                return tagFile.Properties != null && tagFile.Properties.Duration > TimeSpan.Zero;
+            }
+            catch (TagLib.UnsupportedFormatException)
+            {
+                return false;
+            }
+            catch (TagLib.CorruptFileException)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Construit le titre d'une piste à partir de ses tags audio : "Artiste - Titre" si les deux sont
         /// présents, juste le titre si l'artiste manque, ou le nom de fichier si aucun titre n'est taggé.
         /// </summary>
