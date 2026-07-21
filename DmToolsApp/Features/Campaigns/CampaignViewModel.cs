@@ -307,22 +307,40 @@ namespace DmToolsApp.Features.Campaigns
                     await _sceneDataService.DeleteCampaignAsync(campaignRow.Campaign);
                     RemoveSubtree(campaignRow);
                     HasCampaigns = Rows.OfType<CampaignRow>().Any();
+                    if (_audioMixerViewModel.IsActiveCampaign(campaignRow.Campaign.Id))
+                        DeactivateMixer();
                     break;
                 case SessionRow sessionRow:
                     if (!await ConfirmDeleteAsync(sessionRow.Session.Title)) return;
                     await _sceneDataService.DeleteSessionAsync(sessionRow.Session);
                     RemoveSubtree(sessionRow);
+                    if (_audioMixerViewModel.IsActiveSession(sessionRow.Session.Id))
+                        DeactivateMixer();
                     break;
                 case SceneRow sceneRow:
                     if (!await ConfirmDeleteAsync(sceneRow.Scene.Title)) return;
                     await _sceneDataService.DeleteSceneAsync(sceneRow.Scene);
                     Rows.Remove(sceneRow);
+                    if (_audioMixerViewModel.IsActiveScene(sceneRow.Scene.Id))
+                        DeactivateMixer();
                     break;
                 default:
                     return;
             }
 
             SelectedRow = null;
+        }
+
+        /// <summary>
+        /// La scène/chapitre/campagne supprimée était affichée dans le mixer (onglet visible dans le
+        /// shell, cf. SessionStateService) : sans ça, l'onglet resterait accessible indéfiniment,
+        /// pointant sur des données qui n'existent plus en base — SetActive(false) n'est autrement
+        /// jamais appelé nulle part.
+        /// </summary>
+        private void DeactivateMixer()
+        {
+            _audioMixerViewModel.ResetActiveScene();
+            _sessionStateService.SetActive(false);
         }
 
         private void RemoveSubtree(ExplorerRow row)
