@@ -2,7 +2,10 @@ using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
+using DmToolsApp.Features.Campaigns;
+using DmToolsApp.Features.Library;
 using DmToolsApp.Models;
 using DmToolsApp.Models.ImportExport;
 using DmToolsApp.Services;
@@ -137,6 +140,13 @@ namespace DmToolsApp.Features.ImportExport
                 });
 
                 var result = await _importExportService.ImportAsync(stream, progress);
+
+                // Les campagnes/pistes/sorts importés sont insérés directement en base, sans passer
+                // par les commandes normales (Create/Edit) qui patchent déjà les listes affichées :
+                // sans ces messages, la page Campagnes et la Bibliothèque restent figées jusqu'au
+                // redémarrage de l'appli.
+                WeakReferenceMessenger.Default.Send(new CampaignsUpdatedMessage());
+                WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
 
                 await page.ClosePopupAsync();
                 await InitializeAsync();

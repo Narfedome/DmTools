@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Extensions;
 using DmToolsApp.Features.AudioMixer;
@@ -30,6 +31,17 @@ namespace DmToolsApp.Features.Campaigns
             _sceneDataService = sceneDataService;
             _audioMixerViewModel = audioMixerViewModel;
             _sessionStateService = sessionStateService;
+
+            // Les mutations normales (Create/Edit/Delete) patchent Rows directement, sans jamais
+            // recharger depuis la base — mais un import ajoute des campagnes par un chemin qui ne
+            // passe par aucune d'elles. CampaignPage ne recharge par ailleurs qu'une seule fois
+            // (cf. son garde _initialized), donc sans ce message les campagnes importées restent
+            // invisibles jusqu'au redémarrage de l'appli.
+            WeakReferenceMessenger.Default.Register<CampaignsUpdatedMessage>(this,
+            async (r, m) =>
+            {
+                await MainThread.InvokeOnMainThreadAsync(InitializeAsync);
+            });
         }
 
         [ObservableProperty] private ObservableCollection<ExplorerRow> rows = new();
