@@ -351,6 +351,7 @@ namespace DmToolsApp.Services
                 return null;
 
             var tempPath = Path.Combine(Path.GetTempPath(), $"dmpack-import-{Guid.NewGuid():N}{Path.GetExtension(trackExport.FileEntry)}");
+            string? localPath = null;
             try
             {
                 using (var entryStream = entry.Open())
@@ -364,7 +365,7 @@ namespace DmToolsApp.Services
                 if (!TrackTagHelper.IsDecodableAudio(tempPath))
                     return null;
 
-                var localPath = _trackFileStore.CopyTrackToLocal(tempPath);
+                localPath = _trackFileStore.CopyTrackToLocal(tempPath);
                 var track = new Track
                 {
                     Title = trackExport.Title,
@@ -377,6 +378,18 @@ namespace DmToolsApp.Services
                 await _libraryDataService.SaveLibraryItemAsync(track);
                 result.TracksCopied++;
                 return track.Id;
+            }
+            catch
+            {
+                // La piste a pu être copiée dans le stockage local avant l'échec (base de données,
+                // disque plein...) : sans ce nettoyage, ce fichier resterait orphelin, sans plus
+                // aucune ligne Track pour le référencer. On rejette simplement cette piste plutôt
+                // que de faire échouer tout l'import à cause d'elle.
+                if (localPath != null)
+                {
+                    try { File.Delete(localPath); } catch { /* meilleur effort */ }
+                }
+                return null;
             }
             finally
             {

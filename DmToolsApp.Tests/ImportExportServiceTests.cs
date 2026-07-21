@@ -31,6 +31,44 @@ public class FakeTrackFileStore : ITrackFileStore
     }
 }
 
+/// <summary>
+/// Délègue à une vraie LibraryDataService mais fait échouer le prochain SaveLibraryItemAsync(Track) —
+/// simule un échec de persistance survenant après une copie de fichier déjà réussie, pour vérifier
+/// qu'ImportTrackAsync nettoie le fichier orphelin plutôt que de le laisser traîner sur disque.
+/// </summary>
+public class TrackSaveFailingLibraryDataService : ILibraryDataService
+{
+    private readonly LibraryDataService _inner;
+    public bool FailNextTrackSave { get; set; }
+
+    public TrackSaveFailingLibraryDataService(LibraryDataService inner) => _inner = inner;
+
+    public Task SaveLibraryItemAsync(LibraryItem item)
+    {
+        if (FailNextTrackSave && item is Track)
+        {
+            FailNextTrackSave = false;
+            throw new InvalidOperationException("Échec simulé de sauvegarde.");
+        }
+        return _inner.SaveLibraryItemAsync(item);
+    }
+
+    public Task DeleteLibraryItem(LibraryItem item) => _inner.DeleteLibraryItem(item);
+    public Task<List<Track>> DeleteAllTracksAsync() => _inner.DeleteAllTracksAsync();
+    public Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category) => _inner.GetItemIdsAsync(currentLibraryType, category);
+    public Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids) => _inner.DeleteItemsAsync(currentLibraryType, ids);
+    public Task<List<LibraryItem>> GetAllItemsTypeAsync(Type currentLibraryType) => _inner.GetAllItemsTypeAsync(currentLibraryType);
+    public Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null) => _inner.GetItemsPageAsync(currentLibraryType, skip, take, category);
+    public Task<Track?> FindTrackByHashAsync(string hash, int excludeId) => _inner.FindTrackByHashAsync(hash, excludeId);
+    public Task UpdateTrackImagePathAsync(int trackId, string imagePath) => _inner.UpdateTrackImagePathAsync(trackId, imagePath);
+    public Task<int> CountTracksWithFilePathAsync(string filePath, int excludeId) => _inner.CountTracksWithFilePathAsync(filePath, excludeId);
+    public Task<HashSet<string>> GetAllReferencedFilePathsAsync() => _inner.GetAllReferencedFilePathsAsync();
+    public Task<List<string>> GetCategoryNamesAsync(Type currentLibraryType) => _inner.GetCategoryNamesAsync(currentLibraryType);
+    public Task EnsureCategoryAsync(Type currentLibraryType, string name) => _inner.EnsureCategoryAsync(currentLibraryType, name);
+    public Task RenameCategoryAsync(Type currentLibraryType, string oldName, string newName) => _inner.RenameCategoryAsync(currentLibraryType, oldName, newName);
+    public Task DeleteCategoryAsync(Type currentLibraryType, string name) => _inner.DeleteCategoryAsync(currentLibraryType, name);
+}
+
 /// <summary>Construit un WAV PCM silencieux minimal mais réellement décodable par TagLibSharp.</summary>
 public static class TestAudioFile
 {
@@ -434,5 +472,29 @@ public class ImportExportServiceTests : IDisposable
         Assert.Equal(1, result.TracksRejected);
         Assert.Equal(0, result.TracksCopied);
         Assert.Empty(await dest.Library.GetAllItemsTypeAsync(typeof(Track)));
+    }
+
+    [Fact]
+    public async Task Import_CleansUpCopiedFile_WhenPersistingTrackFails()
+    {
+        await using var source = await ImportExportTestContext.CreateAsync();
+        var wavPath = CreateWavFile();
+        var track = new Track { Title = "Fragile", FilePath = wavPath, Hash = TrackTagHelper.ComputeSha256(wavPath) };
+        await source.Library.SaveLibraryItemAsync(track);
+
+        using var zipStream = new MemoryStream();
+        await source.Service.ExportAsync(new ExportRequest { Level = ExportLevel.AudioLibraryOnly }, zipStream);
+
+        await using var dest = await ImportExportTestContext.CreateAsync();
+        var failingLibrary = new TrackSaveFailingLibraryDataService(dest.Library) { FailNextTrackSave = true };
+        var service = new ImportExportService(dest.Scenes, failingLibrary, dest.Store);
+
+        zipStream.Position = 0;
+        var result = await service.ImportAsync(zipStream);
+
+        Assert.Equal(1, result.TracksRejected);
+        Assert.Equal(0, result.TracksCopied);
+        Assert.Single(dest.Store.CopiedFiles);
+        Assert.False(File.Exists(dest.Store.CopiedFiles[0]));
     }
 }
