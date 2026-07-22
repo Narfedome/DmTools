@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
@@ -24,8 +24,8 @@
                 <Setter Property="StrokeThickness" Value="2"/>
                 <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
                 <Setter Property="Margin" Value="0,4"/>
-                <Setter Property="Padding" Value="12,10"/>
-                <Setter Property="MinimumHeightRequest" Value="52"/>
+                <Setter Property="Padding" Value="{DynamicResource AppAccordionRowPadding}"/>
+                <Setter Property="MinimumHeightRequest" Value="{DynamicResource AppAccordionRowMinHeight}"/>
                 <Setter Property="Stroke" Value="Grey"/>
             </Style>
 
@@ -73,9 +73,9 @@
                     <Grid ColumnDefinitions="4,20,*,44" ColumnSpacing="10">
                         <BoxView Grid.Column="0" Style="{StaticResource SelectionMarkerStyle}"/>
                         <Label Grid.Column="1" Text="{x:Static icons:SolidFont.Map}"
-                               FontFamily="FontSolid" FontSize="15"
+                               FontFamily="FontSolid" FontSize="{OnIdiom Default=15, Desktop=13}"
                                VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontSize="{OnIdiom Default=16, Desktop=14}" FontAttributes="Bold" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                         <!-- Le Grid remplit toute la cellule (pas de HorizontalOptions/VerticalOptions="Center" dessus) :
                              sinon il se réduit à la taille de l'icône et la zone de tap réelle devient minuscule,
                              bien plus petite que la colonne réservée. Seul le Label à l'intérieur se centre. -->
@@ -86,7 +86,7 @@
                                     CommandParameter="{Binding .}"/>
                             </Grid.GestureRecognizers>
                             <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                   FontFamily="FontSolid" FontSize="16"
+                                   FontFamily="FontSolid" FontSize="{OnIdiom Default=16, Desktop=14}"
                                    HorizontalOptions="Center" VerticalOptions="Center"
                                    TextColor="{DynamicResource AppTextMuted}"/>
                         </Grid>
@@ -108,9 +108,9 @@
                     <BoxView Grid.Column="1" Grid.ColumnSpan="4" Style="{StaticResource ChapterDividerStyle}"/>
                     <BoxView Grid.Column="1" Style="{StaticResource SelectionMarkerStyle}"/>
                     <Label Grid.Column="2" Text="{x:Static icons:SolidFont.Bookmark}"
-                           FontFamily="FontSolid" FontSize="13"
+                           FontFamily="FontSolid" FontSize="{OnIdiom Default=13, Desktop=11}"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                    <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="15" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                    <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="{OnIdiom Default=15, Desktop=13}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                     <!-- Même raison que le chevron Campagne ci-dessus : le Grid remplit toute la cellule
                          plutôt que de se réduire à la taille de l'icône. -->
                     <Grid Grid.Column="4">
@@ -120,7 +120,7 @@
                                 CommandParameter="{Binding .}"/>
                         </Grid.GestureRecognizers>
                         <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                               FontFamily="FontSolid" FontSize="15"
+                               FontFamily="FontSolid" FontSize="{OnIdiom Default=15, Desktop=13}"
                                HorizontalOptions="Center" VerticalOptions="Center"
                                TextColor="{DynamicResource AppTextMuted}"/>
                     </Grid>
@@ -136,9 +136,9 @@
                     </Grid.GestureRecognizers>
                     <BoxView Grid.Column="1" Style="{StaticResource SelectionMarkerStyle}"/>
                     <Label Grid.Column="2" Text="{x:Static icons:SolidFont.MasksTheater}"
-                           FontFamily="FontSolid" FontSize="12"
+                           FontFamily="FontSolid" FontSize="{OnIdiom Default=12, Desktop=10}"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                    <Label Grid.Column="3" Text="{Binding Scene.Title}" FontSize="14" VerticalOptions="Center"
+                    <Label Grid.Column="3" Text="{Binding Scene.Title}" FontSize="{OnIdiom Default=14, Desktop=12}" VerticalOptions="Center"
                            TextColor="{DynamicResource AppTextMuted}" Style="{StaticResource TruncatedLabelStyle}"/>
                     <Grid Grid.Column="4">
                         <Grid.GestureRecognizers>
@@ -147,7 +147,7 @@
                                 CommandParameter="{Binding .}"/>
                         </Grid.GestureRecognizers>
                         <Label Text="{loc:Loc BtnLaunch}"
-                               FontSize="13" HorizontalOptions="Center" VerticalOptions="Center"
+                               FontSize="{OnIdiom Default=13, Desktop=11}" HorizontalOptions="Center" VerticalOptions="Center"
                                TextColor="{DynamicResource AppAccent}"/>
                     </Grid>
                 </Grid>
@@ -179,11 +179,11 @@
             <!-- État vide : aucune campagne -->
             <VerticalStackLayout IsVisible="{Binding HasCampaigns, Converter={StaticResource InverseBoolConverter}}"
                                  VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="24">
-                <Label Text="{x:Static icons:SolidFont.Map}" FontFamily="FontSolid" FontSize="40"
+                <Label Text="{x:Static icons:SolidFont.Map}" FontFamily="FontSolid" FontSize="{OnIdiom Default=40, Desktop=34}"
                        TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
-                <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="18" FontAttributes="Bold"
+                <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                <Label Text="{loc:Loc EmptyCampaignsBody}" FontSize="14" TextColor="{DynamicResource AppTextMuted}"
+                <Label Text="{loc:Loc EmptyCampaignsBody}" FontSize="{OnIdiom Default=14, Desktop=12}" TextColor="{DynamicResource AppTextMuted}"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                 <Button Text="{loc:Loc DialogCreateItem}" Command="{Binding CreateCommand}" Margin="0,8,0,0"/>
             </VerticalStackLayout>

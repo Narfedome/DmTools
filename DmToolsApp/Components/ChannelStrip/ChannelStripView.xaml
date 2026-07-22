@@ -4,7 +4,7 @@
              x:Class="DmToolsApp.Components.ChannelStripView"
              xmlns:components ="clr-namespace:DmToolsApp.Components"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
-             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="50">
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="{DynamicResource AppChannelStripWidth}">
     <!-- Grid plutôt que VerticalStackLayout : un StackLayout ne redistribue jamais l'espace
          excédentaire à ses enfants (toujours dimensionné à la somme de leurs tailles naturelles),
          donc le slider ne pouvait pas s'étirer avec la fenêtre. Ici la ligne "*" absorbe tout
@@ -27,8 +27,8 @@
                                       Value="{Binding Volume, Mode=TwoWay}"
                                       ValueText="{Binding DisplayVolume}"
                                       Minimum="0" Maximum="1"
-                                      MinimumHeightRequest="100"
-                                      Thickness="50" />
+                                      MinimumHeightRequest="{DynamicResource AppChannelSliderMinHeight}"
+                                      Thickness="{DynamicResource AppChannelStripWidth}" />
 
         <components:RotatedLabelView Grid.Row="3"
                Text="{Binding DisplayTrackName}"
