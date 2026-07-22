@@ -363,12 +363,15 @@ namespace DmToolsApp.Features.Campaigns
                 Rows.RemoveAt(i);
         }
 
+        // Navigue d'abord, charge ensuite : LoadFromPlayAsync tourne sous l'overlay de
+        // AudioMixerPage (visible une fois la navigation faite), au lieu de travailler en
+        // silence sur la page Campagnes pendant que l'utilisateur ne voit toujours rien bouger.
         [RelayCommand]
         public async Task Launch(SceneRow sceneRow)
         {
-            await _audioMixerViewModel.LoadFromPlayAsync(sceneRow.ParentCampaign, sceneRow.ParentSession, sceneRow.Scene);
             _sessionStateService.SetActive(true);
             await Shell.Current.GoToAsync("//AudioMixerPage");
+            await _audioMixerViewModel.LoadFromPlayAsync(sceneRow.ParentCampaign, sceneRow.ParentSession, sceneRow.Scene);
         }
     }
 }
