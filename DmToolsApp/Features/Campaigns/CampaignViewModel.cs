@@ -73,6 +73,7 @@ namespace DmToolsApp.Features.Campaigns
             {
                 var campaigns = await _sceneDataService.GetCampaignsAsync();
                 Rows = new ObservableCollection<ExplorerRow>(campaigns.Select(c => new CampaignRow(c)));
+                RefreshFirstCampaignFlags();
                 HasCampaigns = campaigns.Count > 0;
                 SelectedRow = null;
                 IsInitialized = true;
@@ -204,6 +205,7 @@ namespace DmToolsApp.Features.Campaigns
                     var campaign = new Campaign { Title = name };
                     await _sceneDataService.SaveCampaignAsync(campaign);
                     Rows.Add(new CampaignRow(campaign));
+                    RefreshFirstCampaignFlags();
                     HasCampaigns = true;
                     break;
                 }
@@ -361,6 +363,24 @@ namespace DmToolsApp.Features.Campaigns
             int end = EndOfSubtree(row);
             for (int i = end - 1; i >= idx; i--)
                 Rows.RemoveAt(i);
+            RefreshFirstCampaignFlags();
+        }
+
+        /// <summary>
+        /// Marque la toute première CampaignRow de Rows (IsFirstCampaign) : elle n'a pas besoin de
+        /// l'espace ajouté au-dessus de chaque campagne pour les séparer visuellement (cf.
+        /// AppCampaignRowMargin dans CampaignPage.xaml), sans quoi ça pousse tout l'accordéon vers le
+        /// bas inutilement. À rappeler après toute mutation de Rows qui pourrait changer laquelle est
+        /// la première (chargement initial, ajout/suppression d'une campagne).
+        /// </summary>
+        private void RefreshFirstCampaignFlags()
+        {
+            bool isFirst = true;
+            foreach (var campaignRow in Rows.OfType<CampaignRow>())
+            {
+                campaignRow.IsFirstCampaign = isFirst;
+                isFirst = false;
+            }
         }
 
         // Navigue d'abord, charge ensuite : LoadFromPlayAsync tourne sous l'overlay de

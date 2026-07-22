@@ -28,6 +28,13 @@ namespace DmToolsApp.Features.Campaigns
         [ObservableProperty]
         private bool isExpanded;
 
+        // Tenu à jour par CampaignViewModel (RefreshFirstCampaignFlags) à chaque mutation de Rows :
+        // la première campagne de la liste n'a pas besoin de l'espace ajouté au-dessus de chaque
+        // campagne pour les séparer visuellement (cf. AppCampaignRowMargin) - sans quoi ça pousse
+        // inutilement tout l'accordéon vers le bas.
+        [ObservableProperty]
+        private bool isFirstCampaign;
+
         public CampaignRow(Campaign campaign) => Campaign = campaign;
     }
 

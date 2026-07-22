@@ -20,6 +20,13 @@
     <OnIdiom x:Key="AppButtonPadding" x:TypeArguments="Thickness" Phone="14,10" Tablet="14,10" Desktop="12,7" />
     <OnIdiom x:Key="AppDialogCardPadding" x:TypeArguments="x:Double" Phone="20" Tablet="20" Desktop="16" />
 
+    <!-- Boutons "valeur + action" compacts (sélecteur de langue/thème, nettoyage stockage... dans
+         Settings) : le MinimumHeightRequest hérité du Style Button implicite (AppMinTouchTarget)
+         force ces lignes à une hauteur de cible tactile même quand leur contenu (texte court) est
+         bien plus petit - la carte autour parait alors plus paddée qu'elle ne l'est vraiment. Cible
+         tactile plus modeste ici, ce ne sont pas des actions primaires. -->
+    <OnIdiom x:Key="AppInlineButtonMinSize" x:TypeArguments="x:Double" Phone="36" Tablet="36" Desktop="20" />
+
     <!-- Padding intérieur des Border "carte de section" (Settings, ImportExport, Onboarding) : même
          principe que AppDialogCardPadding, valeur de base différente (ces cartes sont plus denses,
          souvent plusieurs par page). -->
@@ -29,6 +36,20 @@
          Desktop, comme les cartes de section ci-dessus. -->
     <OnIdiom x:Key="AppAccordionRowPadding" x:TypeArguments="Thickness" Phone="12,10" Tablet="12,10" Desktop="8,6" />
     <OnIdiom x:Key="AppAccordionRowMinHeight" x:TypeArguments="x:Double" Phone="52" Tablet="52" Desktop="40" />
+
+    <!-- Espacement entre lignes de l'accordéon Campagnes (toutes aplaties dans un seul CollectionView
+         via RowTemplateSelector - l'espacement entre deux lignes vient donc uniquement de la Margin/
+         Padding de chacune, pas d'un ItemSpacing du CollectionView).
+         Marge de la ligne Campagne : haut plus généreux que bas, pour que campagne-à-campagne reste
+         visuellement un vrai groupe séparé (surtout utile sur Desktop, une fois chapitre/scène
+         resserrés ci-dessous) sans pour autant élargir l'écart campagne-vers-son-premier-chapitre. -->
+    <OnIdiom x:Key="AppCampaignRowMargin" x:TypeArguments="Thickness" Phone="0,4" Tablet="0,4" Desktop="0,8,0,0" />
+    <!-- Padding de la ligne Chapitre (haut/bas seulement - gauche/droite gèrent l'indentation/colonne
+         chevron, inchangés) : desserré à l'origine (10/11), resserré ici pour un accordéon plus dense. -->
+    <OnIdiom x:Key="AppChapterRowPadding" x:TypeArguments="Thickness" Phone="0,5,8,6" Tablet="0,5,8,6" Desktop="0,3,8,3" />
+    <!-- Padding de la ligne Scène : reduction discrète sur Phone/Tablet ("très peu" demandé), nette
+         sur Desktop (cohérent avec le reste de l'accordéon resserré). -->
+    <OnIdiom x:Key="AppSceneRowPadding" x:TypeArguments="Thickness" Phone="0,7" Tablet="0,7" Desktop="0,3" />
 
     <!-- AudioMixer (ChannelStripView / ChannelVolumeSliderView) : plus de place à la souris sur
          Desktop, plus de pistes visibles confortablement sur un petit écran Phone. -->

@@ -33,7 +33,7 @@
                      déborde de sa colonne "*" et chevauche son voisin au lieu d'être tronqué (le
                      composant gère déjà LineBreakMode="TailTruncation" en interne, encore fallait-il
                      lui donner une largeur à respecter). -->
-                <components:IconTextButton Grid.Column="0" HorizontalOptions="{OnPlatform Default=Center, WinUI=Start}"
+                <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"                         
                         Icon="{x:Static icons:SolidFont.Bookmark}" IconSize="13"
                         Text="{Binding SelectedSessionLabel}"
                         Command="{Binding SelectSessionCommand}"
@@ -47,7 +47,7 @@
                         IsEnabled="{Binding CanGoPrevScene}"
                         Tooltip="{loc:Loc MixerPrevScene}" />
 
-                <components:IconTextButton Grid.Column="2" HorizontalOptions="{OnPlatform Default=Center, WinUI=Start}"
+                <components:IconTextButton Grid.Column="2" HorizontalOptions="Center"
                         Icon="{x:Static icons:SolidFont.MasksTheater}" IconSize="13"
                         Text="{Binding SelectedSceneLabel}"
                         Command="{Binding SelectSceneCommand}"
