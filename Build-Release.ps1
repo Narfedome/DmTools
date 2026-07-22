@@ -26,8 +26,11 @@
 .PARAMETER Publish
     Publie aussi une GitHub Release (tag vX.Y.Z) avec l'exe et l'APK en pieces jointes : c'est de
     la que le site (Website/scripts/fetch-downloads.js, execute par Netlify a chaque deploiement)
-    recupere les binaires - ils ne sont jamais commites dans le depot. A ne passer que pour une
-    vraie release publique, pas pour un build de test local (necessite le CLI gh, authentifie).
+    recupere les binaires - ils ne sont jamais commites dans le depot. Declenche aussi un
+    redeploiement immediat du site si DMTOOLS_NETLIFY_BUILD_HOOK est defini dans
+    Build-Release.local.ps1 (sinon le site se mettra a jour au prochain push sur master). A ne
+    passer que pour une vraie release publique, pas pour un build de test local (necessite le CLI
+    gh, authentifie).
 
 .EXAMPLE
     .\Build-Release.ps1
@@ -170,6 +173,23 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "gh release create a echoue (code $LASTEXITCODE)." }
 
         Write-Host "Release publiee : v$version ($($assets.Count) fichier(s))" -ForegroundColor Green
+
+        # --- Redeploiement Netlify : un simple POST sur le Build Hook (cf. Site settings > Build &
+        #     deploy > Build hooks) suffit a declencher un nouveau build du site, qui va re-executer
+        #     fetch-downloads.js et recuperer les binaires qu'on vient de publier. Sans ca, le site
+        #     ne se met a jour qu'au prochain push sur master (ou clic manuel dans le dashboard). ---
+        $netlifyHookUrl = $env:DMTOOLS_NETLIFY_BUILD_HOOK
+        if ($netlifyHookUrl) {
+            Write-Host "`n=== Redeploiement du site (Netlify Build Hook) ===" -ForegroundColor Cyan
+            try {
+                Invoke-RestMethod -Method Post -Uri $netlifyHookUrl -Body (@{ trigger_title = "Build-Release.ps1 v$version" } | ConvertTo-Json) -ContentType "application/json" | Out-Null
+                Write-Host "Site redeploye avec les binaires v$version." -ForegroundColor Green
+            } catch {
+                Write-Warning "Echec de l'appel au Build Hook Netlify : $($_.Exception.Message). Le site se mettra a jour au prochain push sur master, ou via un redeploiement manuel."
+            }
+        } else {
+            Write-Warning "DMTOOLS_NETLIFY_BUILD_HOOK non defini dans Build-Release.local.ps1 : le site ne se redeploiera pas tout seul, il faudra pousser sur master ou redeployer a la main depuis Netlify."
+        }
     }
 }
 catch {
