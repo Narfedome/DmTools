@@ -6,84 +6,87 @@
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.Library.CategoryListPage"
-             x:DataType="local:CategoryListViewModel">
-
-    <Shell.TitleView>
-        <Label Text="{loc:Loc CategoriesHeader}"
-               FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
-               VerticalOptions="Center"
-               TextColor="{DynamicResource AppTextPrimary}"/>
-    </Shell.TitleView>
-
+             x:DataType="local:CategoryListViewModel"
+             Shell.NavBarIsVisible="False">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False"/>
+    </Shell.BackButtonBehavior>
     <components:WatermarkedLayout>
-    <Grid Padding="10" RowSpacing="4">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
+        <Grid RowDefinitions="auto,*">
+            <components:DetailPageHeaderView Grid.Row="0" x:Name="Header" Title="{loc:Loc CategoriesHeader}"
+                BackCommand="{Binding BackCommand}"/>
 
-        <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
+
+            <Grid Grid.Row="1" Padding="10,0,10,10" RowSpacing="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <ActivityIndicator Grid.Row="1" Grid.RowSpan="2" IsRunning="{Binding Loading.IsLoading}"
                            IsVisible="{Binding Loading.IsLoading}"
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="1" x:Name="CategoryCollection"
+                <CollectionView Grid.Row="1" x:Name="CategoryCollection"
                         ItemsSource="{Binding CategoryNames}"
                         SelectedItem="{Binding SelectedCategory}"
                         SelectionMode="Single">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="local:CategoryRowItem">
-                    <!-- Padding sur ce Grid englobant (pas Margin sur le Border racine) : même bug
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:CategoryRowItem">
+                            <!-- Padding sur ce Grid englobant (pas Margin sur le Border racine) : même bug
                          Windows que CampaignPage (cf. son commentaire sur SessionTemplate/CampaignTemplate)
                          - le Margin de la racine d'un DataTemplate de CollectionView n'est pas fiable
                          sur Windows, la ligne suivante n'était donc jamais réellement espacée.
                          IsFirst (CategoryRowItem, calculé dans CategoryListViewModel.LoadAsync) retire
                          ce padding pour la toute première ligne, même principe que
                          CampaignRow.IsFirstCampaign dans CampaignPage.xaml. -->
-                    <Grid Padding="0,4">
-                        <Grid.Triggers>
-                            <DataTrigger TargetType="Grid" Binding="{Binding IsFirst}" Value="True">
-                                <Setter Property="Padding" Value="0"/>
-                            </DataTrigger>
-                        </Grid.Triggers>
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Padding="12,10"
-                            MinimumHeightRequest="52">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="Grey"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
-                        <Label Text="{Binding Name}" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
-                    </Border>
-                    </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                            <Grid Padding="0,4">
+                                <Grid.Triggers>
+                                    <DataTrigger TargetType="Grid" Binding="{Binding IsFirst}" Value="True">
+                                        <Setter Property="Padding" Value="0"/>
+                                    </DataTrigger>
+                                </Grid.Triggers>
+                                <Border StrokeThickness="2" StrokeShape="RoundRectangle 8"
+                                        Padding="{DynamicResource AppAccordionRowPadding}"
+                                        MinimumHeightRequest="{DynamicResource AppAccordionRowMinHeight}">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup Name="CommonStates">
+                                            <VisualState Name="Normal">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Stroke" Value="Grey"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                            <VisualState Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
+                                    <Label Text="{Binding Name}" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
-        <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
+                <HorizontalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" Margin="0,8">
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
                                          Command="{Binding CreateCommand}"
                                          Tooltip="{loc:Loc LibAdd}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"
                                          IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
-            <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
+                    <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
                                          Tooltip="{loc:Loc BtnDelete}"
                                          IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
-        </HorizontalStackLayout>
-    </Grid>
+                </HorizontalStackLayout>
+        </Grid>
+        </Grid>
     </components:WatermarkedLayout>
 </ContentPage>

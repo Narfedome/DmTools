@@ -58,6 +58,10 @@ namespace DmToolsApp.Features.ImportExport
                 SelectedCampaign = _campaigns.FirstOrDefault();
         }
 
+        // Remplace le bouton retour natif du Shell (cf. ImportExportPage.xaml, Shell.NavBarIsVisible="False").
+        [RelayCommand]
+        public async Task Back() => await Shell.Current.GoToAsync("..");
+
         [RelayCommand]
         private async Task SelectLevel()
         {

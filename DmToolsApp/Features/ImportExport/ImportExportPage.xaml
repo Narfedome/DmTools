@@ -6,11 +6,18 @@
              xmlns:components="clr-namespace:DmToolsApp.Components"
              x:Class="DmToolsApp.Features.ImportExport.ImportExportPage"
              x:DataType="local:ImportExportViewModel"
-             Title="{loc:Loc ImportExportTitle}">
+             Shell.NavBarIsVisible="False">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False"/>
+    </Shell.BackButtonBehavior>
 
     <components:WatermarkedLayout>
-    <ScrollView>
-        <VerticalStackLayout x:Name="ContentStack" Padding="20" Spacing="16">
+    <Grid RowDefinitions="auto,*">
+        <components:DetailPageHeaderView Grid.Row="0" x:Name="Header" Title="{loc:Loc ImportExportTitle}"
+                                         BackCommand="{Binding BackCommand}"/>
+
+    <ScrollView Grid.Row="1">
+        <VerticalStackLayout x:Name="ContentStack" Padding="20,0,20,20" Spacing="16">
 
             <!-- Export -->
             <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
@@ -65,5 +72,6 @@
 
         </VerticalStackLayout>
     </ScrollView>
+    </Grid>
     </components:WatermarkedLayout>
 </ContentPage>

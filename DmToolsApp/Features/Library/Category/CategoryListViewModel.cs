@@ -49,6 +49,10 @@ namespace DmToolsApp.Features.Library
                 names.Select((name, index) => new CategoryRowItem(name, IsFirst: index == 0)));
         }
 
+        // Remplace le bouton retour natif du Shell (cf. CategoryListPage.xaml, Shell.NavBarIsVisible="False").
+        [RelayCommand]
+        public async Task Back() => await Shell.Current.GoToAsync("..");
+
         [RelayCommand]
         public async Task Create()
         {

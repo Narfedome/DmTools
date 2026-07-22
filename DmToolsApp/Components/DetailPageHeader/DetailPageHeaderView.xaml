@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"
+             x:Class="DmToolsApp.Components.DetailPageHeaderView"
+             x:Name="root">
+    <!-- En-tête maison pour les pages "d'accès" naviguées via le Shell (Route="...") plutôt que la
+         barre native du Shell : sur Windows, cette dernière rendait la flèche retour coincée dans la
+         barre de titre native (noire, non thématisée), au-dessus du titre stylé du Shell - deux barres
+         empilées qui ne se ressemblent pas. La page hôte doit poser Shell.NavBarIsVisible="False".
+         Chevron en simple Label cliquable (pas FaIconButtonView) : un bouton carré plein accent pour
+         un simple retour est trop appuyé visuellement, comparé au chevron sombre et discret du Shell
+         natif sur Android. -->
+    <!-- Margin gauche de 24 : même indentation que la barre native du Shell sur Android (dont on ne
+         profite plus depuis qu'on masque Shell.NavBarIsVisible sur ces pages). -->
+    <Grid ColumnDefinitions="auto,*" Margin="24,8,0,8">
+        <Label Grid.Column="0" Text="{x:Static icons:SolidFont.ChevronLeft}"
+               FontFamily="FontSolid" FontSize="{OnIdiom Default=20, Desktop=17}"
+               VerticalOptions="End"
+               WidthRequest="{DynamicResource AppMinTouchTarget}"
+               TextColor="{DynamicResource AppTextMuted}">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal" />
+                        <VisualState x:Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter Property="TextColor" Value="{DynamicResource AppAccent}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Pressed">
+                            <VisualState.Setters>
+                                <Setter Property="TextColor" Value="{DynamicResource AppAccent}" />
+                                <Setter Property="Opacity" Value="0.7" />
+                                <Setter Property="Scale" Value="0.9" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </VisualStateManager.VisualStateGroups>
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding Source={x:Reference root}, Path=BackCommand}"/>
+            </Label.GestureRecognizers>
+        </Label>
+        <Label Grid.Column="1" Text="{Binding Source={x:Reference root}, Path=Title}"
+               FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
+               VerticalOptions="Start" 
+               TextColor="{DynamicResource AppTextPrimary}"/>
+    </Grid>
+</ContentView>

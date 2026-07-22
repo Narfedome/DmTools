@@ -147,6 +147,9 @@
   <data name="EmptyCampaignsBody" xml:space="preserve">
     <value>Les campagnes regroupent vos chapitres, scènes et pistes d'ambiance.</value>
   </data>
+  <data name="BtnBack" xml:space="preserve">
+    <value>Retour</value>
+  </data>
   <data name="BtnRename" xml:space="preserve">
     <value>Renommer</value>
   </data>
