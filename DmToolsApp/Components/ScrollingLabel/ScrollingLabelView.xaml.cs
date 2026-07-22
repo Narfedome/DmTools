@@ -85,6 +85,8 @@ public partial class ScrollingLabelView : ContentView
     }
     private void OnSizeChanged(object? sender, EventArgs e)
     {
+        if (Width > 0 && Height > 0)
+            RootGrid.Clip = new RectangleGeometry(new Rect(0, 0, Width, Height));
         UpdateScrolling();
     }
     #endregion

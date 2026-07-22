@@ -80,13 +80,14 @@ public partial class RotatedLabelView : ContentView
     /// Plafond au-delà duquel le texte est tronqué (LineBreakMode) plutôt que de continuer à
     /// grandir : sans ça, un nom de piste très long (ex. un nom de fichier complet) réclame toute
     /// la hauteur disponible dans la ligne "Auto" et écrase le slider voisin dans sa ligne "*".
+    /// Abaissé à 90 (au lieu de 140) pour laisser plus de place au slider sur mobile.
     /// </summary>
     public static readonly BindableProperty MaximumLengthProperty =
         BindableProperty.Create(
             nameof(MaximumLength),
             typeof(double),
             typeof(RotatedLabelView),
-            140.0,
+            90.0,
             propertyChanged: (bindable, _, _) => ((RotatedLabelView)bindable).UpdateSize());
 
     public double MaximumLength

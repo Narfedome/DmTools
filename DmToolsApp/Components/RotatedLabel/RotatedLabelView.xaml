@@ -6,9 +6,8 @@
 
     <!-- Aucune taille figée ici : RootGrid.HeightRequest et InnerLabel.WidthRequest sont calculés
          dynamiquement en code-behind (UpdateSize), à partir de la largeur naturelle du texte
-         mesurée sans contrainte. Le label prend donc exactement la place dont il a besoin, quel
-         que soit son contenu ou la taille de la fenêtre - pas de valeur en pixels devinée à la
-         main qui casse dès que le texte ou l'écran change. -->
+         mesurée sans contrainte, plafonnée à MaximumLength. Le label prend donc exactement la
+         place dont il a besoin (jusqu'au plafond) plutôt qu'une valeur fixe devinée à la main. -->
     <Grid x:Name="RootGrid">
         <Label x:Name="InnerLabel"
                Text="{Binding Source={x:Reference root}, Path=Text}"
