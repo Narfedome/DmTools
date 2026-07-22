@@ -19,12 +19,16 @@ namespace DmToolsApp.Services
             // Sur Windows, CreatePlayer(string) du plugin préfixe le chemin par "ms-appx:///Assets/"
             // (réservé aux assets packagés de l'appli) : un chemin absolu devient une source
             // invalide → MediaFailed, IsPlaying toujours false, aucun son. On passe donc par un
-            // FileStream, que le plugin enveloppe via AsRandomAccessStream : lecture progressive,
-            // sans copie mémoire (la copie intégrale ne concerne que les MemoryStream). Le stream
-            // doit rester ouvert pendant toute la vie du player ; le wrapper le referme au Dispose.
-            return Task.Run(() =>
+            // Stream - mais AudioPlayer.windows.cs (Plugin.Maui.Audio) ne sait cloner que le cas
+            // MemoryStream (converti en InMemoryRandomAccessStream, natif WinRT) ; tout autre
+            // Stream, dont un FileStream, est enveloppé via .AsRandomAccessStream(), qui ne
+            // supporte pas CloneStream et fait planter MediaSource.CreateFromStream
+            // (NotSupportedException). La copie intégrale en mémoire n'est donc pas un choix ici,
+            // c'est le seul chemin que le plugin gère correctement côté Windows.
+            return Task.Run(async () =>
             {
-                var stream = File.OpenRead(filePath);
+                var bytes = await File.ReadAllBytesAsync(filePath);
+                var stream = new MemoryStream(bytes);
                 try
                 {
                     return (IAudioPlayer)new StreamOwningAudioPlayer(audioManager.CreatePlayer(stream), stream);

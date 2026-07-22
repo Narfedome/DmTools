@@ -20,8 +20,9 @@
                FontSize="{Binding Source={x:Reference root}, Path=FontSize}"
                HorizontalOptions="Center" />
 
-        <Grid x:Name="TrackHost" Grid.Row="1" VerticalOptions="Fill">
+        <Grid x:Name="TrackHost" Grid.Row="1">
             <Slider x:Name="InnerSlider"
+                    StyleId="ChannelVolumeSliderTrack"
                     Minimum="{Binding Source={x:Reference root}, Path=Minimum}"
                     Maximum="{Binding Source={x:Reference root}, Path=Maximum}"
                     Value="{Binding Source={x:Reference root}, Path=Value, Mode=TwoWay}"
