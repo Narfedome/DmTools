@@ -361,34 +361,62 @@ namespace DmToolsApp.Features.AudioMixer
             await Task.WhenAll(tasks);
         }
 
+        /// <summary>
+        /// Appelé juste après avoir navigué vers AudioMixerPage (cf. CampaignViewModel.Launch).
+        /// Sa propre préparation (sauvegarde, chargement chapitre/scène) ET celle de LoadScene
+        /// tournent sous le MÊME Loading.RunAsync continu (au lieu d'appeler LoadScene() qui ouvre
+        /// son propre empan Show/Hide séparé) : sans ça, IsLoading retombe à false entre les deux
+        /// puis repasse à true, ce qui fait clignoter l'overlay - visible uniquement depuis ce
+        /// chemin (l'accordéon), jamais lors d'un changement de scène classique dans le mixer.
+        /// </summary>
         public async Task LoadFromPlayAsync(Campaign campaign, Session session, Scene scene)
         {
-            await SaveCurrentSceneAsync();
+            if (_isLoadingScene) return;
+            _isLoadingScene = true;
 
-            // Charger les chapitres de la campagne
-            var sessionList = await _sceneDataService.GetSessionsAsync(campaign.Id);
-            Sessions = new ObservableCollection<Session>(sessionList);
+            var shell = Shell.Current;
+            if (shell != null) shell.IsEnabled = false;
 
-            // Charger les scènes du chapitre sans déclencher les handlers de cascade
-            var sceneList = await _sceneDataService.GetScenesAsync(session.Id);
-            Scenes = new ObservableCollection<Scene>(sceneList);
-            SceneCount = sceneList.Count;
+            try
+            {
+                List<SceneTrack> playable = new();
 
-            // Matcher par Id pour que le Picker trouve l'instance dans la collection
-            var matchedSession = Sessions.FirstOrDefault(s => s.Id == session.Id) ?? session;
-            var matchedScene = Scenes.FirstOrDefault(s => s.Id == scene.Id) ?? scene;
+                await Loading.RunAsync(async () =>
+                {
+                    await SaveCurrentSceneAsync();
 
-            _suppressHandlers = true;
-            SelectedSession = matchedSession;
-            SelectedScene = matchedScene;
-            _suppressHandlers = false;
+                    // Charger les chapitres de la campagne
+                    var sessionList = await _sceneDataService.GetSessionsAsync(campaign.Id);
+                    Sessions = new ObservableCollection<Session>(sessionList);
 
-            SceneIndex = Scenes.IndexOf(matchedScene) + 1;
-            OnPropertyChanged(nameof(CanGoPrevScene));
-            OnPropertyChanged(nameof(CanGoNextScene));
+                    // Charger les scènes du chapitre sans déclencher les handlers de cascade
+                    var sceneList = await _sceneDataService.GetScenesAsync(session.Id);
+                    Scenes = new ObservableCollection<Scene>(sceneList);
+                    SceneCount = sceneList.Count;
 
-            _activeScene = matchedScene;
-            await LoadScene();
+                    // Matcher par Id pour que le Picker trouve l'instance dans la collection
+                    var matchedSession = Sessions.FirstOrDefault(s => s.Id == session.Id) ?? session;
+                    var matchedScene = Scenes.FirstOrDefault(s => s.Id == scene.Id) ?? scene;
+
+                    _suppressHandlers = true;
+                    SelectedSession = matchedSession;
+                    SelectedScene = matchedScene;
+                    _suppressHandlers = false;
+
+                    SceneIndex = Scenes.IndexOf(matchedScene) + 1;
+                    OnPropertyChanged(nameof(CanGoPrevScene));
+                    OnPropertyChanged(nameof(CanGoNextScene));
+
+                    playable = await PrepareSceneTracksAsync();
+                });
+
+                await PopulateChannelsAsync(playable);
+            }
+            finally
+            {
+                if (shell != null) shell.IsEnabled = true;
+                _isLoadingScene = false;
+            }
         }
 
         public bool IsActiveScene(int sceneId) => _activeScene?.Id == sceneId;
@@ -468,60 +496,89 @@ namespace DmToolsApp.Features.AudioMixer
 
             try
             {
-                await Loading.RunAsync(async () =>
-                {
-                    await SaveCurrentSceneAsync();
+                List<SceneTrack> playable = new();
 
-                    // Fade out tous les channels actifs
-                    var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
-                    await Task.WhenAll(fadeTasks);
+                // L'overlay plein écran (Loading.IsLoading) ne couvre que la préparation - pas la
+                // création des lecteurs, potentiellement coûteuse par piste sur Android (cf.
+                // AudioMixerService.CreatePlayerAsync) - sinon les strips resteraient invisibles
+                // derrière le spinner jusqu'à ce que TOUS les lecteurs soient prêts.
+                await Loading.RunAsync(async () => { playable = await PrepareSceneTracksAsync(); });
 
-                    ClearChannels();
-
-                    _activeScene = SelectedScene;
-
-                    var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene.Id);
-
-                    // Crée tous les lecteurs en parallèle plutôt que d'attendre chaque piste l'une
-                    // après l'autre : le temps de chargement de la scène devient celui de la piste
-                    // la plus lente au lieu de la somme de toutes. Une piste illisible (fichier
-                    // corrompu, verrouillé...) est simplement ignorée au lieu de faire échouer
-                    // toute la scène (et de laisser fuiter les players déjà créés).
-                    var playable = sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
-                    var players = await Task.WhenAll(playable.Select(async st =>
-                    {
-                        try { return await _audioMixerService.CreatePlayerAsync(st.Track.FilePath); }
-                        catch { return null; }
-                    }));
-
-                    for (int i = 0; i < playable.Count; i++)
-                    {
-                        if (players[i] == null)
-                            continue;
-
-                        var st = playable[i];
-                        var channel = new ChannelStripViewModel
-                        {
-                            SceneTrackId = st.Id,
-                            Track = st.Track,
-                            DisplayTrackName = st.Track.Title,
-                            Volume = st.Volume,
-                            IsLooping = st.IsLooping,
-                            IsFadeIn = st.FadeIn,
-                            IsFadeOut = st.FadeOut,
-                            Player = players[i]
-                        };
-
-                        SubscribeChannel(channel);
-                        CurrentChannels.Add(channel);
-                    }
-                });
+                await PopulateChannelsAsync(playable);
             }
             finally
             {
                 if (shell != null) shell.IsEnabled = true;
                 _isLoadingScene = false;
             }
+        }
+
+        /// <summary>
+        /// Sauvegarde/fade out/vide les channels actuels et renvoie les pistes jouables de
+        /// SelectedScene. Appelé sous Loading.RunAsync par LoadScene ET LoadFromPlayAsync : dans
+        /// les deux cas ce doit être le MÊME empan Show/Hide que la préparation qui précède (sans
+        /// quoi IsLoading retombe à false puis repasse à true entre les deux, et l'overlay
+        /// clignote au lieu de rester affiché en continu).
+        /// </summary>
+        private async Task<List<SceneTrack>> PrepareSceneTracksAsync()
+        {
+            await SaveCurrentSceneAsync();
+
+            var fadeTasks = CurrentChannels.Where(c => c.IsPlaying).Select(c => c.FadeOut()).ToArray();
+            await Task.WhenAll(fadeTasks);
+
+            ClearChannels();
+
+            _activeScene = SelectedScene;
+
+            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene!.Id);
+            // Une piste illisible (fichier corrompu, verrouillé...) est simplement ignorée au lieu
+            // de faire échouer toute la scène.
+            return sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
+        }
+
+        /// <summary>
+        /// Ajoute tout de suite un strip par piste jouable, dans l'ordre de la scène, avec
+        /// IsLoading à true (cf. binding dans AudioMixerPage.xaml qui désactive le strip et
+        /// affiche un spinner local) puis crée les lecteurs en parallèle - chaque strip bascule à
+        /// IsLoading=false dès que SON lecteur est prêt, indépendamment des autres. Volontairement
+        /// hors de Loading.RunAsync : sinon l'overlay plein écran resterait affiché jusqu'à ce que
+        /// TOUS les lecteurs soient créés, masquant cet affichage progressif.
+        /// </summary>
+        private async Task PopulateChannelsAsync(List<SceneTrack> playable)
+        {
+            var channels = playable.Select(st => new ChannelStripViewModel
+            {
+                SceneTrackId = st.Id,
+                Track = st.Track,
+                DisplayTrackName = st.Track.Title,
+                Volume = st.Volume,
+                IsLooping = st.IsLooping,
+                IsFadeIn = st.FadeIn,
+                IsFadeOut = st.FadeOut,
+                IsLoading = true
+            }).ToList();
+
+            foreach (var channel in channels)
+                CurrentChannels.Add(channel);
+
+            var creationTasks = playable.Zip(channels, async (st, channel) =>
+            {
+                try
+                {
+                    channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
+                    SubscribeChannel(channel);
+                }
+                catch
+                {
+                    CurrentChannels.Remove(channel);
+                }
+                finally
+                {
+                    channel.IsLoading = false;
+                }
+            });
+            await Task.WhenAll(creationTasks);
         }
     }
 }

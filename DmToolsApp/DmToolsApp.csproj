@@ -104,6 +104,12 @@
 	  <MauiXaml Update="Components\ScrollingLabel\ScrollingLabelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Components\RotatedLabel\RotatedLabelView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Components\ChannelVolumeSlider\ChannelVolumeSliderView.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Features\AudioMixer\AudioMixerPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

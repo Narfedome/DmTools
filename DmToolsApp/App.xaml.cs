@@ -30,16 +30,21 @@ namespace DmToolsApp
             // place. Le vrai plancher, c'est la TabBar du Shell (AppShell.xaml) : 3 onglets (Campagnes/
             // Bibliothèque/Paramètres) tiennent dès ~480px, mais un 4ᵉ apparaît ("AudioMixer") dès
             // qu'une scène est active - testé, il faut ~590px pour que les 4 tiennent sans repli en
-            // menu "...". 600 laisse une petite marge. Sur Windows/Mac Catalyst, sans bornes la fenêtre
-            // est librement redimensionnable en format très large, ce qui casse cette mise en page
-            // pensée pour du portrait. Ignoré sur Android/iOS (le windowing n'y a pas cours).
+            // menu "...". 600 laisse une petite marge. Sur Mac Catalyst, sans bornes la fenêtre est
+            // librement redimensionnable en format très large, ce qui casse cette mise en page pensée
+            // pour du portrait — les bornes y restent donc actives. Windows en est délibérément exempté
+            // (demande explicite) : Width/Height ne fixent plus qu'une taille de lancement, librement
+            // redimensionnable ensuite dans les deux sens. Ignoré sur Android/iOS (le windowing n'y a
+            // pas cours).
             return new Window(page)
             {
                 Width = 600,
                 Height = 800,
+#if !WINDOWS
                 MinimumWidth = 600,
                 MinimumHeight = 640,
                 MaximumWidth = 680,
+#endif
             };
         }
     }

@@ -100,6 +100,13 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private bool isLooping;
 
+        // Le strip existe (et apparaît, dans l'ordre) avant que son lecteur natif soit prêt :
+        // AudioMixerViewModel.LoadScene affiche tous les strips d'un coup puis crée les lecteurs
+        // en tâche de fond, au lieu de bloquer l'affichage de la scène entière derrière un unique
+        // spinner tant que la piste la plus lente à charger n'est pas prête.
+        [ObservableProperty]
+        private bool isLoading;
+
         // Réglage persisté sur la piste de scène (édité via SceneTracksPage) : au lancement de la
         // lecture, le volume monte progressivement de 0 jusqu'au volume du strip.
         [ObservableProperty]
