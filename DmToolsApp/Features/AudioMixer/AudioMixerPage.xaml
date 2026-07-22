@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.AudioMixer"
@@ -33,13 +33,13 @@
                      déborde de sa colonne "*" et chevauche son voisin au lieu d'être tronqué (le
                      composant gère déjà LineBreakMode="TailTruncation" en interne, encore fallait-il
                      lui donner une largeur à respecter). -->
-                <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"
+                <components:IconTextButton Grid.Column="0" HorizontalOptions="{OnPlatform Default=Center, WinUI=Start}"
                         Icon="{x:Static icons:SolidFont.Bookmark}" IconSize="13"
                         Text="{Binding SelectedSessionLabel}"
                         Command="{Binding SelectSessionCommand}"
                         TextColor="{DynamicResource AppAccent}"
-                        TextMaximumWidth="100"
-                        FontSize="14"/>
+                        TextMaximumWidth="{OnPlatform Default=100, WinUI=200}"
+                        FontSize="{OnIdiom Default=14, Desktop=12}"/>
 
                 <components:FaIconButtonView Grid.Column="1"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
@@ -47,13 +47,13 @@
                         IsEnabled="{Binding CanGoPrevScene}"
                         Tooltip="{loc:Loc MixerPrevScene}" />
 
-                <components:IconTextButton Grid.Column="2" HorizontalOptions="Center"
+                <components:IconTextButton Grid.Column="2" HorizontalOptions="{OnPlatform Default=Center, WinUI=Start}"
                         Icon="{x:Static icons:SolidFont.MasksTheater}" IconSize="13"
                         Text="{Binding SelectedSceneLabel}"
                         Command="{Binding SelectSceneCommand}"
                         TextColor="{DynamicResource AppAccent}"
-                        TextMaximumWidth="100"
-                        FontSize="14"/>
+                        TextMaximumWidth="{OnPlatform Default=100, WinUI=200}"
+                        FontSize="{OnIdiom Default=14, Desktop=12}"/>
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"
