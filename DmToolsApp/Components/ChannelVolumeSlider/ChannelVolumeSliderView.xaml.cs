@@ -115,7 +115,11 @@ public partial class ChannelVolumeSliderView : ContentView
             nameof(FontSize),
             typeof(double),
             typeof(ChannelVolumeSliderView),
-            14.0);
+            // Resources["AppFontSizeBase"] (Sizes.xaml, defini via <OnIdiom .../>) renverrait
+            // l'objet OnIdiom<double> brut, pas le double resolu - {DynamicResource} en XAML sait
+            // le "deballer", mais pas un simple acces dictionnaire C#, d'ou un cast invalide.
+            // Meme valeurs que AppFontSizeBase, calculees directement via l'idiome courant.
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 12.0 : 14.0);
 
     public double FontSize
     {

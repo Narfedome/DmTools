@@ -40,7 +40,9 @@ public partial class RotatedLabelView : ContentView
             nameof(FontSize),
             typeof(double),
             typeof(RotatedLabelView),
-            14.0,
+            // Cf. ChannelVolumeSliderView.xaml.cs : Resources["AppFontSizeBase"] renverrait l'objet
+            // OnIdiom<double> brut (pas resolu) via un simple acces dictionnaire C#.
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 12.0 : 14.0,
             propertyChanged: (bindable, _, _) => ((RotatedLabelView)bindable).UpdateSize());
 
     public double FontSize

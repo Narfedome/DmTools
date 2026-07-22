@@ -44,7 +44,9 @@ public partial class ScrollingLabelView : ContentView
             nameof(FontSize),
             typeof(double),
             typeof(ScrollingLabelView),
-            14.0);
+            // Cf. ChannelVolumeSliderView.xaml.cs : Resources["AppFontSizeBase"] renverrait l'objet
+            // OnIdiom<double> brut (pas resolu) via un simple acces dictionnaire C#.
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 12.0 : 14.0);
 
     public double FontSize
     {

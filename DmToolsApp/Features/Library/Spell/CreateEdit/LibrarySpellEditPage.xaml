@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DmToolsApp.Features.Library.LibrarySpellEditPage"
@@ -21,7 +21,7 @@
             <components:LibraryItemImageView Grid.Row="0" ImagePath="{Binding ImagePath}" DefaultGlyph="{x:Static  icons:SolidFont.Meteor}" MaximumHeightRequest="30" />
             <Label Grid.Row="1"
                    Text="{Binding Title}"
-                   FontSize="20" HorizontalOptions="Center" Margin="0,0,0,20"/>
+                   FontSize="{OnIdiom Default=20, Desktop=17}" HorizontalOptions="Center" Margin="0,0,0,20"/>
             <Grid Grid.Row="2"  RowSpacing="15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Taille minimale (Height/Width) des contrôles interactifs, cf. usages dans Styles.xaml : 44
+         est la cible tactile recommandée (Android, au doigt) mais surdimensionnée à la souris sur
+         Desktop, où les apps tournent plutôt autour de 32. -->
+    <OnIdiom x:Key="AppMinTouchTarget" x:TypeArguments="x:Double" Phone="44" Tablet="44" Desktop="32" />
+
+    <!-- Taille de police de base et titres, cf. usages dans Styles.xaml : MAUI ne mappe pas les
+         tailles de police 1:1 entre plateformes - la même valeur rend visuellement plus grande sur
+         Windows/WinUI qu'sur Android à densité équivalente, d'où une base plus petite sur Desktop. -->
+    <OnIdiom x:Key="AppFontSizeBase" x:TypeArguments="x:Double" Phone="14" Tablet="14" Desktop="12" />
+    <OnIdiom x:Key="AppFontSizeHeadline" x:TypeArguments="x:Double" Phone="32" Tablet="32" Desktop="28" />
+    <OnIdiom x:Key="AppFontSizeSubHeadline" x:TypeArguments="x:Double" Phone="24" Tablet="24" Desktop="20" />
+
+    <!-- Padding des boutons et de la carte des dialogues thémés, cf. usages dans Styles.xaml : plus
+         compact sur Desktop, cohérent avec AppMinTouchTarget/AppFontSizeBase ci-dessus. -->
+    <OnIdiom x:Key="AppButtonPadding" x:TypeArguments="Thickness" Phone="14,10" Tablet="14,10" Desktop="12,7" />
+    <OnIdiom x:Key="AppDialogCardPadding" x:TypeArguments="x:Double" Phone="20" Tablet="20" Desktop="16" />
+
+    <!-- Padding intérieur des Border "carte de section" (Settings, ImportExport, Onboarding) : même
+         principe que AppDialogCardPadding, valeur de base différente (ces cartes sont plus denses,
+         souvent plusieurs par page). -->
+    <OnIdiom x:Key="AppSectionCardPadding" x:TypeArguments="x:Double" Phone="16" Tablet="16" Desktop="12" />
+
+    <!-- Lignes de l'accordéon Campagnes (RowBorderStyle dans CampaignPage.xaml) : plus compact sur
+         Desktop, comme les cartes de section ci-dessus. -->
+    <OnIdiom x:Key="AppAccordionRowPadding" x:TypeArguments="Thickness" Phone="12,10" Tablet="12,10" Desktop="8,6" />
+    <OnIdiom x:Key="AppAccordionRowMinHeight" x:TypeArguments="x:Double" Phone="52" Tablet="52" Desktop="40" />
+
+    <!-- AudioMixer (ChannelStripView / ChannelVolumeSliderView) : plus de place à la souris sur
+         Desktop, plus de pistes visibles confortablement sur un petit écran Phone. -->
+    <OnIdiom x:Key="AppChannelStripWidth" x:TypeArguments="x:Double" Phone="50" Tablet="50" Desktop="34" />
+    <OnIdiom x:Key="AppChannelSliderMinHeight" x:TypeArguments="x:Double" Phone="100" Tablet="100" Desktop="140" />
+
+</ResourceDictionary>

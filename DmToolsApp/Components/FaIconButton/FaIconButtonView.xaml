@@ -22,8 +22,8 @@
         Command="{Binding Source={x:Reference root}, Path=Command}"
         CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
         ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}"
-        WidthRequest="44"
-        HeightRequest="44"
+        WidthRequest="{DynamicResource AppMinTouchTarget}"
+        HeightRequest="{DynamicResource AppMinTouchTarget}"
         Padding="0"
         HorizontalOptions="Center" />
 

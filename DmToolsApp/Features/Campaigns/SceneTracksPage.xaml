@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:DmToolsApp.Features.Campaigns"
@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="0">
-            <Label Text="{loc:Loc TracksHeader}" FontSize="20" HorizontalOptions="Center"/>
+            <Label Text="{loc:Loc TracksHeader}" FontSize="{OnIdiom Default=20, Desktop=17}" HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
 
@@ -45,13 +45,13 @@
                             </Grid.ColumnDefinitions>
 
                             <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                <Label Text="{Binding Track.Title}" FontSize="14" Style="{StaticResource TruncatedLabelStyle}" WidthRequest="60"/>
-                                <Label Text="{Binding Track.DurationFormatted}" FontSize="11" TextColor="Gray"/>
+                                <Label Text="{Binding Track.Title}" FontSize="{OnIdiom Default=14, Desktop=12}" Style="{StaticResource TruncatedLabelStyle}" WidthRequest="60"/>
+                                <Label Text="{Binding Track.DurationFormatted}" FontSize="{OnIdiom Default=11, Desktop=9}" TextColor="Gray"/>
                             </VerticalStackLayout>
 
                             <!-- Volume -->
                             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                <Label Text="{Binding Volume, StringFormat='{0:P0}'}" FontSize="11" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Volume, StringFormat='{0:P0}'}" FontSize="{OnIdiom Default=11, Desktop=9}" HorizontalOptions="Center"/>
                                 <Slider Minimum="0" Maximum="1"
                                         Value="{Binding Volume, Mode=TwoWay}"
                                         WidthRequest="60"/>
@@ -60,21 +60,21 @@
                             <!-- Loop toggle -->
                             <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
                                 <Label Text="{loc:Loc ChannelLoop}"
-                                       FontSize="10" HorizontalOptions="Center"/>
+                                       FontSize="{OnIdiom Default=10, Desktop=9}" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding IsLooping, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
 
                             <!-- Fade in toggle -->
                             <VerticalStackLayout Grid.Column="3" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
                                 <Label Text="{loc:Loc SceneFadeIn}"
-                                       FontSize="10" HorizontalOptions="Center"/>
+                                       FontSize="{OnIdiom Default=10, Desktop=9}" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding FadeIn, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
 
                             <!-- AutoPlay toggle -->
                             <VerticalStackLayout Grid.Column="4" VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
                                 <Label Text="{loc:Loc SceneAuto}"
-                                       FontSize="10" HorizontalOptions="Center"/>
+                                       FontSize="{OnIdiom Default=10, Desktop=9}" HorizontalOptions="Center"/>
                                 <CheckBox IsChecked="{Binding AutoPlay, Mode=TwoWay}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
 

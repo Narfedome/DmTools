@@ -58,7 +58,10 @@ public partial class FaIconButtonView : ContentView
     }
     // ICON SIZE
     public static readonly BindableProperty IconSizeProperty =
-        BindableProperty.Create(nameof(IconSize), typeof(double), typeof(FaIconButtonView), 16.0);
+        BindableProperty.Create(nameof(IconSize), typeof(double), typeof(FaIconButtonView),
+            // Cf. ChannelVolumeSliderView.xaml.cs pour la raison du calcul direct via DeviceInfo
+            // plutot qu'un lookup dans Resources (renverrait l'objet OnIdiom brut, pas resolu).
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 14.0 : 16.0);
 
     public double IconSize
     {
