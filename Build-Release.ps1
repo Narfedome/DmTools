@@ -7,10 +7,11 @@
     La version suit le meme schema que la cible SetVersionFromGit du csproj :
     AppVersionMajor.AppVersionMinor.<nombre de commits git> - lu ici depuis le csproj pour
     ne jamais s'en ecarter silencieusement.
-    Les deux artefacts finissent sous D:\Dev\DmTools\Installer, dans des sous-dossiers Windows\
-    et Android\, avec un nom de fichier fixe (DmToolsInstaller.exe / DmTools.apk) : pas de numero
-    de version dans le nom, pour que le fichier mis a disposition du public (lien de telechargement,
-    etc.) puisse etre remplace tel quel a chaque nouvelle version sans changer le lien. La signature
+    Les deux artefacts finissent sous Website\downloads\, avec un nom de fichier fixe
+    (DmToolsInstaller.exe / DmTools.apk) : pas de numero de version dans le nom, pour que le lien
+    de telechargement du site n'ait jamais besoin de changer. Ce dossier est gitignore - avec
+    -Publish, les binaires sont plutot attaches a une GitHub Release (v<version>), seule source
+    que Website/scripts/fetch-downloads.js va lire a chaque build Netlify du site. La signature
     Android vient de la keystore de release partagee si dmtools-release.keystore est present a la
     racine du repo (recupere depuis le Drive partage, jamais commite) et que Build-Release.local.ps1
     definit ses identifiants (a creer une fois par machine depuis Build-Release.local.ps1.example) ;
@@ -22,18 +23,29 @@
 .PARAMETER SkipAndroid
     N'effectue que la publication Windows + installeur.
 
+.PARAMETER Publish
+    Publie aussi une GitHub Release (tag vX.Y.Z) avec l'exe et l'APK en pieces jointes : c'est de
+    la que le site (Website/scripts/fetch-downloads.js, execute par Netlify a chaque deploiement)
+    recupere les binaires - ils ne sont jamais commites dans le depot. A ne passer que pour une
+    vraie release publique, pas pour un build de test local (necessite le CLI gh, authentifie).
+
 .EXAMPLE
     .\Build-Release.ps1
-    Genere l'installeur Windows ET l'APK Android.
+    Genere l'installeur Windows ET l'APK Android (build local, rien de publie).
 
 .EXAMPLE
     .\Build-Release.ps1 -SkipAndroid
     Ne genere que l'installeur Windows.
+
+.EXAMPLE
+    .\Build-Release.ps1 -Publish
+    Genere les deux artefacts ET les publie sur une nouvelle GitHub Release.
 #>
 
 param(
     [switch]$SkipWindows,
-    [switch]$SkipAndroid
+    [switch]$SkipAndroid,
+    [switch]$Publish
 )
 
 $ErrorActionPreference = "Stop"
@@ -133,6 +145,31 @@ try {
         Copy-Item -Path $publishedApk -Destination $apkPath -Force
 
         Write-Host "APK : $apkPath" -ForegroundColor Green
+    }
+
+    # --- Publication GitHub Release : seule source des binaires pour le site (jamais commites,
+    #     cf. .gitignore) - fetch-downloads.js les recupere depuis /releases/latest a chaque build
+    #     Netlify. N'attache que ce qui existe reellement (utile si -SkipWindows/-SkipAndroid). ---
+    if ($Publish) {
+        Write-Host "`n=== Publication GitHub Release v$version ===" -ForegroundColor Cyan
+
+        if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+            throw "GitHub CLI (gh) introuvable. Installe-le et authentifie-toi (gh auth login) pour publier une release."
+        }
+
+        $assets = @(
+            Join-Path $outputDirWindows "DmToolsInstaller.exe"
+            Join-Path $outputDirAndroid "DmTools.apk"
+        ) | Where-Object { Test-Path $_ }
+
+        if ($assets.Count -eq 0) {
+            throw "Aucun artefact a publier (exe/apk introuvables sous $outputDir)."
+        }
+
+        gh release create "v$version" @assets --title "v$version" --notes "Build automatise depuis Build-Release.ps1."
+        if ($LASTEXITCODE -ne 0) { throw "gh release create a echoue (code $LASTEXITCODE)." }
+
+        Write-Host "Release publiee : v$version ($($assets.Count) fichier(s))" -ForegroundColor Green
     }
 }
 catch {
