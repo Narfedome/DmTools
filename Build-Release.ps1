@@ -46,11 +46,15 @@ try {
     $csprojPath       = Join-Path $repoRoot "DmToolsApp\DmToolsApp.csproj"
     $issPath          = Join-Path $repoRoot "DmToolsApp\Installer.iss"
     $isccPath         = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    $outputDir        = Join-Path $repoRoot "Installer"
-    $outputDirWindows = Join-Path $outputDir "Windows"
-    $outputDirAndroid = Join-Path $outputDir "Android"
+    # Les deux artefacts finissent directement sous Website\downloads\, exactement là où
+    # index.html (FR/EN) les référence (downloads/DmToolsInstaller.exe, downloads/DmTools.apk) :
+    # un site republié après un build reflète tout de suite la dernière version, sans étape de
+    # copie manuelle entre l'ancien dossier Installer\ et le site.
+    $outputDir        = Join-Path $repoRoot "Website\downloads"
+    $outputDirWindows = $outputDir
+    $outputDirAndroid = $outputDir
 
-    New-Item -ItemType Directory -Force -Path $outputDirWindows, $outputDirAndroid | Out-Null
+    New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 
     # --- Config locale (jamais commitee, cf. .gitignore) : chemin + mots de passe de la keystore de
     #     release, propres a chaque machine. Copier Build-Release.local.ps1.example -> Build-Release.local.ps1
