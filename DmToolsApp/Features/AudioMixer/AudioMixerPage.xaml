@@ -116,7 +116,11 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0" Margin="10">
+                            <!-- IsEnabled global : le strip et ses boutons (livre/gear/X) restent
+                                 désactivés tant que SON lecteur n'est pas prêt (IsLoading), sans
+                                 dupliquer le binding sur chaque bouton. -->
+                            <Grid Grid.Column="0" Margin="10"
+                                  IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="auto"/>
@@ -128,6 +132,10 @@
                                         Padding="4">
                                     <components:ChannelStripView />
                                 </Border>
+                                <ActivityIndicator Grid.Row="0"
+                                        IsRunning="{Binding IsLoading}"
+                                        IsVisible="{Binding IsLoading}"
+                                        HorizontalOptions="Center" VerticalOptions="Center" />
                                 <Grid Grid.Row="1" RowSpacing="5">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="auto"/>

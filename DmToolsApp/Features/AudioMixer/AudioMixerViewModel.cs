@@ -468,6 +468,12 @@ namespace DmToolsApp.Features.AudioMixer
 
             try
             {
+                List<SceneTrack> playable = new();
+
+                // L'overlay plein écran (Loading.IsLoading) ne couvre que la préparation - pas la
+                // création des lecteurs, potentiellement coûteuse par piste sur Android (cf.
+                // AudioMixerService.CreatePlayerAsync) - sinon les strips resteraient invisibles
+                // derrière le spinner jusqu'à ce que TOUS les lecteurs soient prêts.
                 await Loading.RunAsync(async () =>
                 {
                     await SaveCurrentSceneAsync();
@@ -481,41 +487,50 @@ namespace DmToolsApp.Features.AudioMixer
                     _activeScene = SelectedScene;
 
                     var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene.Id);
+                    // Une piste illisible (fichier corrompu, verrouillé...) est simplement ignorée
+                    // au lieu de faire échouer toute la scène.
+                    playable = sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
+                });
 
-                    // Crée tous les lecteurs en parallèle plutôt que d'attendre chaque piste l'une
-                    // après l'autre : le temps de chargement de la scène devient celui de la piste
-                    // la plus lente au lieu de la somme de toutes. Une piste illisible (fichier
-                    // corrompu, verrouillé...) est simplement ignorée au lieu de faire échouer
-                    // toute la scène (et de laisser fuiter les players déjà créés).
-                    var playable = sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
-                    var players = await Task.WhenAll(playable.Select(async st =>
+                // Les strips apparaissent tout de suite, dans l'ordre de la scène, avec IsLoading
+                // à true chacun (cf. binding dans AudioMixerPage.xaml qui désactive le strip et
+                // affiche un spinner local le temps que SON lecteur soit prêt) - au lieu d'attendre
+                // que TOUS les lecteurs soient créés avant de rien afficher.
+                var channels = playable.Select(st => new ChannelStripViewModel
+                {
+                    SceneTrackId = st.Id,
+                    Track = st.Track,
+                    DisplayTrackName = st.Track.Title,
+                    Volume = st.Volume,
+                    IsLooping = st.IsLooping,
+                    IsFadeIn = st.FadeIn,
+                    IsFadeOut = st.FadeOut,
+                    IsLoading = true
+                }).ToList();
+
+                foreach (var channel in channels)
+                    CurrentChannels.Add(channel);
+
+                // Les lecteurs continuent d'être créés en parallèle (Task.Run côté service) ; on ne
+                // bloque plus juste sur le fait de TOUS les attendre avant d'afficher quoi que ce
+                // soit - chaque strip se met à jour dès que le sien est prêt.
+                var creationTasks = playable.Zip(channels, async (st, channel) =>
+                {
+                    try
                     {
-                        try { return await _audioMixerService.CreatePlayerAsync(st.Track.FilePath); }
-                        catch { return null; }
-                    }));
-
-                    for (int i = 0; i < playable.Count; i++)
-                    {
-                        if (players[i] == null)
-                            continue;
-
-                        var st = playable[i];
-                        var channel = new ChannelStripViewModel
-                        {
-                            SceneTrackId = st.Id,
-                            Track = st.Track,
-                            DisplayTrackName = st.Track.Title,
-                            Volume = st.Volume,
-                            IsLooping = st.IsLooping,
-                            IsFadeIn = st.FadeIn,
-                            IsFadeOut = st.FadeOut,
-                            Player = players[i]
-                        };
-
+                        channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
                         SubscribeChannel(channel);
-                        CurrentChannels.Add(channel);
+                    }
+                    catch
+                    {
+                        CurrentChannels.Remove(channel);
+                    }
+                    finally
+                    {
+                        channel.IsLoading = false;
                     }
                 });
+                await Task.WhenAll(creationTasks);
             }
             finally
             {

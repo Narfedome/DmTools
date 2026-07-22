@@ -5,28 +5,34 @@
              xmlns:components ="clr-namespace:DmToolsApp.Components"
              xmlns:loc="clr-namespace:DmToolsApp.Extensions"
              xmlns:icons="clr-namespace:DmToolsApp.Resources.Icons"  WidthRequest="50">
-    <VerticalStackLayout Spacing="8">
-        <components:FaIconButtonView Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
+    <!-- Grid plutôt que VerticalStackLayout : un StackLayout ne redistribue jamais l'espace
+         excédentaire à ses enfants (toujours dimensionné à la somme de leurs tailles naturelles),
+         donc le slider ne pouvait pas s'étirer avec la fenêtre. Ici la ligne "*" absorbe tout
+         l'espace vertical disponible/manquant pour le slider, avec MinimumHeightRequest comme
+         plancher d'utilisabilité ; le nom de piste garde sa ligne "Auto", dimensionnée à son
+         contenu réel (cf. RotatedLabelView). -->
+    <Grid RowDefinitions="Auto,Auto,*,auto" RowSpacing="8">
+        <components:FaIconButtonView Grid.Row="0"
+                                     Icon="{Binding IsPlaying, Converter={StaticResource BoolToPlayPauseConverter}}"
                                      Command="{Binding TogglePlayCommand}"
                                      Tooltip="{Binding IsPlaying, Converter={StaticResource BoolToTooltipPlayPauseConverter}}"
                                      HorizontalOptions="Center" />
-        <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Stop}"
+        <components:FaIconButtonView Grid.Row="1"
+                                     Icon="{x:Static icons:SolidFont.Stop}"
                                      Command="{Binding StopPlaybackCommand}"
                                      Tooltip="{loc:Loc ChannelStop}"
                                      HorizontalOptions="Center" />
-        <Grid HeightRequest="150" WidthRequest="50">
-            <Label Text="{Binding DisplayVolume}"
-               HorizontalOptions="Center" />
-            <Slider Minimum="0" Maximum="1"
-                    Rotation="-90" Margin="0,40,0,0"
-                    Value="{Binding Volume, Mode=TwoWay}"
-                    WidthRequest="150"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center" />
-        </Grid>
-        <Label Text="{Binding DisplayTrackName}"
+
+        <components:ChannelVolumeSliderView Grid.Row="2"
+                                      Value="{Binding Volume, Mode=TwoWay}"
+                                      ValueText="{Binding DisplayVolume}"
+                                      Minimum="0" Maximum="1"
+                                      MinimumHeightRequest="100"
+                                      Thickness="50" />
+
+        <components:RotatedLabelView Grid.Row="3"
+               Text="{Binding DisplayTrackName}"
                HorizontalOptions="Center"
-               Style="{StaticResource TruncatedLabelStyle}" Margin="0,30,0,0"
-               WidthRequest="80" Rotation="-90" />
-    </VerticalStackLayout>
+               LineBreakMode="TailTruncation" />
+    </Grid>
 </ContentView>
