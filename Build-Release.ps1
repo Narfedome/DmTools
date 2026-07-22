@@ -7,10 +7,11 @@
     La version suit le meme schema que la cible SetVersionFromGit du csproj :
     AppVersionMajor.AppVersionMinor.<nombre de commits git> - lu ici depuis le csproj pour
     ne jamais s'en ecarter silencieusement.
-    Les deux artefacts finissent sous D:\Dev\DmTools\Installer, dans des sous-dossiers Windows\
-    et Android\, avec un nom de fichier fixe (DmToolsInstaller.exe / DmTools.apk) : pas de numero
-    de version dans le nom, pour que le fichier mis a disposition du public (lien de telechargement,
-    etc.) puisse etre remplace tel quel a chaque nouvelle version sans changer le lien. La signature
+    Les deux artefacts finissent sous Website\downloads\, avec un nom de fichier fixe
+    (DmToolsInstaller.exe / DmTools.apk) : pas de numero de version dans le nom, pour que le lien
+    de telechargement du site n'ait jamais besoin de changer. Ce dossier est gitignore - avec
+    -Publish, les binaires sont plutot attaches a une GitHub Release (v<version>), seule source
+    que Website/scripts/fetch-downloads.js va lire a chaque build Netlify du site. La signature
     Android vient de la keystore de release partagee si dmtools-release.keystore est present a la
     racine du repo (recupere depuis le Drive partage, jamais commite) et que Build-Release.local.ps1
     definit ses identifiants (a creer une fois par machine depuis Build-Release.local.ps1.example) ;
@@ -22,18 +23,32 @@
 .PARAMETER SkipAndroid
     N'effectue que la publication Windows + installeur.
 
+.PARAMETER Publish
+    Publie aussi une GitHub Release (tag vX.Y.Z) avec l'exe et l'APK en pieces jointes : c'est de
+    la que le site (Website/scripts/fetch-downloads.js, execute par Netlify a chaque deploiement)
+    recupere les binaires - ils ne sont jamais commites dans le depot. Declenche aussi un
+    redeploiement immediat du site si DMTOOLS_NETLIFY_BUILD_HOOK est defini dans
+    Build-Release.local.ps1 (sinon le site se mettra a jour au prochain push sur master). A ne
+    passer que pour une vraie release publique, pas pour un build de test local (necessite le CLI
+    gh, authentifie).
+
 .EXAMPLE
     .\Build-Release.ps1
-    Genere l'installeur Windows ET l'APK Android.
+    Genere l'installeur Windows ET l'APK Android (build local, rien de publie).
 
 .EXAMPLE
     .\Build-Release.ps1 -SkipAndroid
     Ne genere que l'installeur Windows.
+
+.EXAMPLE
+    .\Build-Release.ps1 -Publish
+    Genere les deux artefacts ET les publie sur une nouvelle GitHub Release.
 #>
 
 param(
     [switch]$SkipWindows,
-    [switch]$SkipAndroid
+    [switch]$SkipAndroid,
+    [switch]$Publish
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,11 +61,15 @@ try {
     $csprojPath       = Join-Path $repoRoot "DmToolsApp\DmToolsApp.csproj"
     $issPath          = Join-Path $repoRoot "DmToolsApp\Installer.iss"
     $isccPath         = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    $outputDir        = Join-Path $repoRoot "Installer"
-    $outputDirWindows = Join-Path $outputDir "Windows"
-    $outputDirAndroid = Join-Path $outputDir "Android"
+    # Les deux artefacts finissent directement sous Website\downloads\, exactement là où
+    # index.html (FR/EN) les référence (downloads/DmToolsInstaller.exe, downloads/DmTools.apk) :
+    # un site republié après un build reflète tout de suite la dernière version, sans étape de
+    # copie manuelle entre l'ancien dossier Installer\ et le site.
+    $outputDir        = Join-Path $repoRoot "Website\downloads"
+    $outputDirWindows = $outputDir
+    $outputDirAndroid = $outputDir
 
-    New-Item -ItemType Directory -Force -Path $outputDirWindows, $outputDirAndroid | Out-Null
+    New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 
     # --- Config locale (jamais commitee, cf. .gitignore) : chemin + mots de passe de la keystore de
     #     release, propres a chaque machine. Copier Build-Release.local.ps1.example -> Build-Release.local.ps1
@@ -129,6 +148,48 @@ try {
         Copy-Item -Path $publishedApk -Destination $apkPath -Force
 
         Write-Host "APK : $apkPath" -ForegroundColor Green
+    }
+
+    # --- Publication GitHub Release : seule source des binaires pour le site (jamais commites,
+    #     cf. .gitignore) - fetch-downloads.js les recupere depuis /releases/latest a chaque build
+    #     Netlify. N'attache que ce qui existe reellement (utile si -SkipWindows/-SkipAndroid). ---
+    if ($Publish) {
+        Write-Host "`n=== Publication GitHub Release v$version ===" -ForegroundColor Cyan
+
+        if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+            throw "GitHub CLI (gh) introuvable. Installe-le et authentifie-toi (gh auth login) pour publier une release."
+        }
+
+        $assets = @(
+            Join-Path $outputDirWindows "DmToolsInstaller.exe"
+            Join-Path $outputDirAndroid "DmTools.apk"
+        ) | Where-Object { Test-Path $_ }
+
+        if ($assets.Count -eq 0) {
+            throw "Aucun artefact a publier (exe/apk introuvables sous $outputDir)."
+        }
+
+        gh release create "v$version" @assets --title "v$version" --notes "Build automatise depuis Build-Release.ps1."
+        if ($LASTEXITCODE -ne 0) { throw "gh release create a echoue (code $LASTEXITCODE)." }
+
+        Write-Host "Release publiee : v$version ($($assets.Count) fichier(s))" -ForegroundColor Green
+
+        # --- Redeploiement Netlify : un simple POST sur le Build Hook (cf. Site settings > Build &
+        #     deploy > Build hooks) suffit a declencher un nouveau build du site, qui va re-executer
+        #     fetch-downloads.js et recuperer les binaires qu'on vient de publier. Sans ca, le site
+        #     ne se met a jour qu'au prochain push sur master (ou clic manuel dans le dashboard). ---
+        $netlifyHookUrl = $env:DMTOOLS_NETLIFY_BUILD_HOOK
+        if ($netlifyHookUrl) {
+            Write-Host "`n=== Redeploiement du site (Netlify Build Hook) ===" -ForegroundColor Cyan
+            try {
+                Invoke-RestMethod -Method Post -Uri $netlifyHookUrl -Body (@{ trigger_title = "Build-Release.ps1 v$version" } | ConvertTo-Json) -ContentType "application/json" | Out-Null
+                Write-Host "Site redeploye avec les binaires v$version." -ForegroundColor Green
+            } catch {
+                Write-Warning "Echec de l'appel au Build Hook Netlify : $($_.Exception.Message). Le site se mettra a jour au prochain push sur master, ou via un redeploiement manuel."
+            }
+        } else {
+            Write-Warning "DMTOOLS_NETLIFY_BUILD_HOOK non defini dans Build-Release.local.ps1 : le site ne se redeploiera pas tout seul, il faudra pousser sur master ou redeployer a la main depuis Netlify."
+        }
     }
 }
 catch {

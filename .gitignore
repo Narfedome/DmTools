@@ -366,6 +366,12 @@ FodyWeavers.xsd
 # code source (cf. suppression du dossier DmToolsApp/Pack qui versionnait ces binaires par erreur)
 /Installer/
 
+# Meme raison : l'exe et l'APK que Build-Release.ps1 depose desormais directement dans
+# Website/downloads/ (cf. index.html) restent des artefacts de build, jamais commites tels quels -
+# a heberger/deployer separement (cf. discussion sur le mode de publication du site).
+/Website/downloads/*.exe
+/Website/downloads/*.apk
+
 # Config locale de Build-Release.ps1 (mots de passe de la keystore Android de release) - propre
 # a chaque machine, ne doit jamais etre commitee. Cf. Build-Release.local.ps1.example.
 /Build-Release.local.ps1

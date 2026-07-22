@@ -15,3 +15,8 @@
 $env:DMTOOLS_KEYSTORE_ALIAS     = "dmtools"
 $env:DMTOOLS_KEYSTORE_STOREPASS = "mot-de-passe-keystore"
 $env:DMTOOLS_KEYSTORE_KEYPASS   = "mot-de-passe-cle"
+
+# Optionnel : Build Hook Netlify (Site settings > Build & deploy > Build hooks sur netlify.com).
+# Avec ca, "Build-Release.ps1 -Publish" redeploie le site automatiquement juste apres avoir publie
+# la GitHub Release - sans, le site attend le prochain push sur master pour se mettre a jour.
+$env:DMTOOLS_NETLIFY_BUILD_HOOK = "https://api.netlify.com/build_hooks/xxxxxxxxxxxxxxxxxxxxxxxx"
