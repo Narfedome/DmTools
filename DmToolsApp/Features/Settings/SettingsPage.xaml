@@ -9,7 +9,15 @@
 
     <components:WatermarkedLayout>
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="16">
+        <!-- Sur Desktop, une fenêtre large étirait chaque carte de section bord à bord - plafonnée et
+             centrée à la place (comme les pages de préférences Windows/macOS), plutôt qu'une grille
+             (contenu trop hétérogène en hauteur, casserait l'ordre de lecture haut en bas). Fait en
+             code-behind (cf. SettingsPage.xaml.cs), pas via OnPlatform ici : contrairement à
+             WidthRequest, -1 n'est PAS la valeur "pas de contrainte" pour MaximumWidthRequest (dont le
+             vrai défaut est PositiveInfinity) - la mettre explicitement à -1 pour Android écrasait tout
+             le contenu à une largeur nulle, page blanche. Plus sûr de ne pas toucher à cette propriété
+             du tout sur Android/iOS. -->
+        <VerticalStackLayout x:Name="ContentStack" Padding="20" Spacing="16">
 
             <!-- Langue -->
             <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">

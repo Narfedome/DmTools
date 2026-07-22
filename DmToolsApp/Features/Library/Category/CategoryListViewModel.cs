@@ -20,8 +20,16 @@ namespace DmToolsApp.Features.Library
             _libraryDataService = libraryDataService;
         }
 
-        [ObservableProperty] private ObservableCollection<string> categoryNames = new();
-        [ObservableProperty] private string? selectedCategoryName;
+        [ObservableProperty] private ObservableCollection<CategoryRowItem> categoryNames = new();
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SelectedCategoryName))]
+        private CategoryRowItem? selectedCategory;
+
+        // Exposée en lecture seule pour ne pas toucher au reste de la classe (Rename/Delete, bindings
+        // IsEnabled dans CategoryListPage.xaml) : la sélection réelle passe par SelectedCategory
+        // (CollectionView.SelectedItem), CategoryRowItem porte en plus IsFirst (cf. son commentaire).
+        public string? SelectedCategoryName => SelectedCategory?.Name;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -37,7 +45,8 @@ namespace DmToolsApp.Features.Library
         private async Task LoadAsync()
         {
             var names = await _libraryDataService.GetCategoryNamesAsync(_libraryType);
-            CategoryNames = new ObservableCollection<string>(names);
+            CategoryNames = new ObservableCollection<CategoryRowItem>(
+                names.Select((name, index) => new CategoryRowItem(name, IsFirst: index == 0)));
         }
 
         [RelayCommand]
@@ -73,7 +82,18 @@ namespace DmToolsApp.Features.Library
             await _libraryDataService.DeleteCategoryAsync(_libraryType, SelectedCategoryName);
             WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
             await LoadAsync();
-            SelectedCategoryName = null;
+            SelectedCategory = null;
         }
+    }
+
+    /// <summary>
+    /// IsFirst (vrai seulement pour le tout premier élément de CategoryNames) : la toute première
+    /// ligne de la liste n'a pas besoin de l'espace ajouté au-dessus de chaque ligne pour les séparer
+    /// (cf. CategoryListPage.xaml), sans quoi ça pousse toute la liste vers le bas inutilement - même
+    /// principe que CampaignRow.IsFirstCampaign dans Features/Campaigns.
+    /// </summary>
+    public record CategoryRowItem(string Name, bool IsFirst)
+    {
+        public override string ToString() => Name;
     }
 }

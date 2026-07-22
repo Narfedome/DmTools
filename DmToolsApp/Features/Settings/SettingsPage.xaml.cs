@@ -8,6 +8,14 @@ public partial class SettingsPage : ContentPage
     {
         InitializeComponent();
         BindingContext = vm;
+
+        // Cf. commentaire XAML sur ContentStack : uniquement sur Desktop, pour ne pas risquer de
+        // toucher au vrai défaut (PositiveInfinity) sur Android/iOS.
+        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop)
+        {
+            ContentStack.MaximumWidthRequest = 560;
+            ContentStack.HorizontalOptions = LayoutOptions.Center;
+        }
     }
 
     protected override async void OnNavigatedTo(NavigatedToEventArgs args)

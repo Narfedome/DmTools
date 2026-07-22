@@ -28,13 +28,26 @@
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="80" HeightRequest="80"/>
 
-        <CollectionView Grid.Row="1"
+        <CollectionView Grid.Row="1" x:Name="CategoryCollection"
                         ItemsSource="{Binding CategoryNames}"
-                        SelectedItem="{Binding SelectedCategoryName}"
+                        SelectedItem="{Binding SelectedCategory}"
                         SelectionMode="Single">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Margin="0,4" Padding="12,10"
+                <DataTemplate x:DataType="local:CategoryRowItem">
+                    <!-- Padding sur ce Grid englobant (pas Margin sur le Border racine) : même bug
+                         Windows que CampaignPage (cf. son commentaire sur SessionTemplate/CampaignTemplate)
+                         - le Margin de la racine d'un DataTemplate de CollectionView n'est pas fiable
+                         sur Windows, la ligne suivante n'était donc jamais réellement espacée.
+                         IsFirst (CategoryRowItem, calculé dans CategoryListViewModel.LoadAsync) retire
+                         ce padding pour la toute première ligne, même principe que
+                         CampaignRow.IsFirstCampaign dans CampaignPage.xaml. -->
+                    <Grid Padding="0,4">
+                        <Grid.Triggers>
+                            <DataTrigger TargetType="Grid" Binding="{Binding IsFirst}" Value="True">
+                                <Setter Property="Padding" Value="0"/>
+                            </DataTrigger>
+                        </Grid.Triggers>
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 8" Padding="12,10"
                             MinimumHeightRequest="52">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
@@ -51,8 +64,9 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
-                        <Label Text="{Binding .}" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                        <Label Text="{Binding Name}" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                     </Border>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
