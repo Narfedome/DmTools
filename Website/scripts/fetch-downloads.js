@@ -52,10 +52,29 @@ function download(url, destPath) {
   );
 }
 
+// Met à jour "Version actuelle : X.Y.Z" dans les deux pages de changelog à partir du tag de la
+// release (v1.0.124 -> 1.0.124) : la version affichée au public reste synchronisée avec le vrai
+// binaire distribué sans avoir à l'éditer à la main à chaque release.
+const CHANGELOG_FILES = [path.join(__dirname, "..", "changelog.html"), path.join(__dirname, "..", "en", "changelog.html")];
+const VERSION_PATTERN = /(<strong id="current-version">)[^<]*(<\/strong>)/;
+
+function updateChangelogVersion(version) {
+  for (const file of CHANGELOG_FILES) {
+    const html = fs.readFileSync(file, "utf8");
+    if (!VERSION_PATTERN.test(html)) {
+      console.warn(`Marqueur de version introuvable dans ${file} - non mis à jour.`);
+      continue;
+    }
+    fs.writeFileSync(file, html.replace(VERSION_PATTERN, `$1${version}$2`));
+    console.log(`Version affichée dans ${path.basename(file)} : ${version}`);
+  }
+}
+
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const release = await readJson(`https://api.github.com/repos/${REPO}/releases/latest`);
+  const version = release.tag_name.replace(/^v/, "");
 
   for (const name of ASSETS) {
     const asset = (release.assets || []).find((a) => a.name === name);
@@ -66,6 +85,8 @@ async function main() {
     console.log(`Téléchargement de ${name} (${release.tag_name})...`);
     await download(asset.browser_download_url, path.join(OUT_DIR, name));
   }
+
+  updateChangelogVersion(version);
 
   console.log("Téléchargement des binaires terminé.");
 }
