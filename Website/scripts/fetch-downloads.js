@@ -3,6 +3,11 @@
 // -Publish et le .gitignore de Website/downloads/), donc le site les télécharge lui-même à
 // chaque build plutôt que de dépendre d'une copie versionnée qui ferait gonfler l'historique git
 // à chaque nouvelle release.
+//
+// Le dépôt est privé : l'API GitHub renvoie une 404 (pas une 403, pour ne pas révéler son
+// existence) sur les endpoints de release à toute requête non authentifiée, même si la release
+// existe. DMTOOLS_GITHUB_TOKEN (variable d'environnement Netlify, PAT en lecture seule sur ce
+// repo) est donc indispensable ici - cf. Website/README.md pour comment le créer et le configurer.
 "use strict";
 
 const https = require("https");
@@ -12,16 +17,20 @@ const path = require("path");
 const REPO = "Narfedome/DmTools";
 const ASSETS = ["DmToolsInstaller.exe", "DmTools.apk"];
 const OUT_DIR = path.join(__dirname, "..", "downloads");
+const GITHUB_TOKEN = process.env.DMTOOLS_GITHUB_TOKEN;
 
 function get(url, headers) {
   return new Promise((resolve, reject) => {
     https
       .get(url, { headers: { "User-Agent": "dmtools-netlify-build", ...headers } }, (res) => {
-        // GitHub redirige les assets de release vers un stockage temporaire (S3) : il faut suivre
-        // la redirection nous-mêmes, https.get() ne le fait pas automatiquement.
+        // GitHub redirige les assets de release vers un stockage temporaire signé (S3/Azure) : il
+        // faut suivre la redirection nous-mêmes, https.get() ne le fait pas automatiquement. On ne
+        // renvoie PAS nos headers (notamment Authorization) sur cette redirection : l'URL cible est
+        // déjà auto-authentifiée par sa signature, et certains hébergeurs de blobs rejettent un
+        // Authorization inattendu.
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           res.resume();
-          return resolve(get(res.headers.location, headers));
+          return resolve(get(res.headers.location));
         }
         if (res.statusCode !== 200) {
           res.resume();
@@ -33,15 +42,24 @@ function get(url, headers) {
   });
 }
 
+function githubHeaders(accept) {
+  const headers = { Accept: accept };
+  if (GITHUB_TOKEN) headers.Authorization = `token ${GITHUB_TOKEN}`;
+  return headers;
+}
+
 async function readJson(url) {
-  const res = await get(url, { Accept: "application/vnd.github+json" });
+  const res = await get(url, githubHeaders("application/vnd.github+json"));
   let body = "";
   for await (const chunk of res) body += chunk;
   return JSON.parse(body);
 }
 
-function download(url, destPath) {
-  return get(url).then(
+// Télécharge un asset de release via l'API (pas browser_download_url, qui suppose une session
+// navigateur et ne fonctionne pas pour un repo privé) : Accept: application/octet-stream fait
+// répondre l'API par une redirection vers l'URL signée du binaire.
+function downloadAsset(asset, destPath) {
+  return get(asset.url, githubHeaders("application/octet-stream")).then(
     (res) =>
       new Promise((resolve, reject) => {
         const file = fs.createWriteStream(destPath);
@@ -66,11 +84,15 @@ function updateChangelogVersion(version) {
       continue;
     }
     fs.writeFileSync(file, html.replace(VERSION_PATTERN, `$1${version}$2`));
-    console.log(`Version affichée dans ${path.basename(file)} : ${version}`);
+    console.log(`Version affichée dans ${path.relative(path.join(__dirname, ".."), file)} : ${version}`);
   }
 }
 
 async function main() {
+  if (!GITHUB_TOKEN) {
+    console.warn("DMTOOLS_GITHUB_TOKEN non défini : le dépôt étant privé, l'appel à l'API GitHub va échouer (404).");
+  }
+
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const release = await readJson(`https://api.github.com/repos/${REPO}/releases/latest`);
@@ -83,7 +105,7 @@ async function main() {
       continue;
     }
     console.log(`Téléchargement de ${name} (${release.tag_name})...`);
-    await download(asset.browser_download_url, path.join(OUT_DIR, name));
+    await downloadAsset(asset, path.join(OUT_DIR, name));
   }
 
   updateChangelogVersion(version);
