@@ -42,6 +42,9 @@
                  SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
                  Scrolled="OnCollectionViewScrolled"
                  ItemsUpdatingScrollMode="KeepScrollOffset">
+            <CollectionView.Behaviors>
+                <components:ResponsiveGridSpanBehavior TileWidth="150"/>
+            </CollectionView.Behaviors>
             <CollectionView.ItemsLayout>
                 <GridItemsLayout Span="3" VerticalItemSpacing="5" HorizontalItemSpacing="5" Orientation="Vertical"/>
             </CollectionView.ItemsLayout>
@@ -53,7 +56,7 @@
             </CollectionView.Footer>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 5">
+                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 5" HorizontalOptions="{OnPlatform Default=Fill, WinUI=Center}">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroup Name="CommonStates">
                                 <VisualState Name="Normal">
