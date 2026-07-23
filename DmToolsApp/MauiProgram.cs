@@ -65,6 +65,27 @@ namespace DmToolsApp
                             listViewBase.SingleSelectionFollowsFocus = false;
                     });
 
+                    // ChannelVolumeSliderView (StyleId="ChannelVolumeSliderTrack") tournait un Slider
+                    // horizontal de -90° pour le rendre vertical : sur WinUI, le RenderTransform de
+                    // rotation ne se redessine pas correctement quand la taille change dynamiquement
+                    // dans l'item template d'un CollectionView (le layout MAUI est correct, mais le
+                    // rendu natif reste calé sur une passe antérieure). Plutôt que rustiner ce rendu,
+                    // on bascule ce Slider précis sur l'orientation verticale native de WinUI, qui n'a
+                    // pas ce problème. Scopé via StyleId pour ne pas affecter les autres Slider de
+                    // l'app (ChannelSettingsDialog, SceneTracksPage), qui restent horizontaux.
+                    // Testé sans cette bascule (retour au rendu MAUI tourné, comme sur les autres
+                    // plateformes) : le bug de redessin est bien revenu, ce n'était pas lié au thumb
+                    // bleu (cf. mapping "AccentThumbBrush" ci-dessous, qui est un souci séparé et
+                    // s'applique de toute façon à tous les Slider, natif ou non).
+                    Microsoft.Maui.Handlers.SliderHandler.Mapper.AppendToMapping("VerticalOrientation", (handler, view) =>
+                    {
+                        if (view is VisualElement { StyleId: "ChannelVolumeSliderTrack" } &&
+                            handler.PlatformView is Microsoft.UI.Xaml.Controls.Slider nativeSlider)
+                        {
+                            nativeSlider.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
+                        }
+                    });
+
                     // Sur Windows, TOUT Slider MAUI est en réalité rendu par le vrai contrôle natif
                     // WinUI (Microsoft.UI.Xaml.Controls.Slider) - ce n'est pas spécifique au slider
                     // vertical de l'AudioMixer ni à une bascule d'orientation. Le thumb natif Fluent
