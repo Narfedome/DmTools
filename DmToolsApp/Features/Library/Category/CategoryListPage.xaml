@@ -38,10 +38,7 @@
                             <!-- Padding sur ce Grid englobant (pas Margin sur le Border racine) : même bug
                          Windows que CampaignPage (cf. son commentaire sur SessionTemplate/CampaignTemplate)
                          - le Margin de la racine d'un DataTemplate de CollectionView n'est pas fiable
-                         sur Windows, la ligne suivante n'était donc jamais réellement espacée.
-                         IsFirst (CategoryRowItem, calculé dans CategoryListViewModel.LoadAsync) retire
-                         ce padding pour la toute première ligne, même principe que
-                         CampaignRow.IsFirstCampaign dans CampaignPage.xaml. -->
+                         sur Windows, la ligne suivante n'était donc jamais réellement espacée. -->
                             <Grid Padding="0,0,0,8">
                                 <Border StrokeThickness="2" StrokeShape="RoundRectangle 8"
                                         Padding="{DynamicResource AppAccordionRowPadding}"

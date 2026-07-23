@@ -28,7 +28,7 @@ namespace DmToolsApp.Features.Library
 
         // Exposée en lecture seule pour ne pas toucher au reste de la classe (Rename/Delete, bindings
         // IsEnabled dans CategoryListPage.xaml) : la sélection réelle passe par SelectedCategory
-        // (CollectionView.SelectedItem), CategoryRowItem porte en plus IsFirst (cf. son commentaire).
+        // (CollectionView.SelectedItem).
         public string? SelectedCategoryName => SelectedCategory?.Name;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -45,8 +45,7 @@ namespace DmToolsApp.Features.Library
         private async Task LoadAsync()
         {
             var names = await _libraryDataService.GetCategoryNamesAsync(_libraryType);
-            CategoryNames = new ObservableCollection<CategoryRowItem>(
-                names.Select((name, index) => new CategoryRowItem(name, IsFirst: index == 0)));
+            CategoryNames = new ObservableCollection<CategoryRowItem>(names.Select(name => new CategoryRowItem(name)));
         }
 
         // Remplace le bouton retour natif du Shell (cf. CategoryListPage.xaml, Shell.NavBarIsVisible="False").
@@ -90,13 +89,7 @@ namespace DmToolsApp.Features.Library
         }
     }
 
-    /// <summary>
-    /// IsFirst (vrai seulement pour le tout premier élément de CategoryNames) : la toute première
-    /// ligne de la liste n'a pas besoin de l'espace ajouté au-dessus de chaque ligne pour les séparer
-    /// (cf. CategoryListPage.xaml), sans quoi ça pousse toute la liste vers le bas inutilement - même
-    /// principe que CampaignRow.IsFirstCampaign dans Features/Campaigns.
-    /// </summary>
-    public record CategoryRowItem(string Name, bool IsFirst)
+    public record CategoryRowItem(string Name)
     {
         public override string ToString() => Name;
     }
