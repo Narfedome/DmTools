@@ -99,23 +99,18 @@ public partial class RotatedLabelView : ContentView
     }
 
     /// <summary>
-    /// Mesure la largeur naturelle du texte (sans contrainte) et la reporte comme hauteur du
-    /// composant une fois pivoté : c'est ce qui rend le label "responsive" plutôt que figé sur une
-    /// valeur en pixels devinée à la main. Le Measure legacy est nécessaire ici car il n'y a pas
-    /// d'équivalent moderne pour interroger la taille intrinsèque d'une vue en dehors d'un passage
-    /// de layout.
+    /// Hauteur fixée à MaximumLength (pas à la longueur réelle du texte) : dans l'AudioMixer, deux
+    /// channel strips voisins avec des noms de piste de longueurs différentes ("Canal 3" vs "Grotte
+    /// des Gobelins") se retrouvaient avec des lignes "nom de piste" de hauteurs différentes, ce qui
+    /// décalait leurs sliders (ligne "*" au-dessus) les uns par rapport aux autres au lieu de les
+    /// garder alignés à la même hauteur dans tout le mixeur.
     /// </summary>
     private void UpdateSize()
     {
         if (InnerLabel.Handler == null)
             return;
 
-        var naturalLength = InnerLabel.Measure(double.PositiveInfinity, double.PositiveInfinity).Width;
-        if (naturalLength <= 0)
-            return;
-
-        var length = Math.Min(naturalLength, MaximumLength);
-        InnerLabel.WidthRequest = length;
-        RootGrid.HeightRequest = length;
+        InnerLabel.WidthRequest = MaximumLength;
+        RootGrid.HeightRequest = MaximumLength;
     }
 }
