@@ -13,6 +13,9 @@ using DmToolsApp.Features.Settings;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
+#if WINDOWS
+using Microsoft.Maui.Platform;
+#endif
 
 namespace DmToolsApp
 {
@@ -60,6 +63,24 @@ namespace DmToolsApp
                     {
                         if (handler.PlatformView is Microsoft.UI.Xaml.Controls.ListViewBase listViewBase)
                             listViewBase.SingleSelectionFollowsFocus = false;
+                    });
+
+                    // Sur Windows, TOUT Slider MAUI est en réalité rendu par le vrai contrôle natif
+                    // WinUI (Microsoft.UI.Xaml.Controls.Slider) - ce n'est pas spécifique au slider
+                    // vertical de l'AudioMixer ni à une bascule d'orientation. Le thumb natif Fluent
+                    // Design a un disque intérieur dont la couleur au survol/appui vient des
+                    // ressources thème SliderThumbBackgroundPointerOver/Pressed - pas de la propriété
+                    // MAUI ThumbColor, donc il reste au bleu d'accent système Windows par défaut, quel
+                    // que soit le Slider. On écrase ces ressources avec l'accent de la palette
+                    // courante pour tous les Slider de l'appli, et on les réapplique à chaque
+                    // changement de thème (ce ne sont pas des {DynamicResource} MAUI).
+                    Microsoft.Maui.Handlers.SliderHandler.Mapper.AppendToMapping("AccentThumbBrush", (handler, view) =>
+                    {
+                        if (handler.PlatformView is Microsoft.UI.Xaml.Controls.Slider nativeSlider)
+                        {
+                            ApplyAccentThumbBrush(nativeSlider);
+                            ThemeService.Instance.ThemeChanged += () => ApplyAccentThumbBrush(nativeSlider);
+                        }
                     });
                 })
 #endif
@@ -119,6 +140,19 @@ namespace DmToolsApp
 
             return builder.Build();
         }
+
+#if WINDOWS
+        // Cf. commentaire sur "AccentThumbBrush" ci-dessus (ConfigureMauiHandlers) : ressources
+        // theme Fluent natives du Slider, pas des DynamicResource MAUI - a reappliquer nous-memes.
+        static void ApplyAccentThumbBrush(Microsoft.UI.Xaml.Controls.Slider nativeSlider)
+        {
+            var accent = (Microsoft.Maui.Graphics.Color)Microsoft.Maui.Controls.Application.Current!.Resources["AppAccent"];
+            var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(accent.ToWindowsColor());
+            nativeSlider.Resources["SliderThumbBackground"] = brush;
+            nativeSlider.Resources["SliderThumbBackgroundPointerOver"] = brush;
+            nativeSlider.Resources["SliderThumbBackgroundPressed"] = brush;
+        }
+#endif
     }
 
 }
