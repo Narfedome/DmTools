@@ -36,7 +36,7 @@
 
     <!-- Lignes de l'accordéon Campagnes (RowBorderStyle dans CampaignPage.xaml) : plus compact sur
          Desktop, comme les cartes de section ci-dessus. -->
-    <OnIdiom x:Key="AppAccordionRowPadding" x:TypeArguments="Thickness" Phone="12,10" Tablet="12,10" Desktop="8,6" />
+    <OnIdiom x:Key="AppAccordionRowPadding" x:TypeArguments="Thickness" Phone="8,6" Tablet="8,6" Desktop="8,6" />
     <OnIdiom x:Key="AppAccordionRowMinHeight" x:TypeArguments="x:Double" Phone="52" Tablet="52" Desktop="40" />
 
     <!-- Espacement entre lignes de l'accordéon Campagnes (toutes aplaties dans un seul CollectionView
