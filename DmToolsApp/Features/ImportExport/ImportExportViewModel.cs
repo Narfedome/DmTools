@@ -138,9 +138,34 @@ namespace DmToolsApp.Features.ImportExport
                 };
                 var fileName = SanitizeFileName($"{baseName}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
 
+                // FileSaver.SaveAsync ne remonte aucune progression une fois l'emplacement choisi (API
+                // du plugin) : on estime un temps restant nous-mêmes en observant, via ProgressReportingStream,
+                // combien d'octets du flux source il a effectivement consommés au fil de la copie.
+                popupView.ViewModel.CurrentFileName = Loc["ImportExportSavingFile"];
+                var totalBytes = new FileInfo(tempPath).Length;
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                var lastUiUpdate = TimeSpan.Zero;
+                var saveProgress = new Progress<long>(bytesRead =>
+                {
+                    var elapsed = stopwatch.Elapsed;
+                    if (elapsed - lastUiUpdate < TimeSpan.FromMilliseconds(200) && bytesRead < totalBytes)
+                        return;
+                    lastUiUpdate = elapsed;
+
+                    if (elapsed.TotalSeconds < 0.5 || bytesRead <= 0 || totalBytes <= 0)
+                        return;
+
+                    var bytesPerSecond = bytesRead / elapsed.TotalSeconds;
+                    var remainingBytes = Math.Max(0, totalBytes - bytesRead);
+                    var etaSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
+
+                    popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportSavingFileEta"], FormatEta(etaSeconds));
+                });
+
                 string? savedPath;
                 using (var readStream = File.OpenRead(tempPath))
-                    savedPath = await _fileService.SaveExportPackageAsync(fileName, readStream, CancellationToken.None);
+                using (var progressStream = new ProgressReportingStream(readStream, bytesRead => ((IProgress<long>)saveProgress).Report(bytesRead)))
+                    savedPath = await _fileService.SaveExportPackageAsync(fileName, progressStream, CancellationToken.None);
 
                 await page.ClosePopupAsync();
 
@@ -244,6 +269,13 @@ namespace DmToolsApp.Features.ImportExport
             foreach (var c in Path.GetInvalidFileNameChars())
                 name = name.Replace(c, '_');
             return name;
+        }
+
+        private static string FormatEta(double seconds)
+        {
+            if (seconds < 1) return "< 1 s";
+            var ts = TimeSpan.FromSeconds(seconds);
+            return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes} min {ts.Seconds:D2} s" : $"{ts.Seconds} s";
         }
     }
 }
