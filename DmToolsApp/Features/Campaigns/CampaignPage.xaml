@@ -91,20 +91,18 @@
                                FontFamily="FontSolid" FontSize="{OnIdiom Default=15, Desktop=13}"
                                VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
                         <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontFamily="OpenSansSemibold" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
-                        <!-- Le Grid remplit toute la cellule (pas de HorizontalOptions/VerticalOptions="Center" dessus) :
-                             sinon il se réduit à la taille de l'icône et la zone de tap réelle devient minuscule,
-                             bien plus petite que la colonne réservée. Seul le Label à l'intérieur se centre. -->
-                        <Grid Grid.Column="3">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleCampaignCommand}"
-                                    CommandParameter="{Binding .}"/>
-                            </Grid.GestureRecognizers>
-                            <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                   FontFamily="FontSolid" FontSize="{OnIdiom Default=16, Desktop=14}"
-                                   HorizontalOptions="Center" VerticalOptions="Center"
-                                   TextColor="{DynamicResource AppTextMuted}"/>
-                        </Grid>
+                        <!-- FaIconButtonView (vrai Button) plutot que Label+TapGestureRecognizer : ButtonWidthRequest="44"
+                             reprend la largeur de colonne d'origine (pas AppMinTouchTarget, qui varie par idiome et ne
+                             correspondrait plus a "44" partout). ButtonHeightRequest="-1" (Unset) : par defaut le
+                             bouton reste carre (cf. FaIconButtonView.xaml.cs), ici on le laisse plutot s'etirer
+                             (VerticalOptions="Fill") jusqu'a la hauteur de la ligne, comme le faisait le Grid de tap
+                             d'origine, au lieu de se reduire a un carre. -->
+                        <components:FaIconButtonView Grid.Column="3" Style="{StaticResource GhostIconButtonStyle}"
+                                                      ButtonWidthRequest="44" ButtonHeightRequest="-1" ButtonVerticalOptions="Fill"
+                                                      Icon="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                      IconSize="{OnIdiom Default=16, Desktop=14}"
+                                                      Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleCampaignCommand}"
+                                                      CommandParameter="{Binding .}"/>
                     </Grid>
                 </Border>
                 </Grid>
@@ -127,19 +125,15 @@
                            FontFamily="FontSolid" FontSize="{OnIdiom Default=13, Desktop=11}"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
                     <Label Grid.Column="3" Text="{Binding Session.Title}" FontSize="{OnIdiom Default=15, Desktop=13}" FontAttributes="Italic" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
-                    <!-- Même raison que le chevron Campagne ci-dessus : le Grid remplit toute la cellule
-                         plutôt que de se réduire à la taille de l'icône. -->
-                    <Grid Grid.Column="4">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleSessionCommand}"
-                                CommandParameter="{Binding .}"/>
-                        </Grid.GestureRecognizers>
-                        <Label Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                               FontFamily="FontSolid" FontSize="{OnIdiom Default=15, Desktop=13}"
-                               HorizontalOptions="Center" VerticalOptions="Center"
-                               TextColor="{DynamicResource AppTextMuted}"/>
-                    </Grid>
+                    <!-- Même raison que le chevron Campagne ci-dessus (cf. CampaignTemplate) : ButtonWidthRequest="32"
+                         reprend la largeur de colonne, ButtonHeightRequest="-1" laisse le bouton s'etirer sur toute
+                         la ligne (VerticalOptions="Fill") au lieu du carre par defaut. -->
+                    <components:FaIconButtonView Grid.Column="4" Style="{StaticResource GhostIconButtonStyle}"
+                                                  ButtonWidthRequest="32" ButtonHeightRequest="-1" ButtonVerticalOptions="Fill"
+                                                  Icon="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                  IconSize="{OnIdiom Default=15, Desktop=13}"
+                                                  Command="{Binding Source={RelativeSource AncestorType={x:Type local:CampaignViewModel}}, Path=ToggleSessionCommand}"
+                                                  CommandParameter="{Binding .}"/>
                 </Grid>
             </DataTemplate>
 

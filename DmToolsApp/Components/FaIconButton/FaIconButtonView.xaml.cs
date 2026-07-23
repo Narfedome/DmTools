@@ -78,6 +78,19 @@ public partial class FaIconButtonView : ContentView
         set => SetValue(IconColorProperty, value);
     }
 
+    // ICON BACKGROUND COLOR (defaut AppAccent : le bouton plein accent d'origine, cf. usages
+    // existants type Ajouter/Editer/Supprimer. Passer Transparent pour un style discret, ex.
+    // le chevron retour de DetailPageHeaderView.)
+    public static readonly BindableProperty IconBackgroundColorProperty =
+        BindableProperty.Create(nameof(IconBackgroundColor), typeof(Color), typeof(FaIconButtonView),
+            defaultValueCreator: _ => (Color)Application.Current!.Resources["AppAccent"]);
+
+    public Color IconBackgroundColor
+    {
+        get => (Color)GetValue(IconBackgroundColorProperty);
+        set => SetValue(IconBackgroundColorProperty, value);
+    }
+
     // ICON FONT
     public static readonly BindableProperty IconFontProperty =
         BindableProperty.Create(nameof(IconFont), typeof(string), typeof(FaIconButtonView), "FontSolid");
@@ -96,5 +109,48 @@ public partial class FaIconButtonView : ContentView
     {
         get => (int)GetValue(CornerRadiusProperty);
         set => SetValue(CornerRadiusProperty, value);
+    }
+
+    // BUTTON WIDTH/HEIGHT : carre fixe par defaut (comportement d'origine, cf. usages existants type
+    // Ajouter/Editer/Supprimer ou TrackButtonView - la ou FaIconButtonView occupe une cellule avec
+    // de la place en trop, ex. une pochette carree, un HeightRequest non fixe s'etirerait en barre
+    // au lieu de rester une icone carree).
+    // Passer ButtonHeightRequest="-1" (Unset, cf. VerticalOptions="Fill" ci-dessous dans le XAML)
+    // pour laisser le bouton s'etirer jusqu'a la hauteur de sa cellule au lieu de rester carre -
+    // uniquement pour un vrai remplacement du pattern Grid-de-tap-a-taille-de-ligne (cf. chevrons
+    // d'accordeon CampaignPage), pas le comportement par defaut.
+    public static readonly BindableProperty ButtonWidthRequestProperty =
+        BindableProperty.Create(nameof(ButtonWidthRequest), typeof(double), typeof(FaIconButtonView),
+            // Resources["AppMinTouchTarget"] renverrait l'objet OnIdiom<double> brut, pas resolu
+            // (meme piege que IconSize ci-dessus) : on reproduit sa valeur (Sizes.xaml) directement.
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 32.0 : 44.0);
+
+    public double ButtonWidthRequest
+    {
+        get => (double)GetValue(ButtonWidthRequestProperty);
+        set => SetValue(ButtonWidthRequestProperty, value);
+    }
+
+    public static readonly BindableProperty ButtonHeightRequestProperty =
+        BindableProperty.Create(nameof(ButtonHeightRequest), typeof(double), typeof(FaIconButtonView),
+            defaultValueCreator: _ => DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? 32.0 : 44.0);
+
+    public double ButtonHeightRequest
+    {
+        get => (double)GetValue(ButtonHeightRequestProperty);
+        set => SetValue(ButtonHeightRequestProperty, value);
+    }
+
+    // Defaut Center, pas Fill : l'implementation d'origine (avant l'ajout de ButtonHeightRequest)
+    // n'avait aucun VerticalOptions explicite sur le Button, et Fill + une taille fixe (44/32) rend
+    // mal sur WinUI (icone qui flotte au lieu de rester centree). Passer "Fill" uniquement avec
+    // ButtonHeightRequest="-1" pour un vrai etirement (cf. chevrons d'accordeon CampaignPage).
+    public static readonly BindableProperty ButtonVerticalOptionsProperty =
+        BindableProperty.Create(nameof(ButtonVerticalOptions), typeof(LayoutOptions), typeof(FaIconButtonView), LayoutOptions.Center);
+
+    public LayoutOptions ButtonVerticalOptions
+    {
+        get => (LayoutOptions)GetValue(ButtonVerticalOptionsProperty);
+        set => SetValue(ButtonVerticalOptionsProperty, value);
     }
 }
