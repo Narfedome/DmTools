@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DmToolsApp.Services;
-using System.Collections.ObjectModel;
 
 namespace DmToolsApp.Features.Onboarding
 {
@@ -9,8 +8,6 @@ namespace DmToolsApp.Features.Onboarding
     {
         private readonly ThemeService _theme = ThemeService.Instance;
         private readonly AppShell _shell;
-
-        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
 
         public string SelectedLanguageLabel =>
             LocalizationService.SupportedLanguages.TryGetValue(SelectedLanguage ?? "", out var label) ? label : SelectedLanguage ?? "";

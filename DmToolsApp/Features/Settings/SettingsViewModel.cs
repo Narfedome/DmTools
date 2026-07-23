@@ -153,7 +153,6 @@ namespace DmToolsApp.Features.Settings
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 
-        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
         public ObservableCollection<string> ThemeOptions { get; } = new();
 
         [ObservableProperty]
