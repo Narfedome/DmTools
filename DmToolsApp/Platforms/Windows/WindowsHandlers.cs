@@ -57,7 +57,17 @@ static class WindowsHandlers
             if (handler.PlatformView is Slider nativeSlider)
             {
                 ApplyAccentThumbBrush(nativeSlider);
-                ThemeService.Instance.ThemeChanged += () => ApplyAccentThumbBrush(nativeSlider);
+
+                // ThemeService.Instance est un singleton qui vit toute la durée de l'appli : un
+                // simple += sur son event ThemeChanged retiendrait indéfiniment ce nativeSlider
+                // (fuite mémoire), y compris pour les Slider recréés à chaque changement de scène
+                // dans l'AudioMixer (cf. commentaire "(re)création des channel strips" dans
+                // AudioMixerPage.xaml - un changement de scène fréquent en session accumulerait un
+                // abonnement fantôme par channel strip, jamais collecté). On se désabonne donc dès
+                // que le Slider natif quitte l'arbre visuel.
+                void OnThemeChanged() => ApplyAccentThumbBrush(nativeSlider);
+                ThemeService.Instance.ThemeChanged += OnThemeChanged;
+                nativeSlider.Unloaded += (_, _) => ThemeService.Instance.ThemeChanged -= OnThemeChanged;
             }
         });
     }
