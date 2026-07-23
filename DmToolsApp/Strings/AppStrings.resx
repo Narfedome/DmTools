@@ -217,7 +217,7 @@
     <value>Canal</value>
   </data>
   <data name="SceneAuto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Autoplay</value>
   </data>
   <data name="SceneFadeIn" xml:space="preserve">
     <value>Fade in</value>
