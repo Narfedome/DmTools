@@ -167,11 +167,28 @@ namespace DmToolsApp
         // theme Fluent natives du Slider, pas des DynamicResource MAUI - a reappliquer nous-memes.
         static void ApplyAccentThumbBrush(Microsoft.UI.Xaml.Controls.Slider nativeSlider)
         {
-            var accent = (Microsoft.Maui.Graphics.Color)Microsoft.Maui.Controls.Application.Current!.Resources["AppAccent"];
-            var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(accent.ToWindowsColor());
-            nativeSlider.Resources["SliderThumbBackground"] = brush;
-            nativeSlider.Resources["SliderThumbBackgroundPointerOver"] = brush;
-            nativeSlider.Resources["SliderThumbBackgroundPressed"] = brush;
+            var resources = Microsoft.Maui.Controls.Application.Current!.Resources;
+            var accent = ((Microsoft.Maui.Graphics.Color)resources["AppAccent"]).ToWindowsColor();
+            var surface = ((Microsoft.Maui.Graphics.Color)resources["AppSurface"]).ToWindowsColor();
+
+            var accentBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(accent);
+            nativeSlider.Resources["SliderThumbBackground"] = accentBrush;
+            nativeSlider.Resources["SliderThumbBackgroundPointerOver"] = accentBrush;
+            nativeSlider.Resources["SliderThumbBackgroundPressed"] = accentBrush;
+
+            // Le template Fluent par defaut dessine un disque interieur de 12px enveloppe dans un
+            // anneau exterieur dont l'epaisseur de bordure vaut 0 hors high-contrast : cet anneau
+            // est donc invisible (masque derriere le disque, de meme taille) et le thumb rendu se
+            // resume a un simple point de 12px, discret sur une piste large. On agrandit le disque
+            // et on redonne de l'epaisseur a l'anneau, rempli de la couleur de surface de l'appli,
+            // pour creer un halo qui detache visuellement le thumb de la piste.
+            nativeSlider.Resources["SliderInnerThumbWidth"] = 18.0;
+            nativeSlider.Resources["SliderInnerThumbHeight"] = 18.0;
+            nativeSlider.Resources["SliderThumbCornerRadius"] = new Microsoft.UI.Xaml.CornerRadius(12);
+            nativeSlider.Resources["SliderBorderThemeThickness"] = new Microsoft.UI.Xaml.Thickness(3);
+            var surfaceBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(surface);
+            nativeSlider.Resources["SliderOuterThumbBackground"] = surfaceBrush;
+            nativeSlider.Resources["SliderThumbBorderBrush"] = surfaceBrush;
 
             // Changer une entree de ressource locale ne repeint pas a chaud un Slider deja affiche :
             // constate en testant un changement de theme app en cours d'execution - seul le slider
