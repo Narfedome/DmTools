@@ -113,6 +113,11 @@ namespace DmToolsApp.Services
         {
             if (Application.Current?.Resources is null) return;
             var tokens = GetPaletteTokens(_palette, IsDark());
+            // Variante semi-transparente d'AppSurface (derivee ici plutot que repetee dans les 8
+            // jeux de tokens ci-dessous) : pour les cartes de section (cf. SectionCardBorderStyle
+            // dans Styles.xaml) qui doivent rester lisibles par-dessus le filigrane sans pour autant
+            // etre un aplat plein aussi lourd visuellement que les popups (DialogCardBorder).
+            tokens["AppSurfaceTranslucent"] = tokens["AppSurface"].WithAlpha(0.80f);
             var res = Application.Current.Resources;
             foreach (var kv in tokens)
                 res[kv.Key] = kv.Value;

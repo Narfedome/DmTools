@@ -20,7 +20,7 @@
         <VerticalStackLayout x:Name="ContentStack" Padding="20" Spacing="16">
 
             <!-- Langue -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsLanguage}"
                            VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
@@ -37,7 +37,7 @@
             </Border>
 
             <!-- Thème -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsTheme}"
                            VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
@@ -54,7 +54,7 @@
             </Border>
 
             <!-- Palette -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="{loc:Loc SettingsPalette}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
                     <components:PalettePickerView
@@ -63,7 +63,7 @@
             </Border>
 
             <!-- Version -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsVersion}"
                            VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
@@ -74,7 +74,7 @@
             </Border>
 
             <!-- Stockage -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <VerticalStackLayout Spacing="12">
                     <Grid ColumnDefinitions="*,auto">
                         <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
@@ -114,7 +114,7 @@
             </Border>
 
             <!-- Import / Export -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
                         <Label Text="{loc:Loc ImportExportTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
@@ -134,7 +134,7 @@
             </Border>
 
             <!-- Buy Me a Coffee -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
                         <Label Text="{loc:Loc SettingsSupportTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
@@ -152,7 +152,7 @@
             </Border>
 
             <!-- Signaler un bug -->
-            <Border Padding="{DynamicResource AppSectionCardPadding}" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
                         <Label Text="{loc:Loc SettingsReportBugTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>

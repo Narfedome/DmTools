@@ -8,6 +8,9 @@
     <!-- Semantic palette tokens — overwritten at runtime by ThemeService -->
     <Color x:Key="AppBackground">#1C1A2E</Color>
     <Color x:Key="AppSurface">#2A2750</Color>
+    <!-- AppSurface a 85% d'opacite (0xD9), recalculee par palette dans ThemeService.Apply - cf.
+         SectionCardBorderStyle dans Styles.xaml. -->
+    <Color x:Key="AppSurfaceTranslucent">#D92A2750</Color>
     <Color x:Key="AppAccent">#C9A84C</Color>
     <Color x:Key="AppAccentSecondary">#6B5DAA</Color>
     <Color x:Key="AppText">#F0EDE0</Color>
