@@ -108,9 +108,12 @@ namespace DmToolsApp.Features.ImportExport
             var page = Shell.Current.CurrentPage;
             page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
 
+            // Écrit d'abord sur disque (fichier temporaire) plutôt que dans un MemoryStream : une
+            // bibliothèque audio complète dépasse vite les 2 Go, et MemoryStream est limité à un
+            // buffer int (~2 Go) - au-delà, l'écriture lève IOException "Stream was too long."
+            var tempPath = Path.Combine(Path.GetTempPath(), $"dmtools-export-{Guid.NewGuid():N}.dmpack");
             try
             {
-                using var stream = new MemoryStream();
                 var progress = new Progress<ExportProgress>(p =>
                 {
                     popupView.ViewModel.CurrentFileName = p.CurrentItem;
@@ -118,8 +121,8 @@ namespace DmToolsApp.Features.ImportExport
                     popupView.ViewModel.ProcessedCount = p.Processed;
                 });
 
-                await _importExportService.ExportAsync(request, stream, progress);
-                stream.Position = 0;
+                using (var fileStream = File.Create(tempPath))
+                    await _importExportService.ExportAsync(request, fileStream, progress);
 
                 // Basé sur le niveau choisi, pas juste sur SelectedCampaign : cette propriété peut
                 // rester une valeur résiduelle d'une sélection précédente (Structure) alors que le
@@ -134,7 +137,10 @@ namespace DmToolsApp.Features.ImportExport
                     _ => "Export"
                 };
                 var fileName = SanitizeFileName($"{baseName}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
-                var savedPath = await _fileService.SaveExportPackageAsync(fileName, stream, CancellationToken.None);
+
+                string? savedPath;
+                using (var readStream = File.OpenRead(tempPath))
+                    savedPath = await _fileService.SaveExportPackageAsync(fileName, readStream, CancellationToken.None);
 
                 await page.ClosePopupAsync();
 
@@ -145,6 +151,10 @@ namespace DmToolsApp.Features.ImportExport
             {
                 await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
+            }
+            finally
+            {
+                try { File.Delete(tempPath); } catch { /* meilleur effort, le fichier temporaire est jetable */ }
             }
         }
 
