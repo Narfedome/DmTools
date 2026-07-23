@@ -39,9 +39,14 @@ public partial class LibraryTrackView : ContentView
     // écran 1080p contre 15 chargées par page). SizeChanged se déclenche au premier affichage et à
     // chaque redimensionnement (bascule plein écran comprise) : on boucle alors les chargements
     // jusqu'à avoir de quoi couvrir l'espace visible estimé.
+    // Desktop uniquement (meme garde que ResponsiveGridSpanBehavior, meme raison) : sur Android/iOS
+    // un ecran de telephone est de toute facon toujours plus petit qu'une page (PageSize=15), le
+    // probleme d'origine n'existe pas la-bas. Pire : SizeChanged peut s'y declencher PENDANT une
+    // passe de layout du CollectionView natif (RecyclerView), et muter TrackItems immediatement
+    // dedans plantait l'appli ("Cannot call this method while RecyclerView is computing a layout").
     private void OnCollectionViewSizeChanged(object? sender, EventArgs e)
     {
-        if (BindingContext is LibraryTrackViewModel vm)
+        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
             _ = FillViewportAsync(vm);
     }
 
