@@ -13,9 +13,6 @@ using DmToolsApp.Features.Settings;
 using DmToolsApp.Services;
 using Microsoft.Extensions.Logging;
 using Plugin.Maui.Audio;
-#if WINDOWS
-using Microsoft.Maui.Platform;
-#endif
 
 namespace DmToolsApp
 {
@@ -63,35 +60,6 @@ namespace DmToolsApp
                     {
                         if (handler.PlatformView is Microsoft.UI.Xaml.Controls.ListViewBase listViewBase)
                             listViewBase.SingleSelectionFollowsFocus = false;
-                    });
-
-                    // ChannelVolumeSliderView (StyleId="ChannelVolumeSliderTrack") tournait un Slider
-                    // horizontal de -90° pour le rendre vertical : sur WinUI, le RenderTransform de
-                    // rotation ne se redessine pas correctement quand la taille change dynamiquement
-                    // dans l'item template d'un CollectionView (le layout MAUI est correct, mais le
-                    // rendu natif reste calé sur une passe antérieure). Plutôt que rustiner ce rendu,
-                    // on bascule ce Slider précis sur l'orientation verticale native de WinUI, qui n'a
-                    // pas ce problème. Scopé via StyleId pour ne pas affecter les autres Slider de
-                    // l'app (ChannelSettingsDialog, SceneTracksPage), qui restent horizontaux.
-                    Microsoft.Maui.Handlers.SliderHandler.Mapper.AppendToMapping("VerticalOrientation", (handler, view) =>
-                    {
-                        if (view is VisualElement { StyleId: "ChannelVolumeSliderTrack" } &&
-                            handler.PlatformView is Microsoft.UI.Xaml.Controls.Slider nativeSlider)
-                        {
-                            nativeSlider.Orientation = Microsoft.UI.Xaml.Controls.Orientation.Vertical;
-
-                            // Le thumb natif WinUI (control Fluent réel depuis la bascule ci-dessus,
-                            // pas la version dessinée par MAUI) garde le bleu d'accent système Windows
-                            // par défaut - les propriétés MAUI ThumbColor/MinimumTrackColor du Style
-                            // Slider global ne couvrent pas les ressources thème SliderThumbBackground*
-                            // que Fluent utilise pour le disque intérieur, surtout visible au survol.
-                            // On les écrase directement sur les ressources locales du contrôle avec
-                            // l'accent de la palette courante (ce ne sont pas des {DynamicResource}
-                            // MAUI, donc pas réactives seules) et on les réapplique à chaque
-                            // changement de thème.
-                            ApplyAccentThumbBrush(nativeSlider);
-                            ThemeService.Instance.ThemeChanged += () => ApplyAccentThumbBrush(nativeSlider);
-                        }
                     });
                 })
 #endif
@@ -151,19 +119,6 @@ namespace DmToolsApp
 
             return builder.Build();
         }
-
-#if WINDOWS
-        // Cf. commentaire sur ApplyAccentThumbBrush ci-dessus (ConfigureMauiHandlers) : ressources
-        // theme Fluent natives du Slider, pas des DynamicResource MAUI - a reappliquer nous-memes.
-        static void ApplyAccentThumbBrush(Microsoft.UI.Xaml.Controls.Slider nativeSlider)
-        {
-            var accent = (Microsoft.Maui.Graphics.Color)Microsoft.Maui.Controls.Application.Current!.Resources["AppAccent"];
-            var brush = new Microsoft.UI.Xaml.Media.SolidColorBrush(accent.ToWindowsColor());
-            nativeSlider.Resources["SliderThumbBackground"] = brush;
-            nativeSlider.Resources["SliderThumbBackgroundPointerOver"] = brush;
-            nativeSlider.Resources["SliderThumbBackgroundPressed"] = brush;
-        }
-#endif
     }
 
 }

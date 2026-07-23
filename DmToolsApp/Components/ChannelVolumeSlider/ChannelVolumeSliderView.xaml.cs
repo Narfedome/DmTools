@@ -6,19 +6,15 @@ public partial class ChannelVolumeSliderView : ContentView
     {
         InitializeComponent();
 
-#if WINDOWS
-        // Sur Windows, InnerSlider est bascule sur l'orientation verticale native de WinUI (cf.
-        // MauiProgram.cs, mapping "VerticalOrientation" scope via StyleId) plutot que tourne de
-        // -90° comme sur les autres plateformes. VerticalOptions=Fill lui fait occuper toute la
-        // hauteur de TrackHost (la longueur de la piste). HorizontalOptions=Center (pas Fill) :
-        // le template natif du Slider vertical de WinUI ne centre pas son thumb/track a l'interieur
-        // de bounds etirees a la largeur de la colonne (50px) - le laisser se dimensionner a sa
-        // largeur naturelle et se centrer lui-meme donne un rendu aligne, comme sur les autres
-        // plateformes.
-        InnerSlider.Rotation = 0;
-        InnerSlider.HorizontalOptions = LayoutOptions.Center;
-        InnerSlider.VerticalOptions = LayoutOptions.Fill;
-#else
+        // Slider MAUI tourné de -90° sur toutes les plateformes, y compris Windows : la bascule
+        // sur l'orientation verticale native de WinUI (tentée à une session précédente pour un bug
+        // de redessin au resize dans un CollectionView) faisait sortir complètement ce contrôle du
+        // moteur de rendu MAUI - track/thumb suivaient alors le template Fluent Design natif au lieu
+        // du Style TargetType="Slider" de l'appli, d'où un rendu visuellement différent d'Android
+        // (et une couleur de thumb qui ne suivait plus les changements de thème/palette). À
+        // revérifier concrètement sur Windows (resize de la fenêtre AudioMixer, changement de
+        // scène) : si le bug de redessin d'origine reapparaît, cf. l'historique git pour la version
+        // avec bascule native (mapping "VerticalOrientation" dans MauiProgram.cs).
         TrackHost.SizeChanged += (_, _) => UpdateTrackLength();
 
         // À l'intérieur du CollectionView (item template), le tout premier passage de layout
@@ -27,10 +23,8 @@ public partial class ChannelVolumeSliderView : ContentView
         // force donc nous-même un remeasure une fois la vue montée, une fois le dispatcher UI
         // libre (le layout de la CollectionView est alors retombé sur ses pieds).
         Loaded += (_, _) => Dispatcher.Dispatch(() => TrackHost.InvalidateMeasure());
-#endif
     }
 
-#if !WINDOWS
     /// <summary>
     /// TrackHost (ligne "*") reçoit la hauteur que le Grid parent lui accorde ; on la reporte
     /// comme WidthRequest du slider avant rotation pour qu'il remplisse exactement cet espace,
@@ -41,7 +35,6 @@ public partial class ChannelVolumeSliderView : ContentView
         if (TrackHost.Height > 0)
             InnerSlider.WidthRequest = TrackHost.Height;
     }
-#endif
 
     public static readonly BindableProperty ValueProperty =
         BindableProperty.Create(
