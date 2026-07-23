@@ -16,7 +16,7 @@ namespace DmToolsApp.Components.Dialogs
     /// Campagne/un autre Chapitre. Ne persiste rien lui-même : l'appelant lit SelectedKind/Name/
     /// SelectedCampaign/SelectedSession une fois le dialogue confirmé.
     /// </summary>
-    public partial class CreateItemDialogViewModel : BaseViewModel
+    public partial class CreateItemDialogViewModel : DialogViewModel<bool>
     {
         private readonly List<Campaign> _campaigns;
         private readonly Func<int, Task<List<Session>>> _loadSessions;
@@ -24,7 +24,7 @@ namespace DmToolsApp.Components.Dialogs
         private readonly Session? _initialSession;
         private List<Session> _sessions = new();
 
-        public event Action<bool>? CloseRequested;
+        protected override bool CancelResult => false;
 
         [ObservableProperty]
         private string title = string.Empty;
@@ -186,9 +186,6 @@ namespace DmToolsApp.Components.Dialogs
         }
 
         [RelayCommand]
-        public void Save() => CloseRequested?.Invoke(true);
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(false);
+        public void Save() => Close(true);
     }
 }

@@ -12,8 +12,10 @@
          tailles de police 1:1 entre plateformes - la même valeur rend visuellement plus grande sur
          Windows/WinUI qu'sur Android à densité équivalente, d'où une base plus petite sur Desktop. -->
     <OnIdiom x:Key="AppFontSizeBase" x:TypeArguments="x:Double" Phone="14" Tablet="14" Desktop="12" />
-    <OnIdiom x:Key="AppFontSizeHeadline" x:TypeArguments="x:Double" Phone="32" Tablet="32" Desktop="28" />
-    <OnIdiom x:Key="AppFontSizeSubHeadline" x:TypeArguments="x:Double" Phone="24" Tablet="24" Desktop="20" />
+    <!-- Titres de carte de section (Settings, ImportExport...) et autres labels "un cran au-dessus
+         du texte courant" : la taille la plus repetee de l'appli sans avoir de token dedie avant
+         celui-ci (22 occurrences en dur). -->
+    <OnIdiom x:Key="AppFontSizeSectionTitle" x:TypeArguments="x:Double" Phone="16" Tablet="16" Desktop="14" />
 
     <!-- Padding des boutons et de la carte des dialogues thémés, cf. usages dans Styles.xaml : plus
          compact sur Desktop, cohérent avec AppMinTouchTarget/AppFontSizeBase ci-dessus. -->

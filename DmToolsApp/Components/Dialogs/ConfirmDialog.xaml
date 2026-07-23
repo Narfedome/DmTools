@@ -9,19 +9,18 @@
                x:DataType="dialogs:ConfirmDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0">
-    <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+    <Border Style="{StaticResource DialogCardBorderStyle}" WidthRequest="320">
         <VerticalStackLayout Spacing="16">
             <Label Text="{Binding Title}"
-                   FontAttributes="Bold" FontSize="{OnIdiom Default=16, Desktop=14}"
+                   FontAttributes="Bold" FontSize="{DynamicResource AppFontSizeSectionTitle}"
                    TextColor="{DynamicResource AppText}"/>
             <Label Text="{Binding Message}"
-                   FontSize="{OnIdiom Default=14, Desktop=12}"
                    TextColor="{DynamicResource AppTextMuted}"/>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Grid.Column="0"
                         Text="{Binding CancelLabel}"
                         IsVisible="{Binding HasCancel}"
-                        Style="{StaticResource DialogSecondaryButton}"
+                        Style="{StaticResource DialogSecondaryButtonStyle}"
                         Command="{Binding CancelCommand}"/>
                 <Button Grid.Column="1"
                         Grid.ColumnSpan="{Binding ConfirmButtonColumnSpan}"

@@ -5,7 +5,7 @@
              x:Class="DmToolsApp.Components.ImportProgressPopupView"
              x:DataType="local:ImportProgressViewModel"
              BackgroundColor="Transparent">
-    <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+    <Border Style="{StaticResource DialogCardBorderStyle}" WidthRequest="320">
         <VerticalStackLayout Spacing="10">
             <HorizontalStackLayout Spacing="10">
                 <ActivityIndicator IsRunning="True"
@@ -13,16 +13,14 @@
                                    WidthRequest="18" HeightRequest="18"
                                    VerticalOptions="Center"/>
                 <Label Text="{Binding Title}"
-                       FontAttributes="Bold" FontSize="{OnIdiom Default=16, Desktop=14}"
+                       FontAttributes="Bold" FontSize="{DynamicResource AppFontSizeSectionTitle}"
                        TextColor="{DynamicResource AppText}"
                        VerticalOptions="Center"/>
             </HorizontalStackLayout>
             <Label Text="{Binding CurrentFileName}"
-                   FontSize="{OnIdiom Default=14, Desktop=12}"
                    TextColor="{DynamicResource AppTextMuted}"
                    Style="{StaticResource TruncatedLabelStyle}"/>
             <Label Text="{Binding ProgressText}"
-                   FontSize="{OnIdiom Default=14, Desktop=12}"
                    TextColor="{DynamicResource AppTextMuted}"/>
         </VerticalStackLayout>
     </Border>

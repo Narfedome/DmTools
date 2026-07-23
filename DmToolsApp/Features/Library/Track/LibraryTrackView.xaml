@@ -57,23 +57,7 @@
             </CollectionView.Footer>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 5" HorizontalOptions="{OnPlatform Default=Fill, WinUI=Center}">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="Grey" />
-                                        <Setter Property="StrokeThickness" Value="2" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="LightSkyBlue" />
-                                        <Setter Property="Background" Value="Transparent" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
+                    <Border Style="{StaticResource SelectableGridItemBorderStyle}">
                         <Grid WidthRequest="120" HeightRequest="120"  Margin="5">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -110,10 +94,10 @@
                                              IsEnabled="{Binding HasTrackItems}"/>
                 <BoxView WidthRequest="1" HeightRequest="28" VerticalOptions="Center" Margin="4,0" Color="{DynamicResource AppTextMuted}"/>
                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                                             Command="{Binding CreateItemCommand}"
+                                             Command="{Binding CreateCommand}"
                                              Tooltip="{loc:Loc LibAdd}"/>
                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
-                                             Command="{Binding EditItemCommand}"
+                                             Command="{Binding EditCommand}"
                                              Tooltip="{loc:Loc LibEdit}"
                                              IsEnabled="{Binding SelectedTrackItem, Converter={StaticResource IsNotNullConverter}}"/>
                 <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
@@ -128,7 +112,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Grid.Row="2"
                              IsVisible="{Binding Source={x:Reference root}, Path=IsCrud, Converter={StaticResource InverseBoolConverter}}">
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20"
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="8,8"
                                    IsVisible="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
                 <components:FaIconButtonView Icon="{x:Static  icons:SolidFont.CircleCheck}"
                                                Command="{Binding ConfirmSelectionCommand}"

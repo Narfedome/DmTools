@@ -40,9 +40,7 @@
                          - le Margin de la racine d'un DataTemplate de CollectionView n'est pas fiable
                          sur Windows, la ligne suivante n'était donc jamais réellement espacée. -->
                             <Grid Padding="0,0,0,8">
-                                <Border StrokeThickness="2" StrokeShape="RoundRectangle 8"
-                                        Padding="{DynamicResource AppAccordionRowPadding}"
-                                        MinimumHeightRequest="{DynamicResource AppAccordionRowMinHeight}">
+                                <Border Style="{StaticResource RowBorderStyle}">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup Name="CommonStates">
                                             <VisualState Name="Normal">
@@ -58,7 +56,7 @@
                                             </VisualState>
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
-                                    <Label Text="{Binding Name}" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                                    <Label Text="{Binding Name}" FontSize="{DynamicResource AppFontSizeSectionTitle}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                                 </Border>
                             </Grid>
                         </DataTemplate>

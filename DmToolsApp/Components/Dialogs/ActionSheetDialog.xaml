@@ -9,17 +9,17 @@
                x:DataType="dialogs:ActionSheetDialogViewModel"
                BackgroundColor="Transparent"
                Padding="0">
-    <Border Style="{StaticResource DialogCardBorder}" WidthRequest="320">
+    <Border Style="{StaticResource DialogCardBorderStyle}" WidthRequest="320">
         <VerticalStackLayout Spacing="16">
             <Label Text="{Binding Title}"
-                   FontAttributes="Bold" FontSize="{OnIdiom Default=16, Desktop=14}"
+                   FontAttributes="Bold" FontSize="{DynamicResource AppFontSizeSectionTitle}"
                    TextColor="{DynamicResource AppText}"/>
             <ScrollView MaximumHeightRequest="320">
                 <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Options}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="dialogs:ActionSheetOption">
                             <Button Text="{Binding Label}"
-                                    Style="{StaticResource DialogOptionButton}"
+                                    Style="{StaticResource DialogOptionButtonStyle}"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type dialogs:ActionSheetDialogViewModel}}, Path=SelectCommand}"
                                     CommandParameter="{Binding .}"/>
                         </DataTemplate>
@@ -27,7 +27,7 @@
                 </VerticalStackLayout>
             </ScrollView>
             <Button Text="{Binding CancelLabel}"
-                    Style="{StaticResource DialogSecondaryButton}"
+                    Style="{StaticResource DialogSecondaryButtonStyle}"
                     Command="{Binding CancelCommand}"/>
         </VerticalStackLayout>
     </Border>

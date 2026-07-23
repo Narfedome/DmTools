@@ -20,18 +20,17 @@
                  par la sélection native du CollectionView (SelectionMode="None" : rendu natif trop
                  différent d'une plateforme à l'autre) ni par VisualStateManager (états Normal/Selected
                  pas fiables après les Insert/Remove de l'accordéon). -->
-            <Style x:Key="RowBorderStyle" TargetType="Border">
-                <Setter Property="StrokeThickness" Value="2"/>
-                <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
-                <!-- Pas de Margin ici (peu fiable sur ce Border, racine du DataTemplate sur Windows) -
-                     l'espacement entre lignes Campagne vient du Padding du Grid englobant dans
-                     CampaignTemplate, cf. son commentaire. -->
-                <Setter Property="Padding" Value="{DynamicResource AppAccordionRowPadding}"/>
-                <Setter Property="MinimumHeightRequest" Value="{DynamicResource AppAccordionRowMinHeight}"/>
-                <Setter Property="Stroke" Value="Grey"/>
-            </Style>
+            <!-- RowBorderStyle (carte de ligne d'accordeon/liste : forme, padding, hauteur mini, gris
+                 par defaut) vit desormais dans Styles.xaml - partagee avec CategoryListPage.xaml, qui
+                 dupliquait ces memes 5 proprietes a la main. -->
 
-            <Style x:Key="ExpandableRowBorderStyle" TargetType="Border" BasedOn="{StaticResource RowBorderStyle}">
+            <!-- x:DataType sur le Style (pas seulement sur les DataTemplate) : sans lui, le binding
+                 compile "IsExpanded"/"IsSelected" est resolu contre le x:DataType de la ContentPage
+                 (CampaignViewModel), ou ni l'un ni l'autre n'existe - d'ou l'avertissement MAUIG2045 et
+                 le repli sur un binding par reflexion, plus lent. IExpandableRow (CampaignRow/
+                 SessionRow, pas SceneRow) suffit ici puisque ces deux styles ne servent jamais pour une
+                 Scène. -->
+            <Style x:Key="ExpandableRowBorderStyle" TargetType="Border" BasedOn="{StaticResource RowBorderStyle}" x:DataType="local:IExpandableRow">
                 <Style.Triggers>
                     <DataTrigger TargetType="Border" Binding="{Binding IsExpanded}" Value="True">
                         <Setter Property="Stroke" Value="{DynamicResource AppAccent}"/>
@@ -39,7 +38,7 @@
                 </Style.Triggers>
             </Style>
 
-            <Style x:Key="ChapterDividerStyle" TargetType="BoxView">
+            <Style x:Key="ChapterDividerStyle" TargetType="BoxView" x:DataType="local:IExpandableRow">
                 <Setter Property="HeightRequest" Value="1"/>
                 <Setter Property="VerticalOptions" Value="End"/>
                 <Setter Property="Color" Value="Grey"/>
@@ -53,8 +52,10 @@
             <!-- Couleur fixe (pas une DynamicResource liée au thème/palette) : comme dans la
                  Bibliothèque (LibraryTrackView, Stroke="LightSkyBlue" sur l'état Selected), pour que la
                  sélection ressorte quel que soit le thème choisi, et pour rester cohérent visuellement
-                 avec l'indicateur de sélection déjà utilisé ailleurs dans l'appli. -->
-            <Style x:Key="SelectionMarkerStyle" TargetType="BoxView">
+                 avec l'indicateur de sélection déjà utilisé ailleurs dans l'appli.
+                 x:DataType="local:ExplorerRow" (la base commune Campagne/Chapitre/Scène) : IsSelected y
+                 est déclaré, cf. commentaire sur ExpandableRowBorderStyle ci-dessus pour la raison. -->
+            <Style x:Key="SelectionMarkerStyle" TargetType="BoxView" x:DataType="local:ExplorerRow">
                 <Setter Property="WidthRequest" Value="4"/>
                 <Setter Property="Margin" Value="0,6"/>
                 <Setter Property="Color" Value="LightSkyBlue"/>
@@ -90,7 +91,7 @@
                         <Label Grid.Column="1" Text="{x:Static icons:SolidFont.Map}"
                                FontFamily="FontSolid" FontSize="{OnIdiom Default=15, Desktop=13}"
                                VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontFamily="OpenSansSemibold" FontSize="{OnIdiom Default=16, Desktop=14}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
+                        <Label Grid.Column="2" Text="{Binding Campaign.Title}" FontFamily="OpenSansSemibold" FontSize="{DynamicResource AppFontSizeSectionTitle}" VerticalOptions="Center" Style="{StaticResource TruncatedLabelStyle}"/>
                         <!-- FaIconButtonView (vrai Button) plutot que Label+TapGestureRecognizer : ButtonWidthRequest="44"
                              reprend la largeur de colonne d'origine (pas AppMinTouchTarget, qui varie par idiome et ne
                              correspondrait plus a "44" partout). ButtonHeightRequest="-1" (Unset) : par defaut le
@@ -148,7 +149,7 @@
                     <Label Grid.Column="2" Text="{x:Static icons:SolidFont.MasksTheater}"
                            FontFamily="FontSolid" FontSize="{OnIdiom Default=12, Desktop=10}"
                            VerticalOptions="Center" TextColor="{DynamicResource AppTextMuted}"/>
-                    <Label Grid.Column="3" Text="{Binding Scene.Title}" FontSize="{OnIdiom Default=14, Desktop=12}" VerticalOptions="Center"
+                    <Label Grid.Column="3" Text="{Binding Scene.Title}" VerticalOptions="Center"
                            TextColor="{DynamicResource AppTextMuted}" Style="{StaticResource TruncatedLabelStyle}"/>
                     <Grid Grid.Column="4">
                         <Grid.GestureRecognizers>
@@ -193,7 +194,7 @@
                        TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
                 <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                <Label Text="{loc:Loc EmptyCampaignsBody}" FontSize="{OnIdiom Default=14, Desktop=12}" TextColor="{DynamicResource AppTextMuted}"
+                <Label Text="{loc:Loc EmptyCampaignsBody}" TextColor="{DynamicResource AppTextMuted}"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                 <Button Text="{loc:Loc DialogCreateItem}" Command="{Binding CreateCommand}" Margin="0,8,0,0"/>
             </VerticalStackLayout>
