@@ -615,6 +615,9 @@ namespace DmToolsApp.Features.AudioMixer
                 {
                     channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
                     SubscribeChannel(channel);
+
+                    if (st.AutoPlay)
+                        channel.Play();
                 }
                 catch (Exception ex)
                 {
