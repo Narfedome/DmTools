@@ -172,6 +172,16 @@ namespace DmToolsApp
             nativeSlider.Resources["SliderThumbBackground"] = brush;
             nativeSlider.Resources["SliderThumbBackgroundPointerOver"] = brush;
             nativeSlider.Resources["SliderThumbBackgroundPressed"] = brush;
+
+            // Changer une entree de ressource locale ne repeint pas a chaud un Slider deja affiche :
+            // constate en testant un changement de theme app en cours d'execution - seul le slider
+            // qu'on venait de toucher (donc qui avait transite par un vrai etat visuel Pointer/
+            // Pressed) affichait la bonne couleur, les autres restaient bleus malgre la ressource
+            // mise a jour. Un aller-retour IsEnabled force WinUI a re-parcourir le VisualStateManager
+            // et donc a relire ces ressources, sans flash visible (aucun rendu n'a lieu entre les
+            // deux lignes, toutes deux synchrones sur le thread UI).
+            nativeSlider.IsEnabled = false;
+            nativeSlider.IsEnabled = true;
         }
 #endif
     }
