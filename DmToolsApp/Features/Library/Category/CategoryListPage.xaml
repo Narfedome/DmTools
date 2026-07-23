@@ -42,12 +42,7 @@
                          IsFirst (CategoryRowItem, calculé dans CategoryListViewModel.LoadAsync) retire
                          ce padding pour la toute première ligne, même principe que
                          CampaignRow.IsFirstCampaign dans CampaignPage.xaml. -->
-                            <Grid Padding="0,4">
-                                <Grid.Triggers>
-                                    <DataTrigger TargetType="Grid" Binding="{Binding IsFirst}" Value="True">
-                                        <Setter Property="Padding" Value="0"/>
-                                    </DataTrigger>
-                                </Grid.Triggers>
+                            <Grid Padding="0,0,0,8">
                                 <Border StrokeThickness="2" StrokeShape="RoundRectangle 8"
                                         Padding="{DynamicResource AppAccordionRowPadding}"
                                         MinimumHeightRequest="{DynamicResource AppAccordionRowMinHeight}">
