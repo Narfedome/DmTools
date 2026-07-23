@@ -17,15 +17,16 @@
         FontFamily="{Binding Source={x:Reference root}, Path=IconFont}"
         FontSize="{Binding Source={x:Reference root}, Path=IconSize}"
         TextColor="{Binding Source={x:Reference root}, Path=IconColor}"
-        BackgroundColor="{DynamicResource AppAccent}"
+        BackgroundColor="{Binding Source={x:Reference root}, Path=IconBackgroundColor}"
         CornerRadius="{Binding Source={x:Reference root}, Path=CornerRadius}"
         Command="{Binding Source={x:Reference root}, Path=Command}"
         CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
         ToolTipProperties.Text="{Binding Source={x:Reference root}, Path=Tooltip}"
-        WidthRequest="{DynamicResource AppMinTouchTarget}"
-        HeightRequest="{DynamicResource AppMinTouchTarget}"
+        WidthRequest="{Binding Source={x:Reference root}, Path=ButtonWidthRequest}"
+        HeightRequest="{Binding Source={x:Reference root}, Path=ButtonHeightRequest}"
         Padding="0"
-        HorizontalOptions="Center" />
+        HorizontalOptions="Center"
+        VerticalOptions="{Binding Source={x:Reference root}, Path=ButtonVerticalOptions}" />
 
     </Grid>
 </ContentView>

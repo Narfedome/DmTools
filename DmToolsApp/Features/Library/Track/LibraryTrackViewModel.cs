@@ -67,7 +67,22 @@ namespace DmToolsApp.Features.Library
             if (_suppressCategoryReload)
                 return;
 
-            _ = ReloadAsync();
+            _ = ReloadAfterCategoryChangeAsync();
+        }
+
+        // Le handler de changement de propriete est void (impose par le generateur de source) : pas
+        // moyen d'y faire un vrai await. Sans ce wrapper, une erreur DB dans ReloadAsync disparaissait
+        // silencieusement (tache fire-and-forget jamais observee) au lieu de remonter a l'utilisateur.
+        private async Task ReloadAfterCategoryChangeAsync()
+        {
+            try
+            {
+                await ReloadAsync();
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
         }
 
         public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService, CoverArtService coverArtService)
@@ -331,7 +346,7 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task EditItem()
+        public async Task Edit()
         {
             if (SelectedTrackItem == null)
                 return;
@@ -340,7 +355,7 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task CreateItem()
+        public async Task Create()
         {
             await ShowTrackEditDialogAsync(new Track());
         }

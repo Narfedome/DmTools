@@ -28,18 +28,18 @@
             <!-- Palette picker -->
             <VerticalStackLayout Spacing="12">
                 <Label Text="{loc:Loc OnboardingPalette}"
-                       FontSize="{OnIdiom Default=16, Desktop=14}" FontAttributes="Bold"
+                       FontSize="{DynamicResource AppFontSizeSectionTitle}" FontAttributes="Bold"
                        HorizontalTextAlignment="Center"/>
                 <components:PalettePickerView
                     SelectedPalette="{Binding SelectedPalette, Mode=TwoWay}"/>
             </VerticalStackLayout>
 
             <!-- Language -->
-            <Border Padding="16,12" StrokeShape="RoundRectangle 8">
+            <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0"
                            Text="{loc:Loc OnboardingLanguage}"
-                           VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                           VerticalOptions="Center" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedLanguageLabel}"
                             Command="{Binding SelectLanguageCommand}"
@@ -53,7 +53,7 @@
             <!-- Start button -->
             <Button Text="{loc:Loc OnboardingStart}"
                     Command="{Binding StartCommand}"
-                    FontSize="{OnIdiom Default=16, Desktop=14}"
+                    FontSize="{DynamicResource AppFontSizeSectionTitle}"
                     Margin="0,8,0,0"/>
 
         </VerticalStackLayout>

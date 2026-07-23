@@ -59,7 +59,7 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task DeleteItem()
+        public async Task Delete()
         {
             if (SelectedSpellItem == null)
                 return;
@@ -76,7 +76,7 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task EditItem()
+        public async Task Edit()
         {
             if (SelectedSpellItem == null)
                 return;
@@ -90,7 +90,7 @@ namespace DmToolsApp.Features.Library
         }
 
         [RelayCommand]
-        public async Task CreateItem()
+        public async Task Create()
         {
             var newItem = new Spell();
 

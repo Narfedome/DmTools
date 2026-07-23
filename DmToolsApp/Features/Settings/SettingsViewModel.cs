@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Features.AudioMixer;
 using DmToolsApp.Features.ImportExport;
+using DmToolsApp.Features.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
 
@@ -99,6 +100,12 @@ namespace DmToolsApp.Features.Settings
                 _audioMixerViewModel.ClearChannels();
 
                 var deleted = await _storageService.DeleteAllTracksAsync();
+
+                // Sans ça, la page Bibliothèque (qui ne recharge sa liste qu'au premier affichage ou
+                // sur ce message) continue d'afficher des pistes qui n'existent plus une fois qu'on y
+                // revient depuis Réglages.
+                WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
+
                 await InitializeAsync();
                 await ShowInfoAsync(Loc["SettingsStorageTitle"], string.Format(Loc["SettingsStorageDeleteAllResult"], deleted));
             }
@@ -153,7 +160,6 @@ namespace DmToolsApp.Features.Settings
 
         public static Dictionary<string, string> LanguageLabels => LocalizationService.SupportedLanguages;
 
-        public ObservableCollection<string> Languages { get; } = new(LocalizationService.SupportedLanguages.Keys);
         public ObservableCollection<string> ThemeOptions { get; } = new();
 
         [ObservableProperty]

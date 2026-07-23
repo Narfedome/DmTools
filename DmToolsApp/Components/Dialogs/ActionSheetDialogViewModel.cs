@@ -12,9 +12,9 @@ namespace DmToolsApp.Components.Dialogs
     /// Logique de la liste de choix générique (ActionSheetDialog n'est qu'un wrapper XAML lié
     /// dessus). Ferme avec l'index de l'option choisie (-1 : annulation).
     /// </summary>
-    public partial class ActionSheetDialogViewModel : BaseViewModel
+    public partial class ActionSheetDialogViewModel : DialogViewModel<int>
     {
-        public event Action<int>? CloseRequested;
+        protected override int CancelResult => -1;
 
         [ObservableProperty]
         private string title = string.Empty;
@@ -32,9 +32,6 @@ namespace DmToolsApp.Components.Dialogs
         }
 
         [RelayCommand]
-        public void Select(ActionSheetOption option) => CloseRequested?.Invoke(option.Index);
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(-1);
+        public void Select(ActionSheetOption option) => Close(option.Index);
     }
 }

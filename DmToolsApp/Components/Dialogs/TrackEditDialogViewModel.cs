@@ -13,7 +13,7 @@ namespace DmToolsApp.Components.Dialogs
     /// rien tant que Save n'est pas appelé : dédup par hash, copie locale du fichier et sauvegarde
     /// se font toutes dans SaveAsync, une fois le dialogue confirmé.
     /// </summary>
-    public partial class TrackEditDialogViewModel : BaseViewModel
+    public partial class TrackEditDialogViewModel : DialogViewModel<bool>
     {
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
@@ -23,8 +23,7 @@ namespace DmToolsApp.Components.Dialogs
         private byte[]? _pendingCoverBytes;
         private bool _filePicked;
 
-        /// <summary>Signale à TrackEditDialog de se refermer (true = sauvegardé, false = annulé).</summary>
-        public event Action<bool>? CloseRequested;
+        protected override bool CancelResult => false;
 
         public Track Item { get; }
 
@@ -157,11 +156,8 @@ namespace DmToolsApp.Components.Dialogs
             await _libraryDataService.SaveLibraryItemAsync(Item);
             WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
 
-            CloseRequested?.Invoke(true);
+            Close(true);
         }
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(false);
 
         public void StopAudio() => _audioPlayerService.Stop();
     }

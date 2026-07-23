@@ -5,6 +5,12 @@ using Plugin.Maui.Audio;
 
 namespace DmToolsApp.Components
 {
+    // Exception documentee au principe "Core = logique pure uniquement" : un ViewModel UI n'a
+    // normalement rien a faire ici. Mais DmToolsApp.Tests cible net10.0 pur et ne peut referencer
+    // que DmToolsApp.Core - jamais l'appli MAUI multi-target - donc c'est la seule facon de garder
+    // les 13 tests de ChannelStripViewModelTests.cs (fades, remplacement/dispose de player...).
+    // Decision explicite du mainteneur apres audit complet du repo (2026-07-23) : ne pas re-proposer
+    // de deplacement vers DmToolsApp sans qu'il le redemande.
     public partial class ChannelStripViewModel : ObservableObject
     {
         // Durée/pas des fades, surchargeables par les tests (InternalsVisibleTo) pour ne pas
@@ -214,6 +220,15 @@ namespace DmToolsApp.Components
             {
                 if (Player != null)
                     Player.Volume = targetVolume;
+            }
+            catch (Exception ex)
+            {
+                // Play() est appelé fire-and-forget (_ = FadeInAsync()) : sans ce catch, une erreur
+                // du player (Player.Volume/Play natif) ici disparaissait comme exception de tâche
+                // jamais observée. Pas de ShowErrorAsync possible ici (Core, pas de couche UI) - au
+                // minimum on log et on évite de laisser le strip dans un état incohérent.
+                System.Diagnostics.Debug.WriteLine($"[ChannelStripViewModel] Échec du fade in : {ex}");
+                IsPlaying = false;
             }
             finally
             {

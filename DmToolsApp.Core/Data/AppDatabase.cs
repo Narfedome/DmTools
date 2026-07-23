@@ -51,32 +51,39 @@ namespace DmToolsApp.Data
             await AddColumnIfMissingAsync("TrackEntity", "Category TEXT NOT NULL DEFAULT ''");
             await AddColumnIfMissingAsync("CategoryEntity", "LibraryType TEXT NOT NULL DEFAULT ''");
 
-            // Purge unique des lignes orphelines laissées par les suppressions sans cascade des
-            // versions précédentes (supprimer une campagne ne supprimait ni ses chapitres, ni
-            // leurs scènes, ni leurs pistes). L'ordre importe : parents d'abord.
-            await _db.ExecuteAsync("DELETE FROM SessionEntity WHERE CampaignId NOT IN (SELECT Id FROM CampaignEntity)");
-            await _db.ExecuteAsync("DELETE FROM SceneEntity WHERE SessionId NOT IN (SELECT Id FROM SessionEntity)");
-            await _db.ExecuteAsync("DELETE FROM SceneTrackEntity WHERE SceneId NOT IN (SELECT Id FROM SceneEntity)");
-            await _db.ExecuteAsync("DELETE FROM SceneTrackEntity WHERE TrackId NOT IN (SELECT Id FROM TrackEntity)");
-
-            // Toute catégorie créée avant l'introduction de LibraryType ne pouvait être que pour des
-            // tracks (les sorts n'ont pas encore de catégories) : on les rattache rétroactivement.
-            await _db.ExecuteAsync(
-                $"UPDATE CategoryEntity SET LibraryType = '{nameof(Track)}' WHERE LibraryType = ''");
-
-            // Seed initial des catégories de tracks (une seule fois, aucune catégorie de ce type) : les
-            // 3 catégories par défaut + toute catégorie déjà utilisée par des tracks existantes (upgrade
-            // depuis une DB qui n'avait pas encore cette table). Si l'utilisateur en supprime une
-            // ensuite, elle ne revient pas au prochain lancement.
-            if (await _db.Table<CategoryEntity>().Where(c => c.LibraryType == nameof(Track)).CountAsync() == 0)
+            // Purge + seed regroupés dans une transaction : plusieurs etapes liees (purge des
+            // orphelins puis rattachement retroactif puis seed conditionne par le resultat de la
+            // purge) - une interruption en plein milieu laisserait la DB dans un etat intermediaire
+            // incoherent (ex: categories rattachees mais seed jamais fait, relance ratee ensuite car
+            // le compte ne serait plus a 0).
+            await _db.RunInTransactionAsync(conn =>
             {
-                var existingTrackCategories = (await _db.Table<TrackEntity>().ToListAsync())
-                    .Select(t => t.Category)
-                    .Where(c => !string.IsNullOrWhiteSpace(c));
+                // Purge unique des lignes orphelines laissées par les suppressions sans cascade des
+                // versions précédentes (supprimer une campagne ne supprimait ni ses chapitres, ni
+                // leurs scènes, ni leurs pistes). L'ordre importe : parents d'abord.
+                conn.Execute("DELETE FROM SessionEntity WHERE CampaignId NOT IN (SELECT Id FROM CampaignEntity)");
+                conn.Execute("DELETE FROM SceneEntity WHERE SessionId NOT IN (SELECT Id FROM SessionEntity)");
+                conn.Execute("DELETE FROM SceneTrackEntity WHERE SceneId NOT IN (SELECT Id FROM SceneEntity)");
+                conn.Execute("DELETE FROM SceneTrackEntity WHERE TrackId NOT IN (SELECT Id FROM TrackEntity)");
 
-                foreach (var name in _defaultTrackCategories.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
-                    await _db.InsertAsync(new CategoryEntity { Name = name, LibraryType = nameof(Track) });
-            }
+                // Toute catégorie créée avant l'introduction de LibraryType ne pouvait être que pour des
+                // tracks (les sorts n'ont pas encore de catégories) : on les rattache rétroactivement.
+                conn.Execute($"UPDATE CategoryEntity SET LibraryType = '{nameof(Track)}' WHERE LibraryType = ''");
+
+                // Seed initial des catégories de tracks (une seule fois, aucune catégorie de ce type) : les
+                // 3 catégories par défaut + toute catégorie déjà utilisée par des tracks existantes (upgrade
+                // depuis une DB qui n'avait pas encore cette table). Si l'utilisateur en supprime une
+                // ensuite, elle ne revient pas au prochain lancement.
+                if (conn.Table<CategoryEntity>().Where(c => c.LibraryType == nameof(Track)).Count() == 0)
+                {
+                    var existingTrackCategories = conn.Table<TrackEntity>().ToList()
+                        .Select(t => t.Category)
+                        .Where(c => !string.IsNullOrWhiteSpace(c));
+
+                    foreach (var name in _defaultTrackCategories.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
+                        conn.Insert(new CategoryEntity { Name = name, LibraryType = nameof(Track) });
+                }
+            });
         }
 
         private async Task AddColumnIfMissingAsync(string table, string columnDefinition)

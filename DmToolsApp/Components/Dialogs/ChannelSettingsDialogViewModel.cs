@@ -8,9 +8,9 @@ namespace DmToolsApp.Components.Dialogs
     /// wrapper XAML lié dessus). Ne persiste rien lui-même : l'appelant (AudioMixerViewModel) lit
     /// les propriétés éditées une fois le dialogue confirmé et se charge d'appliquer/sauvegarder.
     /// </summary>
-    public partial class ChannelSettingsDialogViewModel : BaseViewModel
+    public partial class ChannelSettingsDialogViewModel : DialogViewModel<bool>
     {
-        public event Action<bool>? CloseRequested;
+        protected override bool CancelResult => false;
 
         [ObservableProperty]
         private string trackName = string.Empty;
@@ -44,9 +44,6 @@ namespace DmToolsApp.Components.Dialogs
         }
 
         [RelayCommand]
-        public void Save() => CloseRequested?.Invoke(true);
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(false);
+        public void Save() => Close(true);
     }
 }

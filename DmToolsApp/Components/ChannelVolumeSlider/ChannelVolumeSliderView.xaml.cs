@@ -9,12 +9,14 @@ public partial class ChannelVolumeSliderView : ContentView
 #if WINDOWS
         // Sur Windows, InnerSlider est bascule sur l'orientation verticale native de WinUI (cf.
         // MauiProgram.cs, mapping "VerticalOrientation" scope via StyleId) plutot que tourne de
-        // -90° comme sur les autres plateformes. VerticalOptions=Fill lui fait occuper toute la
-        // hauteur de TrackHost (la longueur de la piste). HorizontalOptions=Center (pas Fill) :
-        // le template natif du Slider vertical de WinUI ne centre pas son thumb/track a l'interieur
-        // de bounds etirees a la largeur de la colonne (50px) - le laisser se dimensionner a sa
-        // largeur naturelle et se centrer lui-meme donne un rendu aligne, comme sur les autres
-        // plateformes.
+        // -90° comme sur les autres plateformes : evite un bug de redessin WinUI (confirme en
+        // testant sans cette bascule - le bug etait bien revenu, independant du souci de couleur du
+        // thumb, cf. mapping "AccentThumbBrush" qui couvre tous les Slider quelle que soit leur
+        // orientation). VerticalOptions=Fill lui fait occuper toute la hauteur de TrackHost (la
+        // longueur de la piste). HorizontalOptions=Center (pas Fill) : le template natif du Slider
+        // vertical de WinUI ne centre pas son thumb/track a l'interieur de bounds etirees a la
+        // largeur de la colonne (50px) - le laisser se dimensionner a sa largeur naturelle et se
+        // centrer lui-meme donne un rendu aligne, comme sur les autres plateformes.
         InnerSlider.Rotation = 0;
         InnerSlider.HorizontalOptions = LayoutOptions.Center;
         InnerSlider.VerticalOptions = LayoutOptions.Fill;

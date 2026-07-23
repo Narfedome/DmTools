@@ -45,7 +45,7 @@
                             </Grid.ColumnDefinitions>
 
                             <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                <Label Text="{Binding Track.Title}" FontSize="{OnIdiom Default=14, Desktop=12}" Style="{StaticResource TruncatedLabelStyle}" WidthRequest="60"/>
+                                <Label Text="{Binding Track.Title}" Style="{StaticResource TruncatedLabelStyle}" WidthRequest="60"/>
                                 <Label Text="{Binding Track.DurationFormatted}" FontSize="{OnIdiom Default=11, Desktop=9}" TextColor="Gray"/>
                             </VerticalStackLayout>
 

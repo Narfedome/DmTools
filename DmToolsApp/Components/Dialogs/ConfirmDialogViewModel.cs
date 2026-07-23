@@ -8,9 +8,9 @@ namespace DmToolsApp.Components.Dialogs
     /// XAML lié dessus). CancelLabel null = dialogue à un seul bouton (info/erreur, cf.
     /// BaseViewModel.ShowErrorAsync/ShowInfoAsync).
     /// </summary>
-    public partial class ConfirmDialogViewModel : BaseViewModel
+    public partial class ConfirmDialogViewModel : DialogViewModel<bool>
     {
-        public event Action<bool>? CloseRequested;
+        protected override bool CancelResult => false;
 
         [ObservableProperty]
         private string title = string.Empty;
@@ -36,9 +36,6 @@ namespace DmToolsApp.Components.Dialogs
         }
 
         [RelayCommand]
-        public void Confirm() => CloseRequested?.Invoke(true);
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(false);
+        public void Confirm() => Close(true);
     }
 }

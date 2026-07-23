@@ -39,7 +39,7 @@
                         Command="{Binding SelectSessionCommand}"
                         TextColor="{DynamicResource AppAccent}"
                         TextMaximumWidth="{OnPlatform Default=100, WinUI=200}"
-                        FontSize="{OnIdiom Default=14, Desktop=12}"/>
+/>
 
                 <components:FaIconButtonView Grid.Column="1"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
@@ -53,7 +53,7 @@
                         Command="{Binding SelectSceneCommand}"
                         TextColor="{DynamicResource AppAccent}"
                         TextMaximumWidth="{OnPlatform Default=100, WinUI=200}"
-                        FontSize="{OnIdiom Default=14, Desktop=12}"/>
+/>
 
                 <components:FaIconButtonView Grid.Column="3"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"
@@ -99,7 +99,7 @@
         <Grid Grid.RowSpan="3"
               ZIndex="10"
               IsVisible="{Binding Loading.IsLoading}"
-              BackgroundColor="#80000000">
+              BackgroundColor="{StaticResource AppOverlay}">
             <ActivityIndicator IsRunning="{Binding Loading.IsLoading}"
                                VerticalOptions="Center" HorizontalOptions="Center"
                                WidthRequest="120" HeightRequest="120"/>

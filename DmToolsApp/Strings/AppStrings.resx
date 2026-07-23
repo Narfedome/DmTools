@@ -217,7 +217,7 @@
     <value>Canal</value>
   </data>
   <data name="SceneAuto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Autoplay</value>
   </data>
   <data name="SceneFadeIn" xml:space="preserve">
     <value>Fade in</value>
@@ -414,8 +414,17 @@
   <data name="ErrorTitle" xml:space="preserve">
     <value>Erreur</value>
   </data>
+  <data name="ErrorChapterHasNoScenes" xml:space="preserve">
+    <value>Ce chapitre n'a aucune scène.</value>
+  </data>
   <data name="ErrorTrackFileMissing" xml:space="preserve">
     <value>Le fichier audio de cette piste est introuvable.</value>
+  </data>
+  <data name="ErrorTracksFailedToLoad" xml:space="preserve">
+    <value>Ces pistes n'ont pas pu être chargées : {0}</value>
+  </data>
+  <data name="ErrorSourceFileMissing" xml:space="preserve">
+    <value>Le fichier source est introuvable.</value>
   </data>
   <data name="PromptName" xml:space="preserve">
     <value>Nom :</value>
@@ -539,6 +548,12 @@
   </data>
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export enregistré : {0}</value>
+  </data>
+  <data name="ImportExportSavingFile" xml:space="preserve">
+    <value>Enregistrement du fichier…</value>
+  </data>
+  <data name="ImportExportSavingFileEta" xml:space="preserve">
+    <value>Enregistrement du fichier… (~{0} restant)</value>
   </data>
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campagne(s) importée(s), {1} piste(s) copiée(s), {2} réutilisée(s), {3} rejetée(s), {4} sort(s) importé(s).</value>

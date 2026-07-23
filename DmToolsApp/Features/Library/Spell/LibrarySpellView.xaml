@@ -31,24 +31,7 @@
             </CollectionView.ItemsLayout>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border StrokeThickness="2" StrokeShape="RoundRectangle 5" HorizontalOptions="{OnPlatform Default=Fill, WinUI=Center}">
-                        <VisualStateManager.VisualStateGroups>
-                            <VisualStateGroup Name="CommonStates">
-                                <VisualState Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="Grey" />
-                                        <Setter Property="StrokeThickness" Value="2" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState Name="Selected">
-                                    <VisualState.Setters>
-                                        <Setter Property="Stroke" Value="LightSkyBlue" />
-                                        <Setter Property="StrokeThickness" Value="3" />
-                                        <Setter Property="Background" Value="Transparent" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateManager.VisualStateGroups>
+                    <Border Style="{StaticResource SelectableGridItemBorderStyle}">
                         <Grid WidthRequest="120" HeightRequest="120" >
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -74,14 +57,14 @@
         <HorizontalStackLayout Grid.Row="1" Spacing="10" HorizontalOptions="Center" Margin="0,8"
                                IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}">
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Plus}"
-                                         Command="{Binding CreateItemCommand}"
+                                         Command="{Binding CreateCommand}"
                                          Tooltip="{loc:Loc LibAdd}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
-                                         Command="{Binding EditItemCommand}"
+                                         Command="{Binding EditCommand}"
                                          Tooltip="{loc:Loc LibEdit}"
                                          IsEnabled="{Binding SelectedSpellItem, Converter={StaticResource IsNotNullConverter}}"/>
             <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
-                                         Command="{Binding DeleteItemCommand}"
+                                         Command="{Binding DeleteCommand}"
                                          Tooltip="{loc:Loc LibDelete}"
                                          IsEnabled="{Binding SelectedSpellItem, Converter={StaticResource IsNotNullConverter}}"/>
         </HorizontalStackLayout>

@@ -4,9 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 namespace DmToolsApp.Components.Dialogs
 {
     /// <summary>Logique du dialogue de saisie libre (PromptDialog n'est qu'un wrapper XAML lié dessus).</summary>
-    public partial class PromptDialogViewModel : BaseViewModel
+    public partial class PromptDialogViewModel : DialogViewModel<string?>
     {
-        public event Action<string?>? CloseRequested;
+        protected override string? CancelResult => null;
 
         [ObservableProperty]
         private string title = string.Empty;
@@ -39,9 +39,6 @@ namespace DmToolsApp.Components.Dialogs
         }
 
         [RelayCommand]
-        public void Confirm() => CloseRequested?.Invoke(Text);
-
-        [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(null);
+        public void Confirm() => Close(Text);
     }
 }

@@ -92,11 +92,5 @@ namespace DmToolsApp.Features.Campaigns
             if (sceneTrack == null) return;
             await _sceneDataService.SaveSceneTrackAsync(sceneTrack);
         }
-
-        [RelayCommand]
-        public async Task GoBack()
-        {
-            await Shell.Current.GoToAsync("..");
-        }
     }
 }

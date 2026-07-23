@@ -107,9 +107,6 @@
 	  <MauiXaml Update="Components\FaIconButton\FaIconButtonView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\ScrollingLabel\ScrollingLabelView.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Components\RotatedLabel\RotatedLabelView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

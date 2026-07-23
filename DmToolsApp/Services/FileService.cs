@@ -30,15 +30,26 @@ namespace DmToolsApp.Services
         // précédant ce correctif restent coincées indéfiniment : invisibles pour le calcul de
         // stockage de l'appli (qui ne regarde que Tracks/Assets) mais comptées par Android dans la
         // taille totale de l'appli.
+        // Vérifié via adb sur un appareil réel : ces copies n'atterrissent PAS à la racine du cache
+        // mais dans des sous-dossiers imbriqués (cache/<hash>/<hash>/fichier.mp3, un niveau par
+        // segment de l'URI content:// d'origine) - EnumerateFiles(dir) seul (non récursif) ne les
+        // voit jamais, d'où un cache qui grossissait indéfiniment malgré ce nettoyage.
         private static void ClearPickerCache()
         {
             var dir = FileSystem.CacheDirectory;
             if (!Directory.Exists(dir))
                 return;
 
-            foreach (var file in Directory.EnumerateFiles(dir))
+            foreach (var entry in Directory.EnumerateFileSystemEntries(dir))
             {
-                try { File.Delete(file); } catch { /* fichier verrouillé, on continue */ }
+                try
+                {
+                    if (Directory.Exists(entry))
+                        Directory.Delete(entry, recursive: true);
+                    else
+                        File.Delete(entry);
+                }
+                catch { /* fichier ou dossier verrouillé, on continue */ }
             }
         }
 
@@ -59,7 +70,7 @@ namespace DmToolsApp.Services
         public string CopyAssetToLocal(string originalFilePath)
         {
             if (string.IsNullOrEmpty(originalFilePath) || !File.Exists(originalFilePath))
-                throw new FileNotFoundException("Le fichier source est introuvable", originalFilePath);
+                throw new FileNotFoundException(LocalizationService.Instance["ErrorSourceFileMissing"], originalFilePath);
 
             // Génère un nom unique pour éviter les collisions
             var destFileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFilePath);
@@ -75,7 +86,7 @@ namespace DmToolsApp.Services
         public string CopyTrackToLocal(string originalFilePath)
         {
             if (string.IsNullOrEmpty(originalFilePath) || !File.Exists(originalFilePath))
-                throw new FileNotFoundException("Le fichier source est introuvable", originalFilePath);
+                throw new FileNotFoundException(LocalizationService.Instance["ErrorTrackFileMissing"], originalFilePath);
 
             // Génère un nom unique pour éviter les collisions
             var destFileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFilePath);

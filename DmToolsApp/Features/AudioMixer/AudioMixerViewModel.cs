@@ -326,7 +326,7 @@ namespace DmToolsApp.Features.AudioMixer
             SelectedScene = null;
             Scenes.Clear();
             if (value != null)
-                _ = LoadScenesAsync(value.Id);
+                _ = LoadScenesAfterSessionChangeAsync(value.Id);
         }
 
         partial void OnSelectedSceneChanged(Scene? value)
@@ -337,7 +337,35 @@ namespace DmToolsApp.Features.AudioMixer
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
             if (value != null)
-                _ = LoadScene();
+                _ = LoadSceneAfterSelectionChangeAsync();
+        }
+
+        // Wrappers pour les deux fire-and-forget ci-dessus : les handlers de changement de propriete
+        // sont void (impose par le generateur de source), pas moyen d'y faire un vrai await. Sans ce
+        // wrapper, une erreur ici (DB, creation de lecteur...) disparaissait silencieusement au lieu
+        // de remonter a l'utilisateur.
+        private async Task LoadScenesAfterSessionChangeAsync(int sessionId)
+        {
+            try
+            {
+                await LoadScenesAsync(sessionId);
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
+        }
+
+        private async Task LoadSceneAfterSelectionChangeAsync()
+        {
+            try
+            {
+                await LoadScene();
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync(ex);
+            }
         }
 
         private async Task LoadScenesAsync(int sessionId)
@@ -453,7 +481,22 @@ namespace DmToolsApp.Features.AudioMixer
             // Sélection par index et non par titre : deux chapitres homonymes doivent rester
             // sélectionnables individuellement.
             var index = await ShowActionSheetIndexAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
-            if (index >= 0) SelectedSession = Sessions[index];
+            if (index < 0) return;
+
+            var candidate = Sessions[index];
+
+            // Un chapitre sans scène laisserait le mixer dans un état incohérent (chapitre
+            // sélectionné mais aucune scène/piste à jouer) : on vérifie avant d'affecter
+            // SelectedSession plutôt qu'après, pour que le chapitre précédent reste sélectionné
+            // sans avoir à revenir dessus explicitement en cas de rejet.
+            var scenes = await _sceneDataService.GetScenesAsync(candidate.Id);
+            if (scenes.Count == 0)
+            {
+                await ShowInfoAsync(Loc["ErrorTitle"], Loc["ErrorChapterHasNoScenes"]);
+                return;
+            }
+
+            SelectedSession = candidate;
         }
 
         [RelayCommand]
@@ -562,15 +605,25 @@ namespace DmToolsApp.Features.AudioMixer
             foreach (var channel in channels)
                 CurrentChannels.Add(channel);
 
+            // Echecs collectes plutot que remontes un par un : plusieurs strips se chargent en
+            // parallele (Task.WhenAll), un ShowErrorAsync par echec empilerait plusieurs popups
+            // modales d'un coup - une seule notification groupee a la fin est plus lisible.
+            var failedTracks = new List<string>();
             var creationTasks = playable.Zip(channels, async (st, channel) =>
             {
                 try
                 {
                     channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
                     SubscribeChannel(channel);
+
+                    if (st.AutoPlay)
+                        channel.Play();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[AudioMixerViewModel] Échec de création du lecteur pour '{st.Track.Title}' : {ex}");
+                    failedTracks.Add(st.Track.Title);
                     CurrentChannels.Remove(channel);
                 }
                 finally
@@ -579,6 +632,9 @@ namespace DmToolsApp.Features.AudioMixer
                 }
             });
             await Task.WhenAll(creationTasks);
+
+            if (failedTracks.Count > 0)
+                await ShowInfoAsync(Loc["ErrorTitle"], string.Format(Loc["ErrorTracksFailedToLoad"], string.Join(", ", failedTracks)));
         }
     }
 }
