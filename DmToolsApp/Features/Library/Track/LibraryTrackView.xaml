@@ -41,6 +41,7 @@
                  SelectionMode="Single"
                  SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
                  Scrolled="OnCollectionViewScrolled"
+                 SizeChanged="OnCollectionViewSizeChanged"
                  ItemsUpdatingScrollMode="KeepScrollOffset">
             <CollectionView.Behaviors>
                 <components:ResponsiveGridSpanBehavior TileWidth="150"/>
