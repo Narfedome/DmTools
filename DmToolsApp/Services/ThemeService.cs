@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Maui.Controls;
 
 namespace DmToolsApp.Services
 {
@@ -33,13 +34,19 @@ namespace DmToolsApp.Services
         private void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public string WatermarkIcon => _palette switch
+        // ImageSource.FromResource (EmbeddedResource, cf. csproj) plutot que MauiImage+Source="x.svg"
+        // (FileImageSource) : le watermark restait invisible sur Windows via MauiImage/FileImageSource
+        // (element mesure/positionne correctement mais jamais reellement dessine) - confirme reglé en
+        // passant par ce chemin de chargement different (lecture directe du flux de la resource
+        // embarquee). Les SVG sources d'origine (Resources/Images/nuit.svg etc.) ont ete retires,
+        // remplaces par ces PNG pre-rendus (Resources/WatermarkImages/*.png).
+        public ImageSource WatermarkImageSource => ImageSource.FromResource(_palette switch
         {
-            AppPalette.ForetProfonde => "foret.svg",
-            AppPalette.TaverneAmbre  => "taverne.svg",
-            AppPalette.AcierBrume    => "acier.svg",
-            _                        => "nuit.svg",
-        };
+            AppPalette.ForetProfonde => "foret.png",
+            AppPalette.TaverneAmbre  => "taverne.png",
+            AppPalette.AcierBrume    => "acier.png",
+            _                        => "nuit.png",
+        }, typeof(ThemeService).Assembly);
 
         private ThemeService()
         {
@@ -57,7 +64,7 @@ namespace DmToolsApp.Services
                 Preferences.Default.Set(PaletteKey, (int)value);
                 Apply();
                 ThemeChanged?.Invoke();
-                OnPropertyChanged(nameof(WatermarkIcon));
+                OnPropertyChanged(nameof(WatermarkImageSource));
             }
         }
 

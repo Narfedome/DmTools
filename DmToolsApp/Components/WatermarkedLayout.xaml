@@ -6,7 +6,7 @@
     <ContentView.ControlTemplate>
         <ControlTemplate>
             <Grid>
-                <Image Source="{Binding WatermarkIcon, Source={x:Static services:ThemeService.Instance}}"
+                <Image Source="{Binding WatermarkImageSource, Source={x:Static services:ThemeService.Instance}}"
                        Opacity="0.35"
                        WidthRequest="300" HeightRequest="300"
                        HorizontalOptions="Center" VerticalOptions="Center"

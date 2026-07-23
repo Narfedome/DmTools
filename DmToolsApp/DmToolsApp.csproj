@@ -73,6 +73,12 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+
+		<!-- Watermark de fond (WatermarkedLayout) : EmbeddedResource + ImageSource.FromResource plutôt
+		     que MauiImage + Source="fichier.svg" - chemin de chargement différent (lu directement du
+		     flux de la resource embarquée, decode natif direct) pour tester si le bug d'affichage sur
+		     Windows est spécifique à la résolution FileImageSource des assets MauiImage. -->
+		<EmbeddedResource Include="Resources\WatermarkImages\*.png" LogicalName="%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
