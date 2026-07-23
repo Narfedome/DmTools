@@ -44,16 +44,21 @@ namespace DmToolsApp.Services
         public async Task DeleteCampaignAsync(Campaign campaign)
         {
             await _db.Initialization;
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SceneTrackEntity WHERE SceneId IN (" +
-                "SELECT sc.Id FROM SceneEntity sc JOIN SessionEntity se ON sc.SessionId = se.Id WHERE se.CampaignId = ?)",
-                campaign.Id);
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SceneEntity WHERE SessionId IN (SELECT Id FROM SessionEntity WHERE CampaignId = ?)",
-                campaign.Id);
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SessionEntity WHERE CampaignId = ?", campaign.Id);
-            await _db.Connection.DeleteAsync<CampaignEntity>(campaign.Id);
+            // Transaction : une interruption entre ces 4 suppressions laisserait des chapitres/
+            // scenes/pistes de scene orphelins en base (cf. la purge au demarrage dans AppDatabase).
+            await _db.Connection.RunInTransactionAsync(conn =>
+            {
+                conn.Execute(
+                    "DELETE FROM SceneTrackEntity WHERE SceneId IN (" +
+                    "SELECT sc.Id FROM SceneEntity sc JOIN SessionEntity se ON sc.SessionId = se.Id WHERE se.CampaignId = ?)",
+                    campaign.Id);
+                conn.Execute(
+                    "DELETE FROM SceneEntity WHERE SessionId IN (SELECT Id FROM SessionEntity WHERE CampaignId = ?)",
+                    campaign.Id);
+                conn.Execute(
+                    "DELETE FROM SessionEntity WHERE CampaignId = ?", campaign.Id);
+                conn.Delete<CampaignEntity>(campaign.Id);
+            });
         }
 
         // ── Sessions (chapitres) ───────────────────────────────────
@@ -85,12 +90,15 @@ namespace DmToolsApp.Services
         public async Task DeleteSessionAsync(Session session)
         {
             await _db.Initialization;
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SceneTrackEntity WHERE SceneId IN (SELECT Id FROM SceneEntity WHERE SessionId = ?)",
-                session.Id);
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SceneEntity WHERE SessionId = ?", session.Id);
-            await _db.Connection.DeleteAsync<SessionEntity>(session.Id);
+            await _db.Connection.RunInTransactionAsync(conn =>
+            {
+                conn.Execute(
+                    "DELETE FROM SceneTrackEntity WHERE SceneId IN (SELECT Id FROM SceneEntity WHERE SessionId = ?)",
+                    session.Id);
+                conn.Execute(
+                    "DELETE FROM SceneEntity WHERE SessionId = ?", session.Id);
+                conn.Delete<SessionEntity>(session.Id);
+            });
         }
 
         // ── Scenes ────────────────────────────────────────────────
@@ -122,9 +130,11 @@ namespace DmToolsApp.Services
         public async Task DeleteSceneAsync(Scene scene)
         {
             await _db.Initialization;
-            await _db.Connection.ExecuteAsync(
-                "DELETE FROM SceneTrackEntity WHERE SceneId = ?", scene.Id);
-            await _db.Connection.DeleteAsync<SceneEntity>(scene.Id);
+            await _db.Connection.RunInTransactionAsync(conn =>
+            {
+                conn.Execute("DELETE FROM SceneTrackEntity WHERE SceneId = ?", scene.Id);
+                conn.Delete<SceneEntity>(scene.Id);
+            });
         }
 
         // ── SceneTracks ───────────────────────────────────────────

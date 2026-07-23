@@ -78,12 +78,14 @@ public partial class FaIconButtonView : ContentView
         set => SetValue(IconColorProperty, value);
     }
 
-    // ICON BACKGROUND COLOR (defaut AppAccent : le bouton plein accent d'origine, cf. usages
-    // existants type Ajouter/Editer/Supprimer. Passer Transparent pour un style discret, ex.
-    // le chevron retour de DetailPageHeaderView.)
+    // ICON BACKGROUND COLOR : defaut Transparent ici uniquement en repli statique - le vrai defaut
+    // (accent plein, cf. usages Ajouter/Editer/Supprimer) vient du Style implicite TargetType=
+    // FaIconButtonView dans Styles.xaml, via {DynamicResource AppAccent}. Un defaultValueCreator
+    // ne peut que figer AppAccent une seule fois (a la creation du controle) : le bouton ne suivait
+    // alors plus les changements de theme/palette apres coup - contrairement a l'ancien
+    // BackgroundColor="{DynamicResource AppAccent}" en dur que cette propriete a remplace.
     public static readonly BindableProperty IconBackgroundColorProperty =
-        BindableProperty.Create(nameof(IconBackgroundColor), typeof(Color), typeof(FaIconButtonView),
-            defaultValueCreator: _ => (Color)Application.Current!.Resources["AppAccent"]);
+        BindableProperty.Create(nameof(IconBackgroundColor), typeof(Color), typeof(FaIconButtonView), Colors.Transparent);
 
     public Color IconBackgroundColor
     {

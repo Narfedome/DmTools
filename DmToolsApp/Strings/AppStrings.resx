@@ -414,8 +414,17 @@
   <data name="ErrorTitle" xml:space="preserve">
     <value>Erreur</value>
   </data>
+  <data name="ErrorChapterHasNoScenes" xml:space="preserve">
+    <value>Ce chapitre n'a aucune scène.</value>
+  </data>
   <data name="ErrorTrackFileMissing" xml:space="preserve">
     <value>Le fichier audio de cette piste est introuvable.</value>
+  </data>
+  <data name="ErrorTracksFailedToLoad" xml:space="preserve">
+    <value>Ces pistes n'ont pas pu être chargées : {0}</value>
+  </data>
+  <data name="ErrorSourceFileMissing" xml:space="preserve">
+    <value>Le fichier source est introuvable.</value>
   </data>
   <data name="PromptName" xml:space="preserve">
     <value>Nom :</value>

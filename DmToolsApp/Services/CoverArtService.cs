@@ -128,8 +128,10 @@ namespace DmToolsApp.Services
                 var file = TagLib.File.Create(audioFilePath);
                 return ExtractCoverThumbnailBytes(file.Tag);
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[CoverArtService] Échec de lecture des tags/pochette ({audioFilePath}) : {ex}");
                 return null;
             }
         }
@@ -164,8 +166,10 @@ namespace DmToolsApp.Services
                 resized.Save(outputStream, ImageFormat.Jpeg, 0.85f);
                 return outputStream.ToArray();
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[CoverArtService] Échec du redimensionnement de la pochette : {ex}");
                 return null;
             }
         }

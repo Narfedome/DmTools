@@ -59,7 +59,7 @@ namespace DmToolsApp.Services
         public string CopyAssetToLocal(string originalFilePath)
         {
             if (string.IsNullOrEmpty(originalFilePath) || !File.Exists(originalFilePath))
-                throw new FileNotFoundException("Le fichier source est introuvable", originalFilePath);
+                throw new FileNotFoundException(LocalizationService.Instance["ErrorSourceFileMissing"], originalFilePath);
 
             // Génère un nom unique pour éviter les collisions
             var destFileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFilePath);
@@ -75,7 +75,7 @@ namespace DmToolsApp.Services
         public string CopyTrackToLocal(string originalFilePath)
         {
             if (string.IsNullOrEmpty(originalFilePath) || !File.Exists(originalFilePath))
-                throw new FileNotFoundException("Le fichier source est introuvable", originalFilePath);
+                throw new FileNotFoundException(LocalizationService.Instance["ErrorTrackFileMissing"], originalFilePath);
 
             // Génère un nom unique pour éviter les collisions
             var destFileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFilePath);

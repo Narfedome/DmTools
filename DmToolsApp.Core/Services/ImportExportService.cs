@@ -405,6 +405,13 @@ namespace DmToolsApp.Services
             }
         }
 
+        // Pas de transaction englobante ici, contrairement aux suppressions en cascade de
+        // SceneDataService : un import interrompu (annulation utilisateur via CancellationToken, ou
+        // crash) laisse la campagne partiellement importee plutot que de tout annuler, coherent avec
+        // le reste de ce fichier (ImportTrackAsync rejette une piste individuelle plutot que de faire
+        // echouer tout l'import). Cout : une campagne incomplete en base si interrompu en cours de
+        // route (pas de perte d'integrite referentielle - chaque ligne enfant reference bien un
+        // parent reellement sauvegarde, juste incomplet). Choix delibere, pas un oubli.
         private async Task ImportCampaignAsync(CampaignExport campaignExport, Dictionary<int, int> trackIdMap, ImportResult result)
         {
             var campaign = new Campaign { Title = campaignExport.Title };

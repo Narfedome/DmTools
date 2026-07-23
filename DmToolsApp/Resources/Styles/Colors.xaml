@@ -16,6 +16,15 @@
     <Color x:Key="AppText">#F0EDE0</Color>
     <Color x:Key="AppTextMuted">#A09880</Color>
     <Color x:Key="AppBorder">#3D3A65</Color>
+    <!-- Rouge destructif (boutons "Supprimer definitivement"...), recalcule dans ThemeService.Apply -
+         fixe plutot que par palette : le rouge d'alerte n'a pas besoin de suivre l'accent de chaque
+         palette pour rester lisible sur les 8 combinaisons palette/theme. -->
+    <Color x:Key="AppDanger">#C0392B</Color>
+
+    <!-- Voile de chargement plein ecran (cf. AudioMixerPage) : theme-independant par design (assombrit
+         toujours le contenu en dessous, peu importe la palette claire/sombre active), donc pas dans
+         ThemeService comme les tokens ci-dessus. -->
+    <Color x:Key="AppOverlay">#80000000</Color>
 
     <!-- Static neutrals -->
     <Color x:Key="White">White</Color>

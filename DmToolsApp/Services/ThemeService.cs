@@ -118,6 +118,9 @@ namespace DmToolsApp.Services
             // dans Styles.xaml) qui doivent rester lisibles par-dessus le filigrane sans pour autant
             // etre un aplat plein aussi lourd visuellement que les popups (DialogCardBorder).
             tokens["AppSurfaceTranslucent"] = tokens["AppSurface"].WithAlpha(0.80f);
+            // Rouge destructif fixe (pas par palette, cf. Colors.xaml) : ajoute ici pour suivre le
+            // meme pipeline que les autres tokens plutot que de rester uniquement en fallback statique.
+            tokens["AppDanger"] = Color.FromArgb("#C0392B");
             var res = Application.Current.Resources;
             foreach (var kv in tokens)
                 res[kv.Key] = kv.Value;

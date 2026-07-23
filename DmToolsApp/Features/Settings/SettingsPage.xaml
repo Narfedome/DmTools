@@ -23,7 +23,7 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsLanguage}"
-                           VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                           VerticalOptions="Center" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedLanguageLabel}"
                             Command="{Binding SelectLanguageCommand}"
@@ -40,7 +40,7 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsTheme}"
-                           VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                           VerticalOptions="Center" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     <Button Grid.Column="1"
                             Text="{Binding SelectedThemeOption}"
                             Command="{Binding SelectThemeCommand}"
@@ -56,7 +56,7 @@
             <!-- Palette -->
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="{loc:Loc SettingsPalette}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                    <Label Text="{loc:Loc SettingsPalette}" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     <components:PalettePickerView
                         SelectedPalette="{Binding SelectedPalette, Mode=TwoWay}"/>
                 </VerticalStackLayout>
@@ -66,10 +66,10 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <Label Grid.Column="0" Text="{loc:Loc SettingsVersion}"
-                           VerticalOptions="Center" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                           VerticalOptions="Center" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     <Label Grid.Column="1" Text="{Binding AppVersion}"
-                           VerticalOptions="Center" FontSize="{OnIdiom Default=14, Desktop=12}"
-                           TextColor="{DynamicResource AppSecondary}"/>
+                           VerticalOptions="Center"
+                           TextColor="{DynamicResource AppTextMuted}"/>
                 </Grid>
             </Border>
 
@@ -78,10 +78,9 @@
                 <VerticalStackLayout Spacing="12">
                     <Grid ColumnDefinitions="*,auto">
                         <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                            <Label Text="{loc:Loc SettingsStorageTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                            <Label Text="{loc:Loc SettingsStorageTitle}" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                             <Label Text="{Binding StorageUsedText}"
-                                   FontSize="{OnIdiom Default=14, Desktop=12}"
-                                   TextColor="{DynamicResource AppSecondary}"/>
+                                   TextColor="{DynamicResource AppTextMuted}"/>
                         </VerticalStackLayout>
                         <Button Grid.Column="1"
                                 Text="{loc:Loc SettingsStorageCleanupButton}"
@@ -99,12 +98,12 @@
                     <Grid ColumnDefinitions="*,auto">
                         <Label Grid.Column="0" Text="{loc:Loc SettingsStorageDeleteAllTracksDesc}"
                                VerticalOptions="Center" FontSize="{OnIdiom Default=13, Desktop=11}"
-                               TextColor="{DynamicResource AppSecondary}"/>
+                               TextColor="{DynamicResource AppTextMuted}"/>
                         <Button Grid.Column="1"
                                 Text="{loc:Loc SettingsStorageDeleteAllButton}"
                                 Command="{Binding DeleteAllTracksCommand}"
                                 BackgroundColor="Transparent"
-                                TextColor="#C0392B"
+                                TextColor="{DynamicResource AppDanger}"
                                 FontSize="{OnIdiom Default=15, Desktop=13}"
                                 Padding="8,4"
                             MinimumHeightRequest="{DynamicResource AppInlineButtonMinSize}"
@@ -117,10 +116,10 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                        <Label Text="{loc:Loc ImportExportTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                        <Label Text="{loc:Loc ImportExportTitle}" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                         <Label Text="{loc:Loc ImportExportSettingsDesc}"
                                FontSize="{OnIdiom Default=13, Desktop=11}"
-                               TextColor="{DynamicResource AppSecondary}"/>
+                               TextColor="{DynamicResource AppTextMuted}"/>
                     </VerticalStackLayout>
                     <Button Grid.Column="1"
                             Text="{loc:Loc ImportExportOpenButton}"
@@ -137,12 +136,11 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                        <Label Text="{loc:Loc SettingsSupportTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                        <Label Text="{loc:Loc SettingsSupportTitle}" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     </VerticalStackLayout>
                     <Label Grid.Column="1"
                            Text="{loc:Loc SettingsSupportDesc}"
                            TextColor="{DynamicResource AppAccent}"
-                           FontSize="{OnIdiom Default=14, Desktop=12}"
                            VerticalOptions="Center">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding OpenCoffeeLinkCommand}"/>
@@ -155,12 +153,11 @@
             <Border Style="{StaticResource SectionCardBorderStyle}">
                 <Grid ColumnDefinitions="*,auto">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                        <Label Text="{loc:Loc SettingsReportBugTitle}" FontSize="{OnIdiom Default=16, Desktop=14}"/>
+                        <Label Text="{loc:Loc SettingsReportBugTitle}" FontSize="{DynamicResource AppFontSizeSectionTitle}"/>
                     </VerticalStackLayout>
                     <Label Grid.Column="1"
                            Text="{loc:Loc SettingsReportBugDesc}"
                            TextColor="{DynamicResource AppAccent}"
-                           FontSize="{OnIdiom Default=14, Desktop=12}"
                            VerticalOptions="Center">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding ReportBugCommand}"/>
