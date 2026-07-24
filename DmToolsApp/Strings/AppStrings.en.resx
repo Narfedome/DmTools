@@ -546,6 +546,9 @@
   <data name="ImportExportPickFile" xml:space="preserve">
     <value>Choose a .dmpack file</value>
   </data>
+  <data name="ImportExportCopyingFile" xml:space="preserve">
+    <value>Copying file… ({0:F0} MB)</value>
+  </data>
   <data name="ImportExportExportInProgress" xml:space="preserve">
     <value>Exporting...</value>
   </data>

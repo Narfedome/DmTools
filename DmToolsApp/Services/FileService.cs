@@ -160,14 +160,68 @@ namespace DmToolsApp.Services
             { DevicePlatform.MacCatalyst, new[] { "public.data" } }
         });
 
-        public async Task<FileResult?> PickImportPackageAsync(string pickerTitle)
+        public async Task<FileResult?> PickImportPackageAsync(string pickerTitle, IProgress<long>? copyProgress = null, CancellationToken cancellationToken = default)
         {
+#if ANDROID
+            return await PickImportPackageAndroidAsync(copyProgress, cancellationToken);
+#else
             return await FilePicker.Default.PickAsync(new PickOptions
             {
                 PickerTitle = pickerTitle,
                 FileTypes = DmPackFileTypes
             });
+#endif
         }
+
+#if ANDROID
+        /// <summary>
+        /// Contourne FilePicker.Default.PickAsync sur Android : pour un document content:// (Téléchargements,
+        /// Drive...), celui-ci le recopie en interne dans le cache de l'appli via un Stream.CopyTo()
+        /// synchrone exécuté sur le thread UI (cf. FileSystemUtils de .NET MAUI), avant même de rendre
+        /// la main à notre code - pour un .dmpack de plusieurs Go, l'affichage reste figé (voire tronqué
+        /// silencieusement) pendant toute la durée du transfert. Ici on récupère l'Uri content://
+        /// directement (AndroidDmPackPicker, sans copie), puis on fait nous-mêmes la copie de façon
+        /// asynchrone, avec suivi de progression et sans bloquer le thread UI.
+        /// </summary>
+        private async Task<FileResult?> PickImportPackageAndroidAsync(IProgress<long>? copyProgress, CancellationToken cancellationToken)
+        {
+            var uri = await Platforms.Android.AndroidDmPackPicker.PickAsync("application/octet-stream");
+            if (uri == null)
+                return null;
+
+            var tempPath = Path.Combine(FileSystem.CacheDirectory, $"dmpack-import-{Guid.NewGuid():N}.dmpack");
+            var completed = false;
+            try
+            {
+                using var sourceStream = global::Android.App.Application.Context.ContentResolver?.OpenInputStream(uri)
+                    ?? throw new IOException(LocalizationService.Instance["ErrorSourceFileMissing"]);
+                using (var destStream = File.Create(tempPath))
+                {
+                    var buffer = new byte[1024 * 1024];
+                    int bytesRead;
+                    long totalRead = 0;
+                    while ((bytesRead = await sourceStream.ReadAsync(buffer, cancellationToken)) > 0)
+                    {
+                        await destStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                        totalRead += bytesRead;
+                        copyProgress?.Report(totalRead);
+                    }
+                }
+
+                completed = true;
+                return new FileResult(tempPath);
+            }
+            finally
+            {
+                // Copie interrompue (annulation, erreur) : le fichier partiel ne serait sinon jamais
+                // nettoyé avant le prochain démarrage de l'appli (cf. ClearPickerCache).
+                if (!completed)
+                {
+                    try { File.Delete(tempPath); } catch { /* meilleur effort */ }
+                }
+            }
+        }
+#endif
 
         /// <summary>
         /// Ouvre la boîte de dialogue "Enregistrer sous" de la plateforme et y écrit le flux fourni.

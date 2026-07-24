@@ -224,9 +224,6 @@ namespace DmToolsApp.Features.ImportExport
         [RelayCommand]
         private async Task Import()
         {
-            var file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"]);
-            if (file == null) return;
-
             var popupView = new ImportProgressPopupView();
             popupView.ViewModel.Title = Loc["ImportExportImportInProgress"];
             var page = Shell.Current.CurrentPage;
@@ -237,6 +234,23 @@ namespace DmToolsApp.Features.ImportExport
 
             try
             {
+                // Sur Android, un fichier choisi depuis un fournisseur de contenu (Téléchargements,
+                // Drive...) est d'abord recopié dans le cache de l'appli avant de pouvoir être lu (cf.
+                // FileService.PickImportPackageAsync) : peut être long pour un gros pack, d'où l'affichage
+                // de la popup dès maintenant, avec un retour de progression sur cette copie plutôt que de
+                // laisser l'appli paraître figée pendant que le sélecteur natif travaille en coulisses.
+                var copyProgress = new Progress<long>(bytesRead =>
+                    popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportCopyingFile"], bytesRead / (1024.0 * 1024.0)));
+
+                var file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress, cts.Token);
+                if (file == null)
+                {
+                    await page.ClosePopupAsync();
+                    return;
+                }
+
+                popupView.ViewModel.CurrentFileName = string.Empty;
+
                 using var stream = await file.OpenReadAsync();
                 var progress = new Progress<ImportProgress>(p =>
                 {
