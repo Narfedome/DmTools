@@ -435,6 +435,9 @@
   <data name="ErrorIncompleteFileCopy" xml:space="preserve">
     <value>Incomplete file copy: {0:F0} MB copied out of {1:F0} MB expected.</value>
   </data>
+  <data name="ErrorNotEnoughSpace" xml:space="preserve">
+    <value>Not enough disk space to import this file: about {0:F1} GB needed, {1:F1} GB available.</value>
+  </data>
   <data name="PromptName" xml:space="preserve">
     <value>Name:</value>
   </data>

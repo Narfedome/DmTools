@@ -191,6 +191,23 @@ namespace DmToolsApp.Services
 
             var declaredSize = QueryDeclaredSize(uri);
 
+            // Pendant l'import, la copie en cache ET les pistes déjà extraites vers le dossier Tracks
+            // coexistent (rien ne supprime la copie avant la toute fin) - le pic d'espace nécessaire
+            // avoisine donc le double de la taille du .dmpack. Vérifié avant de lancer une copie de
+            // plusieurs Go pour rien : mieux vaut un message clair immédiat qu'un import qui échoue en
+            // silence, piste par piste, une fois le disque plein en cours d'extraction.
+            if (declaredSize.HasValue)
+            {
+                var available = GetAvailableSpace(FileSystem.CacheDirectory);
+                var estimatedNeeded = declaredSize.Value * 2;
+                if (available.HasValue && available.Value < estimatedNeeded)
+                {
+                    throw new IOException(string.Format(
+                        LocalizationService.Instance["ErrorNotEnoughSpace"],
+                        estimatedNeeded / (1024.0 * 1024.0 * 1024.0), available.Value / (1024.0 * 1024.0 * 1024.0)));
+                }
+            }
+
             var tempPath = Path.Combine(FileSystem.CacheDirectory, $"dmpack-import-{Guid.NewGuid():N}.dmpack");
             var completed = false;
             try
@@ -260,6 +277,21 @@ namespace DmToolsApp.Services
                 // La taille déclarée n'est qu'une vérification en plus, pas une exigence : certains
                 // fournisseurs de contenu ne la renseignent pas (ou la requête échoue) sans que ce soit
                 // en soi un problème pour l'import.
+                return null;
+            }
+        }
+
+        private static long? GetAvailableSpace(string path)
+        {
+            try
+            {
+                using var file = new global::Java.IO.File(path);
+                return file.UsableSpace;
+            }
+            catch
+            {
+                // Meilleur effort : si l'espace disponible ne peut pas être déterminé, on laisse l'import
+                // se lancer normalement plutôt que de bloquer sur une vérification qui a échoué.
                 return null;
             }
         }
