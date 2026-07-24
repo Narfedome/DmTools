@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 
@@ -13,28 +12,22 @@ public partial class LibraryTrackView : ContentView
         // Changer de catégorie (ou revenir sur "Tout") recharge la liste (ReloadAsync) sans jamais
         // redéclencher SizeChanged, puisque la fenêtre ne change pas de taille : sur Desktop plein
         // écran, la seule page rechargée (PageSize) ne suffit alors plus forcément à remplir tout le
-        // viewport, sans qu'aucun Scrolled ne se déclenche jamais pour poursuivre la pagination - la
-        // liste reste alors visiblement tronquée (parfois à un seul groupe/catégorie) jusqu'au prochain
-        // redimensionnement de la fenêtre. Même cause et même remède que OnCollectionViewSizeChanged,
-        // ici déclenché par un changement de catégorie plutôt qu'un redimensionnement : HasTrackItems
-        // change à chaque item ajouté/retiré de TrackItems (cf. LibraryTrackViewModel), donc aussi bien
-        // au vidage initial (ReloadAsync.ClearTrackItems) qu'à la fin du chargement de la page suivante.
+        // viewport, sans qu'aucun Scrolled ne se déclenche jamais pour poursuivre la pagination. On
+        // branche donc FillViewportAsync directement sur ReloadAsync (appelé une seule fois, à la toute
+        // fin) plutôt que de réagir à un évènement de la collection (TrackItems.CollectionChanged/
+        // HasTrackItems se déclenchait dès ClearTrackItems(), avant que ReloadAsync ait fini de remettre
+        // _loadedCount/_hasMoreItems à zéro - rechargement concurrent avec un offset périmé, page vide
+        // pour la nouvelle catégorie puis blocage au changement suivant).
         BindingContextChanged += (_, _) =>
         {
             if (BindingContext is LibraryTrackViewModel vm)
-                vm.PropertyChanged += OnViewModelPropertyChanged;
+                vm.FillViewportRequested = () => FillViewportIfDesktopAsync(vm);
         };
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(LibraryTrackViewModel.HasTrackItems) &&
-            DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
-        {
-            _ = FillViewportAsync(vm);
-        }
-    }
-        
+    private Task FillViewportIfDesktopAsync(LibraryTrackViewModel vm) =>
+        DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? FillViewportAsync(vm) : Task.CompletedTask;
+
     public static readonly BindableProperty IsCrudProperty =
     BindableProperty.Create(nameof(IsCrud), typeof(bool), typeof(LibraryTrackView), default(bool));
 
@@ -74,8 +67,8 @@ public partial class LibraryTrackView : ContentView
     // dedans plantait l'appli ("Cannot call this method while RecyclerView is computing a layout").
     private void OnCollectionViewSizeChanged(object? sender, EventArgs e)
     {
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
-            _ = FillViewportAsync(vm);
+        if (BindingContext is LibraryTrackViewModel vm)
+            _ = FillViewportIfDesktopAsync(vm);
     }
 
     // Meme largeur de tuile que ResponsiveGridSpanBehavior (qui calcule le nombre de colonnes a

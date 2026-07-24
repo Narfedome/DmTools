@@ -62,6 +62,14 @@ namespace DmToolsApp.Features.Library
         // dès qu'une catégorie contient moins de pistes que nécessaire pour remplir le viewport.
         public bool HasMoreItems => _hasMoreItems;
 
+        // Branché par la vue (View) sur FillViewportAsync (Desktop uniquement) : seule la vue connaît la
+        // taille réelle du viewport. Appelé explicitement une fois à la fin de ReloadAsync plutôt que
+        // réagi via HasTrackItems.PropertyChanged - ce dernier se déclenchait dès ClearTrackItems(),
+        // avant même que ReloadAsync ait fini de remettre à zéro _loadedCount/_hasMoreItems, provoquant
+        // un rechargement concurrent avec un offset (_loadedCount) périmé : page vide pour la nouvelle
+        // catégorie, puis boucle infinie au changement suivant (état de pagination corrompu par la course).
+        public Func<Task>? FillViewportRequested { get; set; }
+
         [ObservableProperty]
         private Track? selectedTrackItem;
 
@@ -210,6 +218,9 @@ namespace DmToolsApp.Features.Library
             Selection.Clear();
 
             await LoadNextPageAsync();
+
+            if (FillViewportRequested != null)
+                await FillViewportRequested();
         }
 
         private void ClearTrackItems()
