@@ -55,6 +55,13 @@ namespace DmToolsApp.Features.Library
         // (OnCollectionViewScrolled/FillViewportAsync) pour ses heuristiques de pagination infinie.
         public int LoadedTrackCount => TrackItems.Sum(g => g.Count);
 
+        // LoadMoreTracksCommand n'a pas de CanExecute (toujours exécutable) : c'est ce booléen, pas la
+        // commande, qui indique s'il reste réellement des pistes à charger. FillViewportAsync doit le
+        // vérifier explicitement, sinon sa boucle continue indéfiniment (LoadNextPageAsync devient un
+        // no-op silencieux une fois _hasMoreItems à false, sans jamais faire progresser LoadedTrackCount)
+        // dès qu'une catégorie contient moins de pistes que nécessaire pour remplir le viewport.
+        public bool HasMoreItems => _hasMoreItems;
+
         [ObservableProperty]
         private Track? selectedTrackItem;
 

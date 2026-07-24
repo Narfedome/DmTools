@@ -94,7 +94,7 @@ public partial class LibraryTrackView : ContentView
         var rows = (int)(ItemsCollection.Height / EstimatedTileSize) + 2;
         var neededItems = columns * rows;
 
-        while (vm.LoadedTrackCount < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
+        while (vm.HasMoreItems && vm.LoadedTrackCount < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
         {
             await vm.LoadMoreTracksCommand.ExecuteAsync(null);
         }
