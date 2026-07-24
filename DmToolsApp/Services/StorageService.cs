@@ -47,23 +47,13 @@ namespace DmToolsApp.Services
         public async Task<OrphanScanResult> ScanOrphansAsync()
         {
             var referenced = await _libraryDataService.GetAllReferencedFilePathsAsync();
-            var orphans = new List<string>();
-            long totalBytes = 0;
 
-            foreach (var directory in new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory, _fileService.CoversDirectory })
-            {
-                if (!Directory.Exists(directory))
-                    continue;
+            var candidates = new[] { _fileService.TracksDirectory, _fileService.AssetsDirectory, _fileService.CoversDirectory }
+                .Where(Directory.Exists)
+                .SelectMany(Directory.EnumerateFiles);
 
-                foreach (var file in Directory.EnumerateFiles(directory))
-                {
-                    if (referenced.Contains(file))
-                        continue;
-
-                    orphans.Add(file);
-                    totalBytes += new FileInfo(file).Length;
-                }
-            }
+            var (orphans, totalBytes) = LibraryStorageScanner.FindOrphans(
+                candidates, referenced, file => new FileInfo(file).Length);
 
             return new OrphanScanResult(orphans, totalBytes);
         }
