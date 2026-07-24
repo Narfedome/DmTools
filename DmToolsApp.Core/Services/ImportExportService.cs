@@ -110,7 +110,14 @@ namespace DmToolsApp.Services
                 .ToDictionary(t => t.Id);
 
             int processed = 0;
-            foreach (var trackId in trackIdsToInclude)
+
+            // Trié par Id (ordre de création initial dans la bibliothèque), pas par ordre d'itération
+            // du HashSet (qui suit l'ordre de traversée des scènes d'une campagne) : la liste "toute la
+            // bibliothèque" sort ainsi toujours dans son ordre d'origine, indépendamment des campagnes
+            // qui référencent chaque piste - un réimport reproduit alors le même ordre relatif que la
+            // bibliothèque source, les liens de campagne n'étant que des références par Id dans le
+            // manifeste (cf. BuildCampaignExportAsync, déjà construit avant cette boucle).
+            foreach (var trackId in trackIdsToInclude.OrderBy(id => id))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!allTracksById.TryGetValue(trackId, out var track) || string.IsNullOrEmpty(track.FilePath) || !File.Exists(track.FilePath))
