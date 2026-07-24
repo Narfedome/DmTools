@@ -48,5 +48,12 @@ namespace DmToolsApp.Models.ImportExport
         public int TracksCopied { get; set; }
         public int TracksRejected { get; set; }
         public int SpellsImported { get; set; }
+
+        // Détail des causes de rejet (chacune incrémente aussi TracksRejected) : utile pour diagnostiquer
+        // un import qui rejette beaucoup de pistes sans qu'aucune erreur globale ne remonte.
+        public int TracksRejectedHashMismatch { get; set; }
+        public int TracksRejectedNotDecodable { get; set; }
+        public int TracksRejectedMissingEntry { get; set; }
+        public int TracksRejectedOther { get; set; }
     }
 }

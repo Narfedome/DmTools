@@ -360,7 +360,10 @@ namespace DmToolsApp.Services
 
             var entry = zip.GetEntry(trackExport.FileEntry);
             if (entry == null)
+            {
+                result.TracksRejectedMissingEntry++;
                 return null;
+            }
 
             // Écrit directement à l'emplacement définitif (dossier Tracks) en calculant le hash à la
             // volée pendant la copie, plutôt que d'extraire vers un fichier temporaire puis de le
@@ -385,10 +388,16 @@ namespace DmToolsApp.Services
                 var actualHash = Convert.ToHexString(hasher.GetHashAndReset());
 
                 if (!string.Equals(actualHash, trackExport.Hash, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.TracksRejectedHashMismatch++;
                     return null;
+                }
 
                 if (!TrackTagHelper.IsDecodableAudio(localPath))
+                {
+                    result.TracksRejectedNotDecodable++;
                     return null;
+                }
 
                 var track = new Track
                 {
@@ -418,10 +427,12 @@ namespace DmToolsApp.Services
             }
             catch
             {
-                // Le hash peut ne pas correspondre, le fichier peut ne pas être un audio décodable, ou
-                // l'écriture en base peut échouer (disque plein...) une fois la piste déjà écrite sur
-                // disque : dans tous les cas on rejette simplement cette piste plutôt que de faire
-                // échouer tout l'import à cause d'elle.
+                // L'écriture en base peut échouer (disque plein...) une fois la piste déjà écrite sur
+                // disque, ou la copie/lecture du fichier elle-même peut lever une exception : dans tous
+                // les cas on rejette simplement cette piste plutôt que de faire échouer tout l'import à
+                // cause d'elle (le hash invalide et l'audio illisible sont déjà gérés au-dessus sans
+                // exception, ne passent donc jamais par ce catch).
+                result.TracksRejectedOther++;
                 return null;
             }
             finally

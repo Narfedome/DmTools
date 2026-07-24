@@ -232,6 +232,7 @@ namespace DmToolsApp.Features.ImportExport
             using var cts = new CancellationTokenSource();
             popupView.ViewModel.CancelRequested += cts.Cancel;
 
+            FileResult? file = null;
             try
             {
                 // Sur Android, un fichier choisi depuis un fournisseur de contenu (Téléchargements,
@@ -242,7 +243,7 @@ namespace DmToolsApp.Features.ImportExport
                 var copyProgress = new Progress<long>(bytesRead =>
                     popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportCopyingFile"], bytesRead / (1024.0 * 1024.0)));
 
-                var file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress, cts.Token);
+                file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress, cts.Token);
                 if (file == null)
                 {
                     await page.ClosePopupAsync();
@@ -272,9 +273,18 @@ namespace DmToolsApp.Features.ImportExport
                 await page.ClosePopupAsync();
                 await InitializeAsync();
 
-                await ShowInfoAsync(Loc["ImportExportTitle"], string.Format(
+                var summary = string.Format(
                     Loc["ImportExportImportSummary"],
-                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported));
+                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported);
+
+                // Le détail des causes de rejet n'a d'intérêt que s'il y a effectivement des rejets -
+                // évite d'alourdir le message pour le cas normal (aucune piste rejetée).
+                if (result.TracksRejected > 0)
+                    summary += "\n" + string.Format(Loc["ImportExportRejectDetails"],
+                        result.TracksRejectedHashMismatch, result.TracksRejectedNotDecodable,
+                        result.TracksRejectedMissingEntry, result.TracksRejectedOther);
+
+                await ShowInfoAsync(Loc["ImportExportTitle"], summary);
             }
             catch (OperationCanceledException)
             {
@@ -291,6 +301,19 @@ namespace DmToolsApp.Features.ImportExport
             {
                 await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
+            }
+            finally
+            {
+                // Sur Android, le fichier choisi est une copie locale dans le cache de l'appli (cf.
+                // PickImportPackageAsync), pas l'original de l'utilisateur - sans ce nettoyage immédiat,
+                // elle resterait à occuper de l'espace jusqu'au prochain démarrage de l'appli
+                // (ClearPickerCache), ce qui compte pour un .dmpack de plusieurs Go en pleine extraction
+                // vers le dossier Tracks (pic d'espace disque nécessaire : la copie ET les pistes déjà
+                // extraites coexistent tant que l'import n'est pas terminé). DeleteIfCached ne touche
+                // jamais un fichier hors du cache (Windows/MacCatalyst renvoient le chemin réel de
+                // l'utilisateur, jamais une copie - rien à supprimer dans ce cas).
+                if (file != null)
+                    _fileService.DeleteIfCached(file.FullPath);
             }
         }
 

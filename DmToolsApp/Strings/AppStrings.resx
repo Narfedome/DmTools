@@ -564,4 +564,7 @@
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campagne(s) importée(s), {1} piste(s) copiée(s), {2} réutilisée(s), {3} rejetée(s), {4} sort(s) importé(s).</value>
   </data>
+  <data name="ImportExportRejectDetails" xml:space="preserve">
+    <value>Détail des rejets : {0} hash invalide, {1} audio illisible, {2} entrée manquante, {3} autre.</value>
+  </data>
 </root>
