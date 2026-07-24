@@ -69,7 +69,7 @@ namespace DmToolsApp.Features.Library
             if (!await ConfirmDeleteAsync(item.Title))
                 return;
 
-            await _libraryDataService.DeleteLibraryItem(item);
+            await _libraryDataService.DeleteLibraryItemAsync(item);
 
             SpellItems.Remove(item);
             SelectedSpellItem = null;

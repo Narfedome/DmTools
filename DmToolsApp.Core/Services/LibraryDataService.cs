@@ -66,7 +66,7 @@ namespace DmToolsApp.Services
             }
         }
 
-        public async Task DeleteLibraryItem(LibraryItem libraryItem)
+        public async Task DeleteLibraryItemAsync(LibraryItem libraryItem)
         {
             await _db.Initialization;
             switch (libraryItem)
@@ -344,7 +344,7 @@ namespace DmToolsApp.Services
     public interface ILibraryDataService
     {
         Task SaveLibraryItemAsync(LibraryItem item);
-        Task DeleteLibraryItem(LibraryItem item);
+        Task DeleteLibraryItemAsync(LibraryItem item);
         Task<List<Track>> DeleteAllTracksAsync();
         Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category);
         Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids);

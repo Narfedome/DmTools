@@ -464,7 +464,12 @@ namespace DmToolsApp.Features.Library
 
                         imported++;
                     }
-                    catch { failed++; /* fichier invalide, on passe au suivant */ }
+                    catch (Exception ex)
+                    {
+                        failed++;
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[LibraryTrackViewModel] Échec d'import pour '{file.FullPath}' : {ex}");
+                    }
                     finally
                     {
                         // Nettoie la copie laissée par FilePicker dans le cache Android une fois le fichier

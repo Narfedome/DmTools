@@ -53,7 +53,7 @@ public class TrackSaveFailingLibraryDataService : ILibraryDataService
         return _inner.SaveLibraryItemAsync(item);
     }
 
-    public Task DeleteLibraryItem(LibraryItem item) => _inner.DeleteLibraryItem(item);
+    public Task DeleteLibraryItemAsync(LibraryItem item) => _inner.DeleteLibraryItemAsync(item);
     public Task<List<Track>> DeleteAllTracksAsync() => _inner.DeleteAllTracksAsync();
     public Task<List<int>> GetItemIdsAsync(Type currentLibraryType, string? category) => _inner.GetItemIdsAsync(currentLibraryType, category);
     public Task<List<LibraryItem>> DeleteItemsAsync(Type currentLibraryType, IEnumerable<int> ids) => _inner.DeleteItemsAsync(currentLibraryType, ids);

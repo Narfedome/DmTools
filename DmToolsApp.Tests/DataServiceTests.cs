@@ -118,7 +118,7 @@ public class SceneDataServiceTests : DatabaseTestBase
         await library.SaveLibraryItemAsync(track);
         await Service.SaveSceneTrackAsync(new SceneTrack { SceneId = 1, Track = track });
 
-        await library.DeleteLibraryItem(track);
+        await library.DeleteLibraryItemAsync(track);
 
         Assert.Empty(await Service.GetSceneTracksAsync(1));
     }
