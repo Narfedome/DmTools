@@ -7,5 +7,9 @@ namespace DmToolsApp.Services
     public interface ITrackFileStore
     {
         string CopyTrackToLocal(string originalFilePath);
+
+        /// <summary>Réserve un chemin unique dans le stockage local pour y écrire directement une
+        /// nouvelle piste (extension incluse, avec le point), sans copier de fichier source existant.</summary>
+        string ReserveTrackPath(string extension);
     }
 }

@@ -162,6 +162,9 @@
   <data name="BtnCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="ImportProgressCancelling" xml:space="preserve">
+    <value>Cancelling…</value>
+  </data>
   <data name="BtnLaunch" xml:space="preserve">
     <value>▶ Launch</value>
   </data>
@@ -271,19 +274,22 @@
     <value>Importing...</value>
   </data>
   <data name="LibImportCategoryTitle" xml:space="preserve">
-    <value>Choose a folder</value>
+    <value>Choose a category</value>
   </data>
   <data name="LibImportNoCategory" xml:space="preserve">
-    <value>No folder</value>
+    <value>No category</value>
   </data>
   <data name="LibImportNewCategory" xml:space="preserve">
-    <value>+ New folder</value>
+    <value>+ New category</value>
   </data>
   <data name="LibImportNewCategoryPrompt" xml:space="preserve">
-    <value>New folder name</value>
+    <value>New category name</value>
   </data>
   <data name="LibAllCategories" xml:space="preserve">
-    <value>All folders</value>
+    <value>All categories</value>
+  </data>
+  <data name="LibCategoryNoFolderReserved" xml:space="preserve">
+    <value>This name is reserved for tracks with no category.</value>
   </data>
   <data name="LibSelect" xml:space="preserve">
     <value>Select</value>
@@ -426,6 +432,12 @@
   <data name="ErrorSourceFileMissing" xml:space="preserve">
     <value>The source file could not be found.</value>
   </data>
+  <data name="ErrorIncompleteFileCopy" xml:space="preserve">
+    <value>Incomplete file copy: {0:F0} MB copied out of {1:F0} MB expected.</value>
+  </data>
+  <data name="ErrorNotEnoughSpace" xml:space="preserve">
+    <value>Not enough disk space to import this file: about {0:F1} GB needed, {1:F1} GB available.</value>
+  </data>
   <data name="PromptName" xml:space="preserve">
     <value>Name:</value>
   </data>
@@ -540,6 +552,9 @@
   <data name="ImportExportPickFile" xml:space="preserve">
     <value>Choose a .dmpack file</value>
   </data>
+  <data name="ImportExportCopyingFile" xml:space="preserve">
+    <value>Copying file… ({0:F0} MB)</value>
+  </data>
   <data name="ImportExportExportInProgress" xml:space="preserve">
     <value>Exporting...</value>
   </data>
@@ -549,13 +564,10 @@
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export saved: {0}</value>
   </data>
-  <data name="ImportExportSavingFile" xml:space="preserve">
-    <value>Saving file…</value>
-  </data>
-  <data name="ImportExportSavingFileEta" xml:space="preserve">
-    <value>Saving file… (~{0} remaining)</value>
-  </data>
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campaign(s) imported, {1} track(s) copied, {2} reused, {3} rejected, {4} spell(s) imported.</value>
+  </data>
+  <data name="ImportExportRejectDetails" xml:space="preserve">
+    <value>Rejection detail: {0} invalid hash, {1} unreadable audio, {2} missing entry, {3} other.</value>
   </data>
 </root>

@@ -20,16 +20,23 @@ namespace DmToolsApp.Features.Library
             _libraryDataService = libraryDataService;
         }
 
+        // Réutilise le même libellé que "Aucun dossier" dans PickImportCategoryAsync/LibraryTrackViewModel :
+        // catégorie native représentant Track.Category vide, listée ici (en tête) mais non modifiable.
+        private string NoFolderLabel => Loc["LibImportNoCategory"];
+
         [ObservableProperty] private ObservableCollection<CategoryRowItem> categoryNames = new();
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SelectedCategoryName))]
+        [NotifyPropertyChangedFor(nameof(CanModifySelectedCategory))]
         private CategoryRowItem? selectedCategory;
 
         // Exposée en lecture seule pour ne pas toucher au reste de la classe (Rename/Delete, bindings
         // IsEnabled dans CategoryListPage.xaml) : la sélection réelle passe par SelectedCategory
         // (CollectionView.SelectedItem).
         public string? SelectedCategoryName => SelectedCategory?.Name;
+
+        public bool CanModifySelectedCategory => SelectedCategory is { IsSystem: false };
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -45,7 +52,9 @@ namespace DmToolsApp.Features.Library
         private async Task LoadAsync()
         {
             var names = await _libraryDataService.GetCategoryNamesAsync(_libraryType);
-            CategoryNames = new ObservableCollection<CategoryRowItem>(names.Select(name => new CategoryRowItem(name)));
+            var rows = new List<CategoryRowItem> { new(NoFolderLabel, IsSystem: true) };
+            rows.AddRange(names.Select(name => new CategoryRowItem(name)));
+            CategoryNames = new ObservableCollection<CategoryRowItem>(rows);
         }
 
         // Remplace le bouton retour natif du Shell (cf. CategoryListPage.xaml, Shell.NavBarIsVisible="False").
@@ -58,7 +67,14 @@ namespace DmToolsApp.Features.Library
             var name = await ShowPromptAsync(Loc["DialogNewCategory"], Loc["PromptName"]);
             if (string.IsNullOrWhiteSpace(name)) return;
 
-            await _libraryDataService.EnsureCategoryAsync(_libraryType, name.Trim());
+            var trimmed = name.Trim();
+            if (string.Equals(trimmed, NoFolderLabel, StringComparison.OrdinalIgnoreCase))
+            {
+                await ShowInfoAsync(Loc["CategoriesHeader"], Loc["LibCategoryNoFolderReserved"]);
+                return;
+            }
+
+            await _libraryDataService.EnsureCategoryAsync(_libraryType, trimmed);
             WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
             await LoadAsync();
         }
@@ -66,7 +82,7 @@ namespace DmToolsApp.Features.Library
         [RelayCommand]
         public async Task Rename()
         {
-            if (SelectedCategoryName == null) return;
+            if (!CanModifySelectedCategory || SelectedCategoryName == null) return;
 
             var newName = await ShowPromptAsync(Loc["DialogRename"], Loc["PromptName"], initialValue: SelectedCategoryName);
             if (string.IsNullOrWhiteSpace(newName) || newName == SelectedCategoryName) return;
@@ -79,7 +95,7 @@ namespace DmToolsApp.Features.Library
         [RelayCommand]
         public async Task Delete()
         {
-            if (SelectedCategoryName == null) return;
+            if (!CanModifySelectedCategory || SelectedCategoryName == null) return;
             if (!await ConfirmDeleteAsync(SelectedCategoryName)) return;
 
             await _libraryDataService.DeleteCategoryAsync(_libraryType, SelectedCategoryName);
@@ -89,7 +105,7 @@ namespace DmToolsApp.Features.Library
         }
     }
 
-    public record CategoryRowItem(string Name)
+    public record CategoryRowItem(string Name, bool IsSystem = false)
     {
         public override string ToString() => Name;
     }

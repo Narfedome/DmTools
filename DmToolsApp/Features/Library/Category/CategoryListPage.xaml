@@ -70,11 +70,11 @@
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Pen}"
                                          Command="{Binding RenameCommand}"
                                          Tooltip="{loc:Loc BtnRename}"
-                                         IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
+                                         IsEnabled="{Binding CanModifySelectedCategory}"/>
                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Trash}"
                                          Command="{Binding DeleteCommand}"
                                          Tooltip="{loc:Loc BtnDelete}"
-                                         IsEnabled="{Binding SelectedCategoryName, Converter={StaticResource IsNotNullConverter}}"/>
+                                         IsEnabled="{Binding CanModifySelectedCategory}"/>
                 </HorizontalStackLayout>
         </Grid>
         </Grid>

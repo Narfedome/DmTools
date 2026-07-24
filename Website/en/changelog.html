@@ -36,6 +36,19 @@
     <p class="updated">What's new in each DM Tools update, in order. Current version: <strong id="current-version">1.0.143</strong>.</p>
 
     <div class="changelog-entry">
+      <h2>1.1</h2>
+      <span class="date">July 2026</span>
+      <ul>
+        <li>Optimized library export: no more intermediate temp file, which noticeably speeds up saving large libraries.</li>
+        <li>Fixed importing a large pack (.dmpack) wrongly failing with "archive too large" for any library over 2 GB.</li>
+        <li>Optimized library import: each track is now written to disk only once instead of twice.</li>
+        <li>Cancel button while exporting, importing a pack, or bulk-importing tracks into the library.</li>
+        <li>The library ("All" view) is now grouped by folder with a header per category, instead of plain add order.</li>
+        <li>New native "No folder" category for uncategorized tracks, which can't be renamed or deleted.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
       <h2>1.0</h2>
       <span class="date">July 2026</span>
       <ul>

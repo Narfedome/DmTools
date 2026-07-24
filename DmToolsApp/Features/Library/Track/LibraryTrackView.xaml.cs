@@ -8,8 +8,26 @@ public partial class LibraryTrackView : ContentView
     public LibraryTrackView()
 	{
 		InitializeComponent();
+
+        // Changer de catégorie (ou revenir sur "Tout") recharge la liste (ReloadAsync) sans jamais
+        // redéclencher SizeChanged, puisque la fenêtre ne change pas de taille : sur Desktop plein
+        // écran, la seule page rechargée (PageSize) ne suffit alors plus forcément à remplir tout le
+        // viewport, sans qu'aucun Scrolled ne se déclenche jamais pour poursuivre la pagination. On
+        // branche donc FillViewportAsync directement sur ReloadAsync (appelé une seule fois, à la toute
+        // fin) plutôt que de réagir à un évènement de la collection (TrackItems.CollectionChanged/
+        // HasTrackItems se déclenchait dès ClearTrackItems(), avant que ReloadAsync ait fini de remettre
+        // _loadedCount/_hasMoreItems à zéro - rechargement concurrent avec un offset périmé, page vide
+        // pour la nouvelle catégorie puis blocage au changement suivant).
+        BindingContextChanged += (_, _) =>
+        {
+            if (BindingContext is LibraryTrackViewModel vm)
+                vm.FillViewportRequested = () => FillViewportIfDesktopAsync(vm);
+        };
     }
-        
+
+    private Task FillViewportIfDesktopAsync(LibraryTrackViewModel vm) =>
+        DeviceInfo.Current.Idiom == DeviceIdiom.Desktop ? FillViewportAsync(vm) : Task.CompletedTask;
+
     public static readonly BindableProperty IsCrudProperty =
     BindableProperty.Create(nameof(IsCrud), typeof(bool), typeof(LibraryTrackView), default(bool));
 
@@ -26,7 +44,10 @@ public partial class LibraryTrackView : ContentView
         if (e.LastVisibleItemIndex < 0 || BindingContext is not LibraryTrackViewModel vm)
             return;
 
-        if (e.LastVisibleItemIndex >= vm.TrackItems.Count - 3 && vm.LoadMoreTracksCommand.CanExecute(null))
+        // ItemsViewScrolledEventArgs n'expose pas d'index par groupe (pas de LastVisibleItemGroupIndex
+        // dans cette version de .NET MAUI) : LastVisibleItemIndex reste comparé au nombre total de
+        // pistes chargées tous groupes confondus (LoadedTrackCount), pas au nombre de groupes.
+        if (e.LastVisibleItemIndex >= vm.LoadedTrackCount - 3 && vm.LoadMoreTracksCommand.CanExecute(null))
         {
             vm.LoadMoreTracksCommand.Execute(null);
         }
@@ -46,8 +67,8 @@ public partial class LibraryTrackView : ContentView
     // dedans plantait l'appli ("Cannot call this method while RecyclerView is computing a layout").
     private void OnCollectionViewSizeChanged(object? sender, EventArgs e)
     {
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
-            _ = FillViewportAsync(vm);
+        if (BindingContext is LibraryTrackViewModel vm)
+            _ = FillViewportIfDesktopAsync(vm);
     }
 
     // Meme largeur de tuile que ResponsiveGridSpanBehavior (qui calcule le nombre de colonnes a
@@ -66,7 +87,7 @@ public partial class LibraryTrackView : ContentView
         var rows = (int)(ItemsCollection.Height / EstimatedTileSize) + 2;
         var neededItems = columns * rows;
 
-        while (vm.TrackItems.Count < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
+        while (vm.HasMoreItems && vm.LoadedTrackCount < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
         {
             await vm.LoadMoreTracksCommand.ExecuteAsync(null);
         }

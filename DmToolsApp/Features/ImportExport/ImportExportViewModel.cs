@@ -108,10 +108,20 @@ namespace DmToolsApp.Features.ImportExport
             var page = Shell.Current.CurrentPage;
             page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
 
-            // Écrit d'abord sur disque (fichier temporaire) plutôt que dans un MemoryStream : une
-            // bibliothèque audio complète dépasse vite les 2 Go, et MemoryStream est limité à un
-            // buffer int (~2 Go) - au-delà, l'écriture lève IOException "Stream was too long."
-            var tempPath = Path.Combine(Path.GetTempPath(), $"dmtools-export-{Guid.NewGuid():N}.dmpack");
+            // Basé sur le niveau choisi, pas juste sur SelectedCampaign : cette propriété peut
+            // rester une valeur résiduelle d'une sélection précédente (Structure) alors que le
+            // niveau actuel (Bibliothèque seule, Backup complet) n'a plus de campagne unique -
+            // sans ce switch, le fichier récupérait un nom de campagne sans rapport avec son contenu.
+            var baseName = _selectedLevel switch
+            {
+                ExportLevel.StructureOnly => $"{SelectedCampaign?.Title ?? "Campagne"}-Structure",
+                ExportLevel.StructureWithChannels => $"{SelectedCampaign?.Title ?? "Campagne"}Structure-WithAudio",
+                ExportLevel.AudioLibraryOnly => "Library",
+                ExportLevel.FullBackup => "All",
+                _ => "Export"
+            };
+            var fileName = SanitizeFileName($"{baseName}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
+
             try
             {
                 var progress = new Progress<ExportProgress>(p =>
@@ -121,81 +131,127 @@ namespace DmToolsApp.Features.ImportExport
                     popupView.ViewModel.ProcessedCount = p.Processed;
                 });
 
-                using (var fileStream = File.Create(tempPath))
-                    await _importExportService.ExportAsync(request, fileStream, progress);
+                // Construit le zip et l'enregistre à la destination choisie par l'utilisateur en une
+                // seule passe, via un pipe en mémoire à taille bornée (4 Mo) plutôt qu'un fichier
+                // temporaire intermédiaire : ExportAsync (producteur) et FileSaver.SaveAsync
+                // (consommateur, boîte "Enregistrer sous" native) tournent en parallèle. Le pipe ne
+                // retient jamais que quelques Mo à la fois - contrairement à un MemoryStream, il
+                // n'atteint donc jamais la limite ~2 Go (buffer int) qui avait initialement motivé le
+                // passage par un fichier temporaire, tout en évitant de réécrire les données deux fois
+                // sur le disque (temp, puis destination) comme le faisait cette version temporaire.
+                var pipe = new System.IO.Pipelines.Pipe(new System.IO.Pipelines.PipeOptions(
+                    pauseWriterThreshold: 4 * 1024 * 1024,
+                    resumeWriterThreshold: 1 * 1024 * 1024));
 
-                // Basé sur le niveau choisi, pas juste sur SelectedCampaign : cette propriété peut
-                // rester une valeur résiduelle d'une sélection précédente (Structure) alors que le
-                // niveau actuel (Bibliothèque seule, Backup complet) n'a plus de campagne unique -
-                // sans ce switch, le fichier récupérait un nom de campagne sans rapport avec son contenu.
-                var baseName = _selectedLevel switch
+                using var linkedCts = new CancellationTokenSource();
+                popupView.ViewModel.CancelRequested += linkedCts.Cancel;
+
+                var writeTask = Task.Run(async () =>
                 {
-                    ExportLevel.StructureOnly => $"{SelectedCampaign?.Title ?? "Campagne"}-Structure",
-                    ExportLevel.StructureWithChannels => $"{SelectedCampaign?.Title ?? "Campagne"}Structure-WithAudio",
-                    ExportLevel.AudioLibraryOnly => "Library",
-                    ExportLevel.FullBackup => "All",
-                    _ => "Export"
-                };
-                var fileName = SanitizeFileName($"{baseName}-{DateTime.Now:yyyyMMdd-HHmm}.dmpack");
-
-                // FileSaver.SaveAsync ne remonte aucune progression une fois l'emplacement choisi (API
-                // du plugin) : on estime un temps restant nous-mêmes en observant, via ProgressReportingStream,
-                // combien d'octets du flux source il a effectivement consommés au fil de la copie.
-                popupView.ViewModel.CurrentFileName = Loc["ImportExportSavingFile"];
-                var totalBytes = new FileInfo(tempPath).Length;
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                var lastUiUpdate = TimeSpan.Zero;
-                var saveProgress = new Progress<long>(bytesRead =>
-                {
-                    var elapsed = stopwatch.Elapsed;
-                    if (elapsed - lastUiUpdate < TimeSpan.FromMilliseconds(200) && bytesRead < totalBytes)
-                        return;
-                    lastUiUpdate = elapsed;
-
-                    if (elapsed.TotalSeconds < 0.5 || bytesRead <= 0 || totalBytes <= 0)
-                        return;
-
-                    var bytesPerSecond = bytesRead / elapsed.TotalSeconds;
-                    var remainingBytes = Math.Max(0, totalBytes - bytesRead);
-                    var etaSeconds = bytesPerSecond > 0 ? remainingBytes / bytesPerSecond : 0;
-
-                    popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportSavingFileEta"], FormatEta(etaSeconds));
+                    Exception? error = null;
+                    try
+                    {
+                        var writeStream = pipe.Writer.AsStream(leaveOpen: true);
+                        await using (writeStream)
+                            await _importExportService.ExportAsync(request, writeStream, progress, linkedCts.Token);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = ex;
+                        throw;
+                    }
+                    finally
+                    {
+                        await pipe.Writer.CompleteAsync(error);
+                    }
                 });
 
-                string? savedPath;
-                using (var readStream = File.OpenRead(tempPath))
-                using (var progressStream = new ProgressReportingStream(readStream, bytesRead => ((IProgress<long>)saveProgress).Report(bytesRead)))
-                    savedPath = await _fileService.SaveExportPackageAsync(fileName, progressStream, CancellationToken.None);
+                string? savedPath = null;
+                Exception? saveError = null;
+                try
+                {
+                    var readStream = pipe.Reader.AsStream(leaveOpen: true);
+                    await using (readStream)
+                        savedPath = await _fileService.SaveExportPackageAsync(fileName, readStream, CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    saveError = ex;
+                }
+                finally
+                {
+                    // Si l'enregistrement s'est arrêté (dialogue "Enregistrer sous" annulé, erreur
+                    // native...) sans avoir tout lu, le producteur resterait bloqué indéfiniment à
+                    // essayer d'écrire dans un pipe que plus personne ne vide : on le débloque en
+                    // annulant, ce qui est sans effet s'il avait déjà terminé normalement.
+                    await pipe.Reader.CompleteAsync();
+                    linkedCts.Cancel();
+                }
 
-                await page.ClosePopupAsync();
+                Exception? writeError = null;
+                try
+                {
+                    await writeTask;
+                }
+                catch (OperationCanceledException) when (linkedCts.IsCancellationRequested)
+                {
+                    // Producteur arrêté parce qu'on l'a annulé nous-mêmes ci-dessus (lecteur terminé ou
+                    // en erreur) - pas une vraie erreur à remonter à l'utilisateur.
+                }
+                catch (Exception ex)
+                {
+                    writeError = ex;
+                }
+
+                // Priorité à l'erreur de construction du zip (cause racine la plus probable en cas
+                // d'échec des deux côtés), sinon celle remontée par l'enregistrement.
+                if (writeError != null) throw writeError;
+                if (saveError != null) throw saveError;
 
                 if (savedPath != null)
                     await ShowInfoAsync(Loc["ImportExportTitle"], string.Format(Loc["ImportExportExportSuccess"], savedPath));
             }
             catch (Exception ex)
             {
-                await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
             }
             finally
             {
-                try { File.Delete(tempPath); } catch { /* meilleur effort, le fichier temporaire est jetable */ }
+                await page.ClosePopupAsync();
             }
         }
 
         [RelayCommand]
         private async Task Import()
         {
-            var file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"]);
-            if (file == null) return;
-
             var popupView = new ImportProgressPopupView();
             popupView.ViewModel.Title = Loc["ImportExportImportInProgress"];
             var page = Shell.Current.CurrentPage;
             page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
 
+            using var cts = new CancellationTokenSource();
+            popupView.ViewModel.CancelRequested += cts.Cancel;
+
+            FileResult? file = null;
             try
             {
+                // Sur Android, un fichier choisi depuis un fournisseur de contenu (Téléchargements,
+                // Drive...) est d'abord recopié dans le cache de l'appli avant de pouvoir être lu (cf.
+                // FileService.PickImportPackageAsync) : peut être long pour un gros pack, d'où l'affichage
+                // de la popup dès maintenant, avec un retour de progression sur cette copie plutôt que de
+                // laisser l'appli paraître figée pendant que le sélecteur natif travaille en coulisses.
+                var copyProgress = new Progress<long>(bytesRead =>
+                    popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportCopyingFile"], bytesRead / (1024.0 * 1024.0)));
+
+                file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress, cts.Token);
+                if (file == null)
+                {
+                    await page.ClosePopupAsync();
+                    return;
+                }
+
+                popupView.ViewModel.CurrentFileName = string.Empty;
+
                 using var stream = await file.OpenReadAsync();
                 var progress = new Progress<ImportProgress>(p =>
                 {
@@ -204,7 +260,7 @@ namespace DmToolsApp.Features.ImportExport
                     popupView.ViewModel.ProcessedCount = p.Processed;
                 });
 
-                var result = await _importExportService.ImportAsync(stream, progress);
+                var result = await _importExportService.ImportAsync(stream, progress, cts.Token);
                 await ReconcileDefaultCategoryTranslationsAsync();
 
                 // Les campagnes/pistes/sorts importés sont insérés directement en base, sans passer
@@ -217,14 +273,47 @@ namespace DmToolsApp.Features.ImportExport
                 await page.ClosePopupAsync();
                 await InitializeAsync();
 
-                await ShowInfoAsync(Loc["ImportExportTitle"], string.Format(
+                var summary = string.Format(
                     Loc["ImportExportImportSummary"],
-                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported));
+                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported);
+
+                // Le détail des causes de rejet n'a d'intérêt que s'il y a effectivement des rejets -
+                // évite d'alourdir le message pour le cas normal (aucune piste rejetée).
+                if (result.TracksRejected > 0)
+                    summary += "\n" + string.Format(Loc["ImportExportRejectDetails"],
+                        result.TracksRejectedHashMismatch, result.TracksRejectedNotDecodable,
+                        result.TracksRejectedMissingEntry, result.TracksRejectedOther);
+
+                await ShowInfoAsync(Loc["ImportExportTitle"], summary);
+            }
+            catch (OperationCanceledException)
+            {
+                // Pas de rollback : une campagne/piste déjà insérée avant l'annulation reste en base
+                // (comportement déjà documenté pour toute interruption d'import, cf. ImportCampaignAsync
+                // côté service) - on rafraîchit donc les listes plutôt que de les laisser figées, mais
+                // sans le résumé final puisque ImportAsync n'a pas eu l'occasion de le retourner.
+                WeakReferenceMessenger.Default.Send(new CampaignsUpdatedMessage());
+                WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
+                await page.ClosePopupAsync();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {
                 await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
+            }
+            finally
+            {
+                // Sur Android, le fichier choisi est une copie locale dans le cache de l'appli (cf.
+                // PickImportPackageAsync), pas l'original de l'utilisateur - sans ce nettoyage immédiat,
+                // elle resterait à occuper de l'espace jusqu'au prochain démarrage de l'appli
+                // (ClearPickerCache), ce qui compte pour un .dmpack de plusieurs Go en pleine extraction
+                // vers le dossier Tracks (pic d'espace disque nécessaire : la copie ET les pistes déjà
+                // extraites coexistent tant que l'import n'est pas terminé). DeleteIfCached ne touche
+                // jamais un fichier hors du cache (Windows/MacCatalyst renvoient le chemin réel de
+                // l'utilisateur, jamais une copie - rien à supprimer dans ce cas).
+                if (file != null)
+                    _fileService.DeleteIfCached(file.FullPath);
             }
         }
 
@@ -271,11 +360,5 @@ namespace DmToolsApp.Features.ImportExport
             return name;
         }
 
-        private static string FormatEta(double seconds)
-        {
-            if (seconds < 1) return "< 1 s";
-            var ts = TimeSpan.FromSeconds(seconds);
-            return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes} min {ts.Seconds:D2} s" : $"{ts.Seconds} s";
-        }
     }
 }
