@@ -7,7 +7,6 @@ using DmToolsApp.Models;
 using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 
 namespace DmToolsApp.Features.AudioMixer
@@ -19,7 +18,7 @@ namespace DmToolsApp.Features.AudioMixer
         private readonly ISceneDataService _sceneDataService;
 
         private Scene? _activeScene;
-        private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
+        private readonly ChannelAutoSaveScheduler _autoSave;
 
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
@@ -29,6 +28,13 @@ namespace DmToolsApp.Features.AudioMixer
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
+            // Sauvegarde partielle : l'AutoPlay est un réglage explicite de l'utilisateur (dialog de
+            // paramètres / page des pistes de scène), il ne doit pas être écrasé par l'état de
+            // lecture du moment à chaque changement de volume ou de boucle.
+            _autoSave = new ChannelAutoSaveScheduler(
+                save: channel => _sceneDataService.UpdateSceneTrackSettingsAsync(
+                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsFadeIn, channel.IsFadeOut),
+                shouldSave: channel => channel.SceneTrackId != 0);
         }
 
         // ── Channels ──────────────────────────────────────────────
@@ -78,7 +84,7 @@ namespace DmToolsApp.Features.AudioMixer
                 return;
             if (channel.Player == null)
             {
-                UnsubscribeChannel(channel);
+                _autoSave.Untrack(channel);
                 if (channel.SceneTrackId > 0)
                     await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
                 CurrentChannels.Remove(channel);
@@ -104,7 +110,7 @@ namespace DmToolsApp.Features.AudioMixer
                 }
 
                 channel.Stop();
-                UnsubscribeChannel(channel);
+                _autoSave.Untrack(channel);
                 channel.DisposePlayer();
                 if (channel.SceneTrackId > 0)
                     await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
@@ -184,11 +190,7 @@ namespace DmToolsApp.Features.AudioMixer
 
                 // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée,
                 // redondante avec la sauvegarde immédiate et complète qui suit : on l'annule.
-                if (_pendingSaves.TryGetValue(channel, out var pendingCts))
-                {
-                    pendingCts.Cancel();
-                    _pendingSaves.Remove(channel);
-                }
+                _autoSave.CancelPending(channel);
 
                 await _sceneDataService.UpdateSceneTrackAsync(
                     channel.SceneTrackId, dialogViewModel.Volume, dialogViewModel.IsLooping, dialogViewModel.AutoPlay, dialogViewModel.FadeIn, dialogViewModel.FadeOut);
@@ -209,7 +211,7 @@ namespace DmToolsApp.Features.AudioMixer
         {
             foreach (var c in CurrentChannels)
             {
-                UnsubscribeChannel(c);
+                _autoSave.Untrack(c);
                 c.DisposePlayer();
             }
             CurrentChannels.Clear();
@@ -235,60 +237,7 @@ namespace DmToolsApp.Features.AudioMixer
             await _sceneDataService.SaveSceneTrackAsync(sceneTrack);
             channel.SceneTrackId = sceneTrack.Id;
 
-            SubscribeChannel(channel);
-        }
-
-        // ── Subscriptions pour sauvegarde automatique ─────────────
-
-        private void SubscribeChannel(ChannelStripViewModel channel)
-        {
-            channel.PropertyChanged -= OnChannelPropertyChanged;
-            channel.PropertyChanged += OnChannelPropertyChanged;
-        }
-
-        private void UnsubscribeChannel(ChannelStripViewModel channel)
-        {
-            channel.PropertyChanged -= OnChannelPropertyChanged;
-            if (_pendingSaves.TryGetValue(channel, out var cts))
-            {
-                cts.Cancel();
-                _pendingSaves.Remove(channel);
-            }
-        }
-
-        private void OnChannelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (sender is not ChannelStripViewModel channel) return;
-            if (e.PropertyName is nameof(ChannelStripViewModel.Volume) or nameof(ChannelStripViewModel.IsLooping))
-                _ = DebouncedSaveChannel(channel);
-        }
-
-        private async Task DebouncedSaveChannel(ChannelStripViewModel channel)
-        {
-            if (channel.SceneTrackId == 0) return;
-
-            if (_pendingSaves.TryGetValue(channel, out var existingCts))
-                existingCts.Cancel();
-
-            var cts = new CancellationTokenSource();
-            _pendingSaves[channel] = cts;
-
-            try
-            {
-                await Task.Delay(500, cts.Token);
-                // Sauvegarde partielle : l'AutoPlay est un réglage explicite de l'utilisateur
-                // (dialog de paramètres / page des pistes de scène), il ne doit pas être écrasé
-                // par l'état de lecture du moment à chaque changement de volume ou de boucle.
-                await _sceneDataService.UpdateSceneTrackSettingsAsync(
-                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsFadeIn, channel.IsFadeOut);
-            }
-            catch (OperationCanceledException) { }
-            finally
-            {
-                if (_pendingSaves.TryGetValue(channel, out var current) && current == cts)
-                    _pendingSaves.Remove(channel);
-                cts.Dispose();
-            }
+            _autoSave.Track(channel);
         }
 
         // ── Sélecteur de scène ────────────────────────────────────
@@ -380,7 +329,7 @@ namespace DmToolsApp.Features.AudioMixer
 
         private async Task SaveCurrentSceneAsync()
         {
-            // Cf. DebouncedSaveChannel : on ne persiste que les réglages du strip, jamais
+            // Cf. ChannelAutoSaveScheduler : on ne persiste que les réglages du strip, jamais
             // l'AutoPlay (réglage explicite, qui serait sinon écrasé par l'état de lecture).
             var tasks = CurrentChannels
                 .Where(c => c.SceneTrackId > 0)
@@ -614,7 +563,7 @@ namespace DmToolsApp.Features.AudioMixer
                 try
                 {
                     channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
-                    SubscribeChannel(channel);
+                    _autoSave.Track(channel);
 
                     if (st.AutoPlay)
                         channel.Play();
