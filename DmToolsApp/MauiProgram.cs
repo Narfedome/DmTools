@@ -22,8 +22,6 @@ namespace DmToolsApp
 
         public static MauiApp CreateMauiApp()
         {
-            string tracksDir = Path.Combine(FileSystem.AppDataDirectory, "Tracks");
-            Directory.CreateDirectory(tracksDir);
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()

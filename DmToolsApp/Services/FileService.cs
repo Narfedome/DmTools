@@ -32,26 +32,9 @@ namespace DmToolsApp.Services
         // taille totale de l'appli.
         // Vérifié via adb sur un appareil réel : ces copies n'atterrissent PAS à la racine du cache
         // mais dans des sous-dossiers imbriqués (cache/<hash>/<hash>/fichier.mp3, un niveau par
-        // segment de l'URI content:// d'origine) - EnumerateFiles(dir) seul (non récursif) ne les
-        // voit jamais, d'où un cache qui grossissait indéfiniment malgré ce nettoyage.
-        private static void ClearPickerCache()
-        {
-            var dir = FileSystem.CacheDirectory;
-            if (!Directory.Exists(dir))
-                return;
-
-            foreach (var entry in Directory.EnumerateFileSystemEntries(dir))
-            {
-                try
-                {
-                    if (Directory.Exists(entry))
-                        Directory.Delete(entry, recursive: true);
-                    else
-                        File.Delete(entry);
-                }
-                catch { /* fichier ou dossier verrouillé, on continue */ }
-            }
-        }
+        // segment de l'URI content:// d'origine) - la suppression récursive par sous-dossier de
+        // DirectoryCleaner (plutôt qu'un simple EnumerateFiles non récursif) est ce qui les atteint.
+        private static void ClearPickerCache() => DirectoryCleaner.ClearContents(FileSystem.CacheDirectory);
 
         /// <summary>
         /// Supprime le fichier s'il s'agit d'une copie laissée par FilePicker dans le cache de l'appli
