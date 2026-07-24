@@ -25,6 +25,13 @@ public class FakeTrackFileStore : ITrackFileStore
         return dest;
     }
 
+    public string ReserveTrackPath(string extension)
+    {
+        var dest = Path.Combine(StorageDirectory, Guid.NewGuid().ToString("N") + extension);
+        CopiedFiles.Add(dest);
+        return dest;
+    }
+
     public void Dispose()
     {
         try { Directory.Delete(StorageDirectory, recursive: true); } catch { /* best effort */ }

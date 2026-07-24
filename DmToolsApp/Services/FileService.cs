@@ -95,6 +95,13 @@ namespace DmToolsApp.Services
             File.Copy(originalFilePath, destPath, overwrite: true);
             return destPath;
         }
+
+        public string ReserveTrackPath(string extension)
+        {
+            var destFileName = Guid.NewGuid().ToString() + extension;
+            return Path.Combine(_tracksDirectory, destFileName);
+        }
+
         /// <summary>
         /// Sauvegarde une vignette de pochette (déjà extraite/redimensionnée) dans le dossier privé
         /// de l'application et retourne son chemin.

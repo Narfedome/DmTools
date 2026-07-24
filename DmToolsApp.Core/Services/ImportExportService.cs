@@ -33,8 +33,13 @@ namespace DmToolsApp.Services
     public class ImportExportService : IImportExportService
     {
         private const int FormatVersion = 1;
-        private const long MaxTrackEntryBytes = 500L * 1024 * 1024;
-        private const long MaxTotalUncompressedBytes = 2L * 1024 * 1024 * 1024;
+
+        // Garde-fous anti zip-bomb (cf. doc de classe), pas des limites d'usage normal : une
+        // bibliothèque audio complète (FullBackup) atteint couramment plusieurs Go, une piste unique
+        // en lossless (WAV) peut dépasser le Go sur un morceau long - ces plafonds ne doivent donc
+        // jamais être atteints par un .dmpack légitime, seulement par une archive forgée.
+        private const long MaxTrackEntryBytes = 5L * 1024 * 1024 * 1024;
+        private const long MaxTotalUncompressedBytes = 200L * 1024 * 1024 * 1024;
         private const string ManifestEntryName = "manifest.json";
         private const string SignatureEntryName = "manifest.sig";
 
@@ -261,7 +266,7 @@ namespace DmToolsApp.Services
             foreach (var trackExport in manifest.Tracks)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var newTrackId = await ImportTrackAsync(zip, trackExport, result);
+                var newTrackId = await ImportTrackAsync(zip, trackExport, result, cancellationToken);
                 if (newTrackId is int id)
                     trackIdMap[trackExport.Id] = id;
                 else
@@ -337,7 +342,7 @@ namespace DmToolsApp.Services
         }
 
         /// <returns>Le nouvel Id local de la track (réutilisée ou copiée), ou null si l'entrée a été rejetée.</returns>
-        private async Task<int?> ImportTrackAsync(ZipArchive zip, TrackExport trackExport, ImportResult result)
+        private async Task<int?> ImportTrackAsync(ZipArchive zip, TrackExport trackExport, ImportResult result, CancellationToken cancellationToken)
         {
             var existing = await _libraryDataService.FindTrackByHashAsync(trackExport.Hash, excludeId: 0);
             if (existing != null)
@@ -350,22 +355,34 @@ namespace DmToolsApp.Services
             if (entry == null)
                 return null;
 
-            var tempPath = Path.Combine(Path.GetTempPath(), $"dmpack-import-{Guid.NewGuid():N}{Path.GetExtension(trackExport.FileEntry)}");
-            string? localPath = null;
+            // Écrit directement à l'emplacement définitif (dossier Tracks) en calculant le hash à la
+            // volée pendant la copie, plutôt que d'extraire vers un fichier temporaire puis de le
+            // recopier une seconde fois vers le stockage local (cf. l'ancien appel à CopyTrackToLocal) :
+            // pour une bibliothèque de plusieurs Go, ça évite de relire/réécrire chaque piste deux fois.
+            var localPath = _trackFileStore.ReserveTrackPath(Path.GetExtension(trackExport.FileEntry));
+            var accepted = false;
             try
             {
+                using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 using (var entryStream = entry.Open())
-                using (var fileStream = File.Create(tempPath))
-                    await entryStream.CopyToAsync(fileStream);
+                using (var fileStream = File.Create(localPath))
+                {
+                    var buffer = new byte[81920];
+                    int bytesRead;
+                    while ((bytesRead = await entryStream.ReadAsync(buffer, cancellationToken)) > 0)
+                    {
+                        hasher.AppendData(buffer, 0, bytesRead);
+                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                    }
+                }
+                var actualHash = Convert.ToHexString(hasher.GetHashAndReset());
 
-                var actualHash = TrackTagHelper.ComputeSha256(tempPath);
                 if (!string.Equals(actualHash, trackExport.Hash, StringComparison.OrdinalIgnoreCase))
                     return null;
 
-                if (!TrackTagHelper.IsDecodableAudio(tempPath))
+                if (!TrackTagHelper.IsDecodableAudio(localPath))
                     return null;
 
-                localPath = _trackFileStore.CopyTrackToLocal(tempPath);
                 var track = new Track
                 {
                     Title = trackExport.Title,
@@ -385,23 +402,30 @@ namespace DmToolsApp.Services
                     await _libraryDataService.EnsureCategoryAsync(typeof(Track), track.Category);
 
                 result.TracksCopied++;
+                accepted = true;
                 return track.Id;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
-                // La piste a pu être copiée dans le stockage local avant l'échec (base de données,
-                // disque plein...) : sans ce nettoyage, ce fichier resterait orphelin, sans plus
-                // aucune ligne Track pour le référencer. On rejette simplement cette piste plutôt
-                // que de faire échouer tout l'import à cause d'elle.
-                if (localPath != null)
-                {
-                    try { File.Delete(localPath); } catch { /* meilleur effort */ }
-                }
+                // Le hash peut ne pas correspondre, le fichier peut ne pas être un audio décodable, ou
+                // l'écriture en base peut échouer (disque plein...) une fois la piste déjà écrite sur
+                // disque : dans tous les cas on rejette simplement cette piste plutôt que de faire
+                // échouer tout l'import à cause d'elle.
                 return null;
             }
             finally
             {
-                try { File.Delete(tempPath); } catch { /* meilleur effort, le fichier temporaire est jetable */ }
+                // Piste rejetée ou écriture interrompue (y compris par une annulation) : le fichier
+                // fraîchement écrit dans le stockage local n'est référencé par aucune ligne Track, il
+                // resterait orphelin sans ce nettoyage.
+                if (!accepted)
+                {
+                    try { File.Delete(localPath); } catch { /* meilleur effort */ }
+                }
             }
         }
 

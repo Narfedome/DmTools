@@ -162,6 +162,9 @@
   <data name="BtnCancel" xml:space="preserve">
     <value>Annuler</value>
   </data>
+  <data name="ImportProgressCancelling" xml:space="preserve">
+    <value>Annulation…</value>
+  </data>
   <data name="BtnLaunch" xml:space="preserve">
     <value>▶ Lancer</value>
   </data>
@@ -284,6 +287,9 @@
   </data>
   <data name="LibAllCategories" xml:space="preserve">
     <value>Tous les dossiers</value>
+  </data>
+  <data name="LibCategoryNoFolderReserved" xml:space="preserve">
+    <value>Ce nom est réservé pour les pistes sans dossier.</value>
   </data>
   <data name="LibSelect" xml:space="preserve">
     <value>Sélectionner</value>
@@ -548,12 +554,6 @@
   </data>
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export enregistré : {0}</value>
-  </data>
-  <data name="ImportExportSavingFile" xml:space="preserve">
-    <value>Enregistrement du fichier…</value>
-  </data>
-  <data name="ImportExportSavingFileEta" xml:space="preserve">
-    <value>Enregistrement du fichier… (~{0} restant)</value>
   </data>
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campagne(s) importée(s), {1} piste(s) copiée(s), {2} réutilisée(s), {3} rejetée(s), {4} sort(s) importé(s).</value>
