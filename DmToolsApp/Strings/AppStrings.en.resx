@@ -432,6 +432,9 @@
   <data name="ErrorSourceFileMissing" xml:space="preserve">
     <value>The source file could not be found.</value>
   </data>
+  <data name="ErrorIncompleteFileCopy" xml:space="preserve">
+    <value>Incomplete file copy: {0:F0} MB copied out of {1:F0} MB expected.</value>
+  </data>
   <data name="PromptName" xml:space="preserve">
     <value>Name:</value>
   </data>

@@ -432,6 +432,9 @@
   <data name="ErrorSourceFileMissing" xml:space="preserve">
     <value>Le fichier source est introuvable.</value>
   </data>
+  <data name="ErrorIncompleteFileCopy" xml:space="preserve">
+    <value>Copie du fichier incomplète : {0:F0} Mo copiés sur {1:F0} Mo attendus.</value>
+  </data>
   <data name="PromptName" xml:space="preserve">
     <value>Nom :</value>
   </data>

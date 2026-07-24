@@ -189,23 +189,40 @@ namespace DmToolsApp.Services
             if (uri == null)
                 return null;
 
+            var declaredSize = QueryDeclaredSize(uri);
+
             var tempPath = Path.Combine(FileSystem.CacheDirectory, $"dmpack-import-{Guid.NewGuid():N}.dmpack");
             var completed = false;
             try
             {
                 using var sourceStream = global::Android.App.Application.Context.ContentResolver?.OpenInputStream(uri)
                     ?? throw new IOException(LocalizationService.Instance["ErrorSourceFileMissing"]);
+                long totalRead = 0;
                 using (var destStream = File.Create(tempPath))
                 {
                     var buffer = new byte[1024 * 1024];
                     int bytesRead;
-                    long totalRead = 0;
                     while ((bytesRead = await sourceStream.ReadAsync(buffer, cancellationToken)) > 0)
                     {
                         await destStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                         totalRead += bytesRead;
                         copyProgress?.Report(totalRead);
                     }
+                }
+
+                // Sur un très gros fichier (plusieurs Go), la lecture du flux content:// s'est déjà
+                // révélée s'arrêter en silence avant la fin (aucune exception, juste moins d'octets que
+                // prévu) - sans doute une limite quelque part dans la chaîne ContentResolver côté
+                // Android/fournisseur de contenu. Le zip lui-même reste alors valide (table des matières
+                // lisible) mais amputé de sa fin, d'où des pistes rejetées une par une à l'import plutôt
+                // qu'une erreur claire. On vérifie donc la taille copiée contre celle déclarée par Android
+                // pour l'Uri source, pour transformer ce cas en erreur explicite plutôt qu'en import
+                // silencieusement incomplet.
+                if (declaredSize.HasValue && totalRead != declaredSize.Value)
+                {
+                    throw new IOException(string.Format(
+                        LocalizationService.Instance["ErrorIncompleteFileCopy"],
+                        totalRead / (1024.0 * 1024.0), declaredSize.Value / (1024.0 * 1024.0)));
                 }
 
                 completed = true;
@@ -219,6 +236,27 @@ namespace DmToolsApp.Services
                 {
                     try { File.Delete(tempPath); } catch { /* meilleur effort */ }
                 }
+            }
+        }
+
+        private static long? QueryDeclaredSize(global::Android.Net.Uri uri)
+        {
+            try
+            {
+                using var cursor = global::Android.App.Application.Context.ContentResolver?.Query(
+                    uri, new[] { global::Android.Provider.IOpenableColumns.Size }, null, null, null);
+                if (cursor == null || !cursor.MoveToFirst())
+                    return null;
+
+                var index = cursor.GetColumnIndex(global::Android.Provider.IOpenableColumns.Size);
+                return index != -1 && !cursor.IsNull(index) ? cursor.GetLong(index) : null;
+            }
+            catch
+            {
+                // La taille déclarée n'est qu'une vérification en plus, pas une exigence : certains
+                // fournisseurs de contenu ne la renseignent pas (ou la requête échoue) sans que ce soit
+                // en soi un problème pour l'import.
+                return null;
             }
         }
 #endif
