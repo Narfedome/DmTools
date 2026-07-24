@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using DmToolsApp.Components;
 using DmToolsApp.Models.Library;
 
@@ -8,6 +9,30 @@ public partial class LibraryTrackView : ContentView
     public LibraryTrackView()
 	{
 		InitializeComponent();
+
+        // Changer de catégorie (ou revenir sur "Tout") recharge la liste (ReloadAsync) sans jamais
+        // redéclencher SizeChanged, puisque la fenêtre ne change pas de taille : sur Desktop plein
+        // écran, la seule page rechargée (PageSize) ne suffit alors plus forcément à remplir tout le
+        // viewport, sans qu'aucun Scrolled ne se déclenche jamais pour poursuivre la pagination - la
+        // liste reste alors visiblement tronquée (parfois à un seul groupe/catégorie) jusqu'au prochain
+        // redimensionnement de la fenêtre. Même cause et même remède que OnCollectionViewSizeChanged,
+        // ici déclenché par un changement de catégorie plutôt qu'un redimensionnement : HasTrackItems
+        // change à chaque item ajouté/retiré de TrackItems (cf. LibraryTrackViewModel), donc aussi bien
+        // au vidage initial (ReloadAsync.ClearTrackItems) qu'à la fin du chargement de la page suivante.
+        BindingContextChanged += (_, _) =>
+        {
+            if (BindingContext is LibraryTrackViewModel vm)
+                vm.PropertyChanged += OnViewModelPropertyChanged;
+        };
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LibraryTrackViewModel.HasTrackItems) &&
+            DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
+        {
+            _ = FillViewportAsync(vm);
+        }
     }
         
     public static readonly BindableProperty IsCrudProperty =

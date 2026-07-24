@@ -59,7 +59,7 @@
             <CollectionView.GroupHeaderTemplate>
                 <DataTemplate>
                     <Label Text="{Binding Name}"
-                           FontAttributes="Bold"
+                           FontFamily="OpenSansSemibold"
                            FontSize="{DynamicResource AppFontSizeSectionTitle}"
                            TextColor="{DynamicResource AppText}"
                            Margin="4,12,4,4"/>

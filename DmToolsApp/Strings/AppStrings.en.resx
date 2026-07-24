@@ -274,22 +274,22 @@
     <value>Importing...</value>
   </data>
   <data name="LibImportCategoryTitle" xml:space="preserve">
-    <value>Choose a folder</value>
+    <value>Choose a category</value>
   </data>
   <data name="LibImportNoCategory" xml:space="preserve">
-    <value>No folder</value>
+    <value>No category</value>
   </data>
   <data name="LibImportNewCategory" xml:space="preserve">
-    <value>+ New folder</value>
+    <value>+ New category</value>
   </data>
   <data name="LibImportNewCategoryPrompt" xml:space="preserve">
-    <value>New folder name</value>
+    <value>New category name</value>
   </data>
   <data name="LibAllCategories" xml:space="preserve">
-    <value>All folders</value>
+    <value>All categories</value>
   </data>
   <data name="LibCategoryNoFolderReserved" xml:space="preserve">
-    <value>This name is reserved for tracks with no folder.</value>
+    <value>This name is reserved for tracks with no category.</value>
   </data>
   <data name="LibSelect" xml:space="preserve">
     <value>Select</value>

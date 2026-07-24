@@ -274,22 +274,22 @@
     <value>Import en cours...</value>
   </data>
   <data name="LibImportCategoryTitle" xml:space="preserve">
-    <value>Choisir un dossier</value>
+    <value>Choisir une catégorie</value>
   </data>
   <data name="LibImportNoCategory" xml:space="preserve">
-    <value>Aucun dossier</value>
+    <value>Aucune catégorie</value>
   </data>
   <data name="LibImportNewCategory" xml:space="preserve">
-    <value>+ Nouveau dossier</value>
+    <value>+ Nouvelle catégorie</value>
   </data>
   <data name="LibImportNewCategoryPrompt" xml:space="preserve">
-    <value>Nom du nouveau dossier</value>
+    <value>Nom de la nouvelle catégorie</value>
   </data>
   <data name="LibAllCategories" xml:space="preserve">
-    <value>Tous les dossiers</value>
+    <value>Toutes les catégories</value>
   </data>
   <data name="LibCategoryNoFolderReserved" xml:space="preserve">
-    <value>Ce nom est réservé pour les pistes sans dossier.</value>
+    <value>Ce nom est réservé pour les pistes sans catégorie.</value>
   </data>
   <data name="LibSelect" xml:space="preserve">
     <value>Sélectionner</value>
