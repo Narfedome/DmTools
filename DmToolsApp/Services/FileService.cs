@@ -200,7 +200,11 @@ namespace DmToolsApp.Services
                 long totalRead = 0;
                 using (var destStream = File.Create(tempPath))
                 {
-                    var buffer = new byte[1024 * 1024];
+                    // Buffer volontairement large (contre 80 Ko par défaut pour Stream.CopyToAsync) :
+                    // réduit le nombre d'allers-retours IPC avec le fournisseur de contenu Android pour
+                    // un fichier de plusieurs Go, sans complexifier la logique (toujours lecture puis
+                    // écriture strictement séquentielles, pas de chevauchement).
+                    var buffer = new byte[4 * 1024 * 1024];
                     int bytesRead;
                     while ((bytesRead = await sourceStream.ReadAsync(buffer, cancellationToken)) > 0)
                     {
