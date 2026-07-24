@@ -26,7 +26,10 @@ public partial class LibraryTrackView : ContentView
         if (e.LastVisibleItemIndex < 0 || BindingContext is not LibraryTrackViewModel vm)
             return;
 
-        if (e.LastVisibleItemIndex >= vm.TrackItems.Count - 3 && vm.LoadMoreTracksCommand.CanExecute(null))
+        // ItemsViewScrolledEventArgs n'expose pas d'index par groupe (pas de LastVisibleItemGroupIndex
+        // dans cette version de .NET MAUI) : LastVisibleItemIndex reste comparé au nombre total de
+        // pistes chargées tous groupes confondus (LoadedTrackCount), pas au nombre de groupes.
+        if (e.LastVisibleItemIndex >= vm.LoadedTrackCount - 3 && vm.LoadMoreTracksCommand.CanExecute(null))
         {
             vm.LoadMoreTracksCommand.Execute(null);
         }
@@ -66,7 +69,7 @@ public partial class LibraryTrackView : ContentView
         var rows = (int)(ItemsCollection.Height / EstimatedTileSize) + 2;
         var neededItems = columns * rows;
 
-        while (vm.TrackItems.Count < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
+        while (vm.LoadedTrackCount < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
         {
             await vm.LoadMoreTracksCommand.ExecuteAsync(null);
         }

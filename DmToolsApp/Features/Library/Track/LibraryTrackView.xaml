@@ -38,6 +38,7 @@
                  Grid.Row="1"
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding TrackItems}"
+                 IsGrouped="True"
                  SelectionMode="Single"
                  SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
                  Scrolled="OnCollectionViewScrolled"
@@ -55,6 +56,15 @@
                                    Margin="0,10"
                                    HeightRequest="30"/>
             </CollectionView.Footer>
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Name}"
+                           FontAttributes="Bold"
+                           FontSize="{DynamicResource AppFontSizeSectionTitle}"
+                           TextColor="{DynamicResource AppText}"
+                           Margin="4,12,4,4"/>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource SelectableGridItemBorderStyle}">

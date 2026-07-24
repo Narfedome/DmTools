@@ -104,7 +104,7 @@ namespace DmToolsApp.Services
             if (currentLibraryType == typeof(Track))
             {
                 var query = _db.Connection.Table<TrackEntity>();
-                if (!string.IsNullOrEmpty(category))
+                if (category != null)
                     query = query.Where(t => t.Category == category);
 
                 var tracks = await query.ToListAsync();
@@ -177,6 +177,8 @@ namespace DmToolsApp.Services
             }
         }
 
+        /// <param name="category">null = pas de filtre (toutes catégories confondues), "" = piste sans
+        /// catégorie ("Aucun dossier"), sinon le nom exact de la catégorie.</param>
         public async Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null)
         {
             await _db.Initialization;
@@ -186,11 +188,16 @@ namespace DmToolsApp.Services
             {
                 var query = _db.Connection.Table<TrackEntity>();
 
-                if (!string.IsNullOrEmpty(category))
+                if (category != null)
                     query = query.Where(t => t.Category == category);
 
+                // Trié par catégorie (Id en repli à égalité) plutôt que par simple ordre d'insertion :
+                // permet à l'appelant (LibraryTrackViewModel) de regrouper visuellement les pistes par
+                // catégorie au fil de la pagination, les pistes d'une même catégorie sortant toujours
+                // consécutives quelle que soit la page.
                 var tracks = await query
-                    .OrderBy(t => t.Id)
+                    .OrderBy(t => t.Category)
+                    .ThenBy(t => t.Id)
                     .Skip(skip)
                     .Take(take)
                     .ToListAsync();
