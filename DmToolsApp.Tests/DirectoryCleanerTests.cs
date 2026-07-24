@@ -74,6 +74,12 @@ public class DirectoryCleanerTests
     [Fact]
     public void ClearContents_IgnoresLockedFile_AndStillClearsTheRest()
     {
+        // FileShare.None n'empêche la suppression que sur Windows : sur Linux, unlink() réussit
+        // même avec un descripteur ouvert ailleurs (le fichier reste accessible via ce descripteur
+        // jusqu'à sa fermeture), donc ce scénario ne se reproduit pas sur les runners CI Linux.
+        if (!OperatingSystem.IsWindows())
+            return;
+
         var dir = CreateTempDirectory();
         try
         {
