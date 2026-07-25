@@ -104,7 +104,7 @@ namespace DmToolsApp.Services
             if (currentLibraryType == typeof(Track))
             {
                 var query = _db.Connection.Table<TrackEntity>();
-                if (!string.IsNullOrEmpty(category))
+                if (category != null)
                     query = query.Where(t => t.Category == category);
 
                 var tracks = await query.ToListAsync();
@@ -177,6 +177,8 @@ namespace DmToolsApp.Services
             }
         }
 
+        /// <param name="category">null = pas de filtre (toutes catégories confondues), "" = piste sans
+        /// catégorie ("Aucun dossier"), sinon le nom exact de la catégorie.</param>
         public async Task<List<LibraryItem>> GetItemsPageAsync(Type currentLibraryType, int skip, int take, string? category = null)
         {
             await _db.Initialization;
@@ -186,7 +188,7 @@ namespace DmToolsApp.Services
             {
                 var query = _db.Connection.Table<TrackEntity>();
 
-                if (!string.IsNullOrEmpty(category))
+                if (category != null)
                     query = query.Where(t => t.Category == category);
 
                 var tracks = await query

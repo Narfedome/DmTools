@@ -39,6 +39,11 @@ namespace DmToolsApp.Features.Library
 
         private string AllCategoriesLabel => Loc["LibAllCategories"];
 
+        // Réutilise le même libellé que le choix "Aucun dossier" du dialogue d'import (PickImportCategoryAsync) :
+        // catégorie native représentant Track.Category vide, non stockée en CategoryEntity, non
+        // renommable/supprimable (cf. CategoryListViewModel).
+        private string NoFolderLabel => Loc["LibImportNoCategory"];
+
         [ObservableProperty]
         public ObservableCollection<Track> trackItems = new();
 
@@ -165,6 +170,7 @@ namespace DmToolsApp.Features.Library
 
             Categories.Clear();
             Categories.Add(AllCategoriesLabel);
+            Categories.Add(NoFolderLabel);
             foreach (var c in existing)
                 Categories.Add(c);
 
@@ -175,7 +181,11 @@ namespace DmToolsApp.Features.Library
 
         private async Task ReloadAsync()
         {
-            _categoryFilter = SelectedCategory == AllCategoriesLabel ? null : SelectedCategory;
+            // null = pas de filtre (Tout), "" = uniquement les pistes sans catégorie (Aucun dossier),
+            // sinon le nom exact de la catégorie choisie - cf. LibraryDataService.GetItemsPageAsync.
+            _categoryFilter = SelectedCategory == AllCategoriesLabel ? null
+                : SelectedCategory == NoFolderLabel ? string.Empty
+                : SelectedCategory;
 
             ClearTrackItems();
             _loadedCount = 0;

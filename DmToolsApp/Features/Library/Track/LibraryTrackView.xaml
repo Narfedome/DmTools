@@ -34,8 +34,34 @@
                            VerticalOptions="Center" HorizontalOptions="Center"
                            WidthRequest="120" HeightRequest="120"/>
 
+        <Grid Grid.Row="1" IsVisible="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <!-- Bibliothèque vide : carte centrée (style des blocs de Réglages) plutôt que du texte
+                 flottant seul, avec des raccourcis directs vers les deux façons d'ajouter une piste.
+                 IsVisible en sibling de la CollectionView (pas CollectionView.EmptyView, qui étire son
+                 contenu sur toute la hauteur disponible sans respecter le centrage du Border - constaté
+                 à l'usage). Boutons masqués en mode picker (IsCrud=False) : ajouter une piste depuis une
+                 sélection en cours prêterait à confusion. -->
+            <Border IsVisible="{Binding HasTrackItems, Converter={StaticResource InverseBoolConverter}}"
+                    Style="{StaticResource SectionCardBorderStyle}" WidthRequest="340"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Label Text="{x:Static icons:SolidFont.Music}" FontFamily="FontSolid"
+                           FontSize="{OnIdiom Default=40, Desktop=34}"
+                           TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
+                    <Label Text="{loc:Loc EmptyTracksTitle}" FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                    <Label Text="{loc:Loc EmptyTracksBody}" TextColor="{DynamicResource AppTextMuted}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" Margin="0,8,0,0"
+                                           IsVisible="{Binding Source={x:Reference root}, Path=IsCrud}">
+                        <Button Text="{loc:Loc LibImportOneTrackButton}" Command="{Binding CreateCommand}"/>
+                        <Button Text="{loc:Loc LibImportMultipleTracksButton}" Command="{Binding ImportMultipleTracksCommand}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
         <CollectionView
-                 Grid.Row="1"
+                 IsVisible="{Binding HasTrackItems}"
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding TrackItems}"
                  SelectionMode="Single"
@@ -80,6 +106,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+        </Grid>
 
         <!-- Boutons CRUD (visibles uniquement en mode CRUD, masqués pendant le chargement de la liste) :
              un seul bloc centré, séparé en 3 sous-groupes (sélection / Ajouter-Éditer-Supprimer comme
