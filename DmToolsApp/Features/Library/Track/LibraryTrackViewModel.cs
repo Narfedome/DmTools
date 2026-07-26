@@ -154,8 +154,16 @@ namespace DmToolsApp.Features.Library
             {
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    await RefreshCategoriesAsync();
-                    await ReloadAsync();
+                    // Sans Loading.RunAsync, ce rechargement (déclenché après un import/edit, souvent
+                    // pendant que l'onglet Bibliothèque n'est même pas affiché) viderait TrackItems
+                    // puis le repeuplerait sans jamais activer le spinner - la carte "bibliothèque
+                    // vide" pouvait alors s'afficher un instant (ou plus, sur un gros import) à la
+                    // place.
+                    await Loading.RunAsync(async () =>
+                    {
+                        await RefreshCategoriesAsync();
+                        await ReloadAsync();
+                    });
                 });
             });
         }

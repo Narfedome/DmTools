@@ -125,7 +125,12 @@ namespace DmToolsApp.Services
 
             try
             {
-                var file = TagLib.File.Create(audioFilePath);
+                // ReadStyle.None : seul tag.Pictures (les tags) est utilisé ici, jamais
+                // file.Properties (durée, bitrate) - sans intérêt de payer le scan complet du flux
+                // audio que TagLib fait par défaut (ReadStyle.Average) juste pour lire une pochette
+                // embarquée. Chaque piste nouvellement importée (sans ImagePath en cache) paie ce
+                // scan au premier affichage - déterminant pour la fluidité juste après un gros import.
+                var file = TagLib.File.Create(audioFilePath, TagLib.ReadStyle.None);
                 return ExtractCoverThumbnailBytes(file.Tag);
             }
             catch (Exception ex)
