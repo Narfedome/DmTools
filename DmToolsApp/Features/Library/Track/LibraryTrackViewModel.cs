@@ -55,9 +55,20 @@ namespace DmToolsApp.Features.Library
         private string NoFolderLabel => Loc["LibImportNoCategory"];
 
         [ObservableProperty]
-        public ObservableCollection<Track> trackItems = new();
+        public ObservableCollection<TrackGroup> trackItems = new();
 
-        public bool HasTrackItems => TrackItems.Count > 0;
+        // TrackItems.Count compte les groupes (catégories), pas les pistes - utilisé par les
+        // heuristiques de pagination (seuil de scroll, remplissage de viewport, cf.
+        // LibraryTrackView.xaml.cs) qui doivent comparer un nombre de pistes chargées, pas de groupes.
+        public int LoadedTrackCount => TrackItems.Sum(g => g.Count);
+
+        public bool HasTrackItems => LoadedTrackCount > 0;
+
+        // La CollectionView reste groupée en permanence (structure interne toujours en TrackGroup,
+        // même un seul groupe en filtré) plutôt que de jongler entre deux formes de données selon le
+        // filtre : seul l'en-tête de section est masqué hors du filtre "Tout", où il serait redondant
+        // avec le bouton de filtre déjà affiché juste au-dessus.
+        public bool ShowGroupHeaders => SelectedCategory == AllCategoriesLabel;
 
         // Deux variantes de l'état vide : "Tout" vide (aucune piste importée du tout) propose les
         // raccourcis d'import ; une catégorie spécifique vide (le filtre ne matche juste rien) affiche
@@ -93,6 +104,7 @@ namespace DmToolsApp.Features.Library
         {
             OnPropertyChanged(nameof(ShowEmptyLibraryCard));
             OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+            OnPropertyChanged(nameof(ShowGroupHeaders));
 
             if (_suppressCategoryReload)
                 return;
@@ -279,10 +291,33 @@ namespace DmToolsApp.Features.Library
 
         private void ClearTrackItems()
         {
-            foreach (var t in TrackItems)
-                Selection.Untrack(t);
+            foreach (var group in TrackItems)
+                foreach (var t in group)
+                    Selection.Untrack(t);
 
             TrackItems.Clear();
+        }
+
+        private string CategoryDisplayName(string category) => string.IsNullOrEmpty(category) ? NoFolderLabel : category;
+
+        /// <summary>Ajoute une piste à la fin du groupe (catégorie) correspondant dans TrackItems, en
+        /// créant ce groupe s'il n'existe pas encore. TrackItems.CollectionChanged (cf. constructeur)
+        /// ne se déclenche que quand un groupe est ajouté/retiré, pas quand une piste s'ajoute à un
+        /// groupe déjà présent - les notifications ci-dessous couvrent donc ce cas manquant.</summary>
+        private void AddTrackToGroup(Track track)
+        {
+            var groupName = CategoryDisplayName(track.Category);
+            var group = TrackItems.FirstOrDefault(g => g.Name == groupName);
+            if (group == null)
+            {
+                group = new TrackGroup(groupName);
+                TrackItems.Add(group);
+            }
+
+            group.Add(track);
+            OnPropertyChanged(nameof(HasTrackItems));
+            OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+            OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
         }
 
         // Point d'entrée externe (scroll) : passe par _loadGate pour ne jamais s'exécuter pendant
@@ -330,7 +365,11 @@ namespace DmToolsApp.Features.Library
                 {
                     var track = (Track)item;
                     Selection.Track(track);
-                    TrackItems.Add(track);
+
+                    // La requête (GetItemsPageAsync) trie par catégorie : les pistes d'un même groupe
+                    // sortent toujours consécutives, y compris à cheval sur deux pages successives -
+                    // pas besoin de rechercher le groupe ailleurs que dans AddTrackToGroup.
+                    AddTrackToGroup(track);
 
                     // Laisse la main au thread UI entre chaque tuile (traitement des messages Windows -
                     // dont les taps sur les autres onglets) plutôt que d'enchaîner les 12 ajouts et
@@ -342,7 +381,7 @@ namespace DmToolsApp.Features.Library
                 _hasMoreItems = items.Count == PageSize;
 
                 if (SelectedTrackItem == null)
-                    SelectedTrackItem = TrackItems.FirstOrDefault();
+                    SelectedTrackItem = TrackItems.FirstOrDefault()?.FirstOrDefault();
             }
             finally
             {
@@ -390,12 +429,13 @@ namespace DmToolsApp.Features.Library
         public async Task SelectAll()
         {
             var ids = await _libraryDataService.GetItemIdsAsync(typeof(Track), _categoryFilter);
+            var allTracks = TrackItems.SelectMany(g => g);
 
             // Bascule : si tout est déjà sélectionné, un nouvel appui tout désélectionne.
             if (ids.Count > 0 && Selection.ContainsAll(ids))
-                Selection.DeselectAll(TrackItems);
+                Selection.DeselectAll(allTracks);
             else
-                Selection.SelectIds(ids, TrackItems);
+                Selection.SelectIds(ids, allTracks);
         }
 
         /// <summary>
@@ -415,7 +455,7 @@ namespace DmToolsApp.Features.Library
             // Une seule piste ciblée (que ce soit via une case cochée ou l'item tapé) : même message
             // que la suppression individuelle, avec son titre plutôt qu'un simple compteur.
             var message = ids.Count == 1
-                ? string.Format(Loc["DialogDeleteTrackConfirm"], (TrackItems.FirstOrDefault(t => t.Id == ids[0]) ?? SelectedTrackItem)?.Title)
+                ? string.Format(Loc["DialogDeleteTrackConfirm"], (TrackItems.SelectMany(g => g).FirstOrDefault(t => t.Id == ids[0]) ?? SelectedTrackItem)?.Title)
                 : string.Format(Loc["LibDeleteSelectedConfirm"], ids.Count);
 
             if (!await ConfirmAsync(Loc["DialogDelete"], message))
@@ -437,15 +477,23 @@ namespace DmToolsApp.Features.Library
                     _fileService.DeleteTrackFromLocal(track.ImagePath);
             }
 
-            foreach (var item in TrackItems.Where(t => ids.Contains(t.Id)).ToList())
+            foreach (var group in TrackItems.ToList())
             {
-                Selection.Untrack(item);
-                TrackItems.Remove(item);
-                _loadedCount--;
+                foreach (var item in group.Where(t => ids.Contains(t.Id)).ToList())
+                {
+                    Selection.Untrack(item);
+                    group.Remove(item);
+                    _loadedCount--;
+                }
+
+                // Un groupe vidé de toutes ses pistes ne doit pas laisser un en-tête de catégorie
+                // sans rien en dessous.
+                if (group.Count == 0)
+                    TrackItems.Remove(group);
             }
 
             Selection.Clear();
-            SelectedTrackItem = TrackItems.FirstOrDefault();
+            SelectedTrackItem = TrackItems.FirstOrDefault()?.FirstOrDefault();
 
             await RefreshCategoriesAsync();
         }
@@ -563,7 +611,7 @@ namespace DmToolsApp.Features.Library
                         if (_categoryFilter == null || string.Equals(track.Category, _categoryFilter, StringComparison.OrdinalIgnoreCase))
                         {
                             Selection.Track(track);
-                            TrackItems.Add(track);
+                            AddTrackToGroup(track);
                             _loadedCount++;
                         }
 

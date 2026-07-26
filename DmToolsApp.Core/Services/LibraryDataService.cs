@@ -191,8 +191,13 @@ namespace DmToolsApp.Services
                 if (category != null)
                     query = query.Where(t => t.Category == category);
 
+                // Trié par catégorie (Id en repli à égalité) plutôt que par simple ordre d'insertion :
+                // permet à l'appelant (LibraryTrackViewModel) de regrouper visuellement les pistes par
+                // catégorie au fil de la pagination, les pistes d'une même catégorie sortant toujours
+                // consécutives quelle que soit la page.
                 var tracks = await query
-                    .OrderBy(t => t.Id)
+                    .OrderBy(t => t.Category)
+                    .ThenBy(t => t.Id)
                     .Skip(skip)
                     .Take(take)
                     .ToListAsync();
