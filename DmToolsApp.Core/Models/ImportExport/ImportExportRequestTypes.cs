@@ -38,6 +38,12 @@ namespace DmToolsApp.Models.ImportExport
         public string CurrentItem { get; set; } = string.Empty;
         public int Processed { get; set; }
         public int Total { get; set; }
+
+        // Extraction terminée (Processed==Total dès ce stade), mais la vérification de décodabilité
+        // et la sauvegarde en base tournent encore : sans ce signal, l'appelant afficherait "Terminé"
+        // (Processed/Total au max) pendant que du travail reste en cours. Pas de texte ici (Core ne
+        // dépend pas de la localisation) - à l'appelant de traduire ce signal en message affiché.
+        public bool IsVerifyingTracks { get; set; }
     }
 
     /// <summary>Résumé d'un import, affiché à l'utilisateur en fin d'opération.</summary>
@@ -58,10 +64,11 @@ namespace DmToolsApp.Models.ImportExport
 
         public int SpellsImported { get; set; }
 
-        // TEMPORAIRE (diagnostic perf) : temps cumulé par phase sur toutes les pistes, pour savoir où
-        // part réellement le temps avant d'optimiser à l'aveugle. À retirer une fois la mesure faite.
-        public TimeSpan DiagExtractHashWrite { get; set; }
-        public TimeSpan DiagDecodabilityCheck { get; set; }
-        public TimeSpan DiagDatabaseSave { get; set; }
+        // Durée par phase, affichée à l'utilisateur en fin d'import (utile pour se rendre compte du
+        // temps réel passé, et pour nous remonter un ressenti de lenteur avec des chiffres concrets).
+        public TimeSpan ExtractionDuration { get; set; }
+        public TimeSpan VerificationDuration { get; set; }
+        public TimeSpan DatabaseSaveDuration { get; set; }
+        public TimeSpan TotalDuration { get; set; }
     }
 }

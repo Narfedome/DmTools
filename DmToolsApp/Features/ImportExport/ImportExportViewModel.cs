@@ -273,7 +273,11 @@ namespace DmToolsApp.Features.ImportExport
                 using var stream = await file.OpenReadAsync();
                 var progress = new Progress<ImportProgress>(p =>
                 {
-                    popupView.ViewModel.CurrentFileName = p.CurrentItem;
+                    // L'extraction peut atteindre Total avant que la vérification de décodabilité et
+                    // la sauvegarde en base n'aient fini (parallélisées séparément, cf.
+                    // ImportExportService.ImportTracksAsync) : sans ce message, la popup semblerait
+                    // bloquée à "Total/Total" pendant encore un moment.
+                    popupView.ViewModel.CurrentFileName = p.IsVerifyingTracks ? Loc["ImportExportVerifyingTracks"] : p.CurrentItem;
                     popupView.ViewModel.TotalCount = p.Total;
                     popupView.ViewModel.ProcessedCount = p.Processed;
                 });
@@ -302,10 +306,12 @@ namespace DmToolsApp.Features.ImportExport
                         result.TracksRejectedHashMismatch, result.TracksRejectedNotDecodable,
                         result.TracksRejectedMissingEntry, result.TracksRejectedOther);
 
-                // TEMPORAIRE (diagnostic perf) : à retirer une fois la mesure faite (cf. ImportResult).
-                summary += $"\n[diag] extraction+hash+écriture={result.DiagExtractHashWrite.TotalSeconds:F1}s, " +
-                    $"vérif. décodable={result.DiagDecodabilityCheck.TotalSeconds:F1}s, " +
-                    $"sauvegarde DB={result.DiagDatabaseSave.TotalSeconds:F1}s";
+                // Durée affichée en toutes circonstances (pas juste en cas de lenteur perçue) : donne à
+                // l'utilisateur un repère concret, et à nous un chiffre exploitable s'il nous remonte
+                // un ressenti de lenteur plutôt qu'une simple impression.
+                summary += "\n" + string.Format(Loc["ImportExportDurationSummary"],
+                    FormatDuration(result.TotalDuration), FormatDuration(result.ExtractionDuration),
+                    FormatDuration(result.VerificationDuration));
 
                 await ShowInfoAsync(Loc["ImportExportTitle"], summary);
             }
@@ -379,6 +385,15 @@ namespace DmToolsApp.Features.ImportExport
             foreach (var c in Path.GetInvalidFileNameChars())
                 name = name.Replace(c, '_');
             return name;
+        }
+
+        private static string FormatDuration(TimeSpan duration)
+        {
+            if (duration.TotalSeconds < 60)
+                return $"{duration.TotalSeconds:F0} s";
+            if (duration.TotalMinutes < 60)
+                return $"{(int)duration.TotalMinutes} min {duration.Seconds:D2} s";
+            return $"{(int)duration.TotalHours} h {duration.Minutes:D2} min";
         }
     }
 }

@@ -564,6 +564,9 @@
   <data name="ImportExportImportInProgress" xml:space="preserve">
     <value>Importing...</value>
   </data>
+  <data name="ImportExportVerifyingTracks" xml:space="preserve">
+    <value>Verifying tracks…</value>
+  </data>
   <data name="ImportExportCopyingFile" xml:space="preserve">
     <value>Copying file… ({0:F0} MB)</value>
   </data>
@@ -584,5 +587,8 @@
   </data>
   <data name="ImportExportRejectDetails" xml:space="preserve">
     <value>Rejection detail: {0} invalid hash, {1} unreadable audio, {2} missing entry, {3} other.</value>
+  </data>
+  <data name="ImportExportDurationSummary" xml:space="preserve">
+    <value>Finished in {0} (extraction: {1}, audio verification: {2}).</value>
   </data>
 </root>
