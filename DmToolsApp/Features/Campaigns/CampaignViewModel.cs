@@ -177,6 +177,95 @@ namespace DmToolsApp.Features.Campaigns
             return idx;
         }
 
+        // ── Glisser-déposer (réordonnancement entre frères de même profondeur/parent) ─
+
+        /// <summary>
+        /// Replie la ligne si dépliée, avant de commencer à la glisser (cf. CampaignPage.xaml.cs,
+        /// DragStarting) : on ne déplace jamais un sous-arbre entier par glisser-déposer, seulement
+        /// la ligne elle-même — son sous-arbre resterait sinon éparpillé par le déplacement.
+        /// </summary>
+        public void CollapseRowForDrag(ExplorerRow row)
+        {
+            switch (row)
+            {
+                case CampaignRow c: CollapseCampaign(c); break;
+                case SessionRow s: CollapseSession(s); break;
+            }
+        }
+
+        /// <summary>
+        /// Réordonne deux lignes glissées l'une sur l'autre. Ignoré silencieusement si elles ne sont
+        /// pas de même profondeur ET même parent (glisser une Scène sur un Chapitre, ou un Chapitre
+        /// d'une autre Campagne, n'a pas de sens).
+        /// </summary>
+        public async Task ReorderRowsAsync(ExplorerRow dragged, ExplorerRow target)
+        {
+            if (dragged == null || target == null || ReferenceEquals(dragged, target) || dragged.Depth != target.Depth)
+                return;
+
+            switch (dragged)
+            {
+                case CampaignRow draggedCampaign when target is CampaignRow:
+                    await ReorderCampaignRowAsync(draggedCampaign, target);
+                    break;
+                case SessionRow draggedSession when target is SessionRow targetSession:
+                    if (draggedSession.ParentCampaign.Id == targetSession.ParentCampaign.Id)
+                        await ReorderSessionRowAsync(draggedSession, target);
+                    break;
+                case SceneRow draggedScene when target is SceneRow targetScene:
+                    if (draggedScene.ParentSession.Id == targetScene.ParentSession.Id)
+                        await ReorderSceneRowAsync(draggedScene, target);
+                    break;
+            }
+        }
+
+        // Rows contient TOUJOURS l'intégralité des frères d'un niveau visible au moment du drag
+        // (Campagnes : jamais chargées à la demande ; Chapitres/Scènes : on ne peut voir/glisser une
+        // ligne que si son parent est déplié, ce qui charge déjà tous ses enfants d'un coup) : filtrer
+        // Rows après le déplacement suffit pour reconstituer l'ordre complet à persister, pas besoin
+        // de retourner en base.
+
+        private async Task ReorderCampaignRowAsync(CampaignRow dragged, ExplorerRow target)
+        {
+            int oldIndex = Rows.IndexOf(dragged);
+            int newIndex = Rows.IndexOf(target);
+            if (oldIndex < 0 || newIndex < 0) return;
+
+            Rows.Move(oldIndex, newIndex);
+            RefreshFirstCampaignFlags();
+
+            var orderedIds = Rows.OfType<CampaignRow>().Select(r => r.Campaign.Id).ToList();
+            await _sceneDataService.ReorderCampaignsAsync(orderedIds);
+        }
+
+        private async Task ReorderSessionRowAsync(SessionRow dragged, ExplorerRow target)
+        {
+            int oldIndex = Rows.IndexOf(dragged);
+            int newIndex = Rows.IndexOf(target);
+            if (oldIndex < 0 || newIndex < 0) return;
+
+            Rows.Move(oldIndex, newIndex);
+
+            var orderedIds = Rows.OfType<SessionRow>()
+                .Where(r => r.ParentCampaign.Id == dragged.ParentCampaign.Id)
+                .Select(r => r.Session.Id).ToList();
+            await _sceneDataService.ReorderSessionsAsync(orderedIds);
+        }
+
+        private async Task ReorderSceneRowAsync(SceneRow dragged, ExplorerRow target)
+        {
+            int oldIndex = Rows.IndexOf(dragged);
+            int newIndex = Rows.IndexOf(target);
+            if (oldIndex < 0 || newIndex < 0) return;
+
+            Rows.Move(oldIndex, newIndex);
+
+            var orderedIds = Rows.OfType<SceneRow>()
+                .Where(r => r.ParentSession.Id == dragged.ParentSession.Id)
+                .Select(r => r.Scene.Id).ToList();
+            await _sceneDataService.ReorderScenesAsync(orderedIds);
+        }
+
         // ── Création (formulaire générique, type + parent pré-remplis sur SelectedRow) ─
 
         [RelayCommand]
@@ -202,7 +291,10 @@ namespace DmToolsApp.Features.Campaigns
             {
                 case CreateItemKind.Campaign:
                 {
-                    var campaign = new Campaign { Title = name };
+                    // Position = nombre de campagnes existantes (nouvel élément en dernière position) :
+                    // Rows contient TOUTES les campagnes (contrairement aux chapitres/scènes, chargés à la
+                    // demande), donc campaigns.Count reflète déjà le nombre exact de frères.
+                    var campaign = new Campaign { Title = name, Position = campaigns.Count };
                     await _sceneDataService.SaveCampaignAsync(campaign);
                     Rows.Add(new CampaignRow(campaign));
                     RefreshFirstCampaignFlags();
@@ -212,7 +304,10 @@ namespace DmToolsApp.Features.Campaigns
                 case CreateItemKind.Session:
                 {
                     if (dialogViewModel.SelectedCampaign == null) return;
-                    var session = new Session { CampaignId = dialogViewModel.SelectedCampaign.Id, Title = name };
+                    // Contrairement aux campagnes, Rows ne contient les chapitres que si leur campagne est
+                    // dépliée : on relit le compte exact en base plutôt que de compter dans Rows.
+                    var existingSessions = await _sceneDataService.GetSessionsAsync(dialogViewModel.SelectedCampaign.Id);
+                    var session = new Session { CampaignId = dialogViewModel.SelectedCampaign.Id, Title = name, Position = existingSessions.Count };
                     await _sceneDataService.SaveSessionAsync(session);
 
                     var campaignRow = Rows.OfType<CampaignRow>().FirstOrDefault(r => r.Campaign.Id == dialogViewModel.SelectedCampaign.Id);
@@ -223,7 +318,8 @@ namespace DmToolsApp.Features.Campaigns
                 case CreateItemKind.Scene:
                 {
                     if (dialogViewModel.SelectedCampaign == null || dialogViewModel.SelectedSession == null) return;
-                    var scene = new Scene { SessionId = dialogViewModel.SelectedSession.Id, Title = name };
+                    var existingScenes = await _sceneDataService.GetScenesAsync(dialogViewModel.SelectedSession.Id);
+                    var scene = new Scene { SessionId = dialogViewModel.SelectedSession.Id, Title = name, Position = existingScenes.Count };
                     await _sceneDataService.SaveSceneAsync(scene);
 
                     var sessionRow = Rows.OfType<SessionRow>().FirstOrDefault(r => r.Session.Id == dialogViewModel.SelectedSession.Id);
@@ -270,6 +366,14 @@ namespace DmToolsApp.Features.Campaigns
                     sessionRow.Session.Title = name.CapitalizeFirst();
                     bool moved = dialogViewModel.SelectedCampaign.Id != sessionRow.Session.CampaignId;
                     sessionRow.Session.CampaignId = dialogViewModel.SelectedCampaign.Id;
+                    if (moved)
+                    {
+                        // Repart en dernière position parmi les chapitres de la nouvelle campagne,
+                        // plutôt que de garder sa Position d'origine (qui n'a plus de sens dans un
+                        // autre groupe de frères, et pourrait entrer en collision avec l'un d'eux).
+                        var existingSessions = await _sceneDataService.GetSessionsAsync(dialogViewModel.SelectedCampaign.Id);
+                        sessionRow.Session.Position = existingSessions.Count;
+                    }
                     await _sceneDataService.SaveSessionAsync(sessionRow.Session);
 
                     if (moved)
@@ -293,6 +397,11 @@ namespace DmToolsApp.Features.Campaigns
                     sceneRow.Scene.Title = name.CapitalizeFirst();
                     bool moved = dialogViewModel.SelectedSession.Id != sceneRow.Scene.SessionId;
                     sceneRow.Scene.SessionId = dialogViewModel.SelectedSession.Id;
+                    if (moved)
+                    {
+                        var existingScenes = await _sceneDataService.GetScenesAsync(dialogViewModel.SelectedSession.Id);
+                        sceneRow.Scene.Position = existingScenes.Count;
+                    }
                     await _sceneDataService.SaveSceneAsync(sceneRow.Scene);
 
                     if (moved)
