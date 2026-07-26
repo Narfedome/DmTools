@@ -59,6 +59,14 @@ namespace DmToolsApp.Features.Library
 
         public bool HasTrackItems => TrackItems.Count > 0;
 
+        // Deux variantes de l'état vide : "Tout" vide (aucune piste importée du tout) propose les
+        // raccourcis d'import ; une catégorie spécifique vide (le filtre ne matche juste rien) affiche
+        // un simple message, l'import n'y étant pas forcément pertinent (une piste importée n'atterrit
+        // pas nécessairement dans cette catégorie).
+        public bool ShowEmptyLibraryCard => !HasTrackItems && SelectedCategory == AllCategoriesLabel;
+
+        public bool ShowEmptyCategoryMessage => !HasTrackItems && SelectedCategory != AllCategoriesLabel;
+
         [ObservableProperty]
         private Track? selectedTrackItem;
 
@@ -79,6 +87,9 @@ namespace DmToolsApp.Features.Library
 
         partial void OnSelectedCategoryChanged(string value)
         {
+            OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+            OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+
             if (_suppressCategoryReload)
                 return;
 
@@ -106,7 +117,12 @@ namespace DmToolsApp.Features.Library
             _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
-            TrackItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasTrackItems));
+            TrackItems.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasTrackItems));
+                OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+                OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+            };
             Selection.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(Selection.SelectedCount))
