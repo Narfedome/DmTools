@@ -567,11 +567,8 @@
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export saved: {0}</value>
   </data>
-  <data name="ImportExportSavingFile" xml:space="preserve">
-    <value>Saving file…</value>
-  </data>
-  <data name="ImportExportSavingFileEta" xml:space="preserve">
-    <value>Saving file… (~{0} remaining)</value>
+  <data name="ImportProgressCancelling" xml:space="preserve">
+    <value>Cancelling…</value>
   </data>
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campaign(s) imported, {1} track(s) copied, {2} reused, {3} rejected, {4} spell(s) imported.</value>

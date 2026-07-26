@@ -22,6 +22,12 @@
                    Style="{StaticResource TruncatedLabelStyle}"/>
             <Label Text="{Binding ProgressText}"
                    TextColor="{DynamicResource AppTextMuted}"/>
+            <Button Text="{Binding CancelButtonText}"
+                    Command="{Binding CancelCommand}"
+                    IsVisible="{Binding ShowCancelButton}"
+                    IsEnabled="{Binding IsCancelling, Converter={StaticResource InverseBoolConverter}}"
+                    Style="{StaticResource DialogSecondaryButtonStyle}"
+                    HorizontalOptions="End"/>
         </VerticalStackLayout>
     </Border>
 </ContentView>

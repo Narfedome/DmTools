@@ -567,11 +567,8 @@
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export enregistré : {0}</value>
   </data>
-  <data name="ImportExportSavingFile" xml:space="preserve">
-    <value>Enregistrement du fichier…</value>
-  </data>
-  <data name="ImportExportSavingFileEta" xml:space="preserve">
-    <value>Enregistrement du fichier… (~{0} restant)</value>
+  <data name="ImportProgressCancelling" xml:space="preserve">
+    <value>Annulation…</value>
   </data>
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campagne(s) importée(s), {1} piste(s) copiée(s), {2} réutilisée(s), {3} rejetée(s), {4} sort(s) importé(s).</value>
