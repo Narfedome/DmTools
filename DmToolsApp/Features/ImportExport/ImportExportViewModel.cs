@@ -240,16 +240,32 @@ namespace DmToolsApp.Features.ImportExport
         [RelayCommand]
         private async Task Import()
         {
-            var file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"]);
-            if (file == null) return;
-
             var popupView = new ImportProgressPopupView();
             popupView.ViewModel.Title = Loc["ImportExportImportInProgress"];
             var page = Shell.Current.CurrentPage;
             page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
 
+            FileResult? file = null;
             try
             {
+                // Popup affichée dès maintenant (avant même la sélection) : sur Android, un fichier
+                // choisi depuis un fournisseur de contenu (Téléchargements, Drive...) est d'abord
+                // recopié dans le cache de l'appli avant de pouvoir être lu (cf.
+                // FileService.PickImportPackageAndroidAsync) - potentiellement long pour un gros pack,
+                // d'où ce retour de progression sur la copie plutôt que de laisser l'appli paraître
+                // figée pendant que ça travaille en coulisses.
+                var copyProgress = new Progress<long>(bytesRead =>
+                    popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportCopyingFile"], bytesRead / (1024.0 * 1024.0)));
+
+                file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress);
+                if (file == null)
+                {
+                    await page.ClosePopupAsync();
+                    return;
+                }
+
+                popupView.ViewModel.CurrentFileName = string.Empty;
+
                 using var stream = await file.OpenReadAsync();
                 var progress = new Progress<ImportProgress>(p =>
                 {
@@ -279,6 +295,17 @@ namespace DmToolsApp.Features.ImportExport
             {
                 await page.ClosePopupAsync();
                 await ShowErrorAsync(ex);
+            }
+            finally
+            {
+                // Sur Android, le fichier choisi est une copie locale dans le cache de l'appli (cf.
+                // PickImportPackageAndroidAsync), pas l'original de l'utilisateur - sans ce nettoyage
+                // immédiat, elle resterait à occuper de l'espace jusqu'au prochain démarrage de l'appli
+                // (ClearPickerCache). DeleteIfCached ne touche jamais un fichier hors du cache
+                // (Windows/MacCatalyst renvoient le chemin réel de l'utilisateur, jamais une copie -
+                // rien à supprimer dans ce cas).
+                if (file != null)
+                    _fileService.DeleteIfCached(file.FullPath);
             }
         }
 

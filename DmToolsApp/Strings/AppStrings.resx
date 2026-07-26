@@ -564,6 +564,15 @@
   <data name="ImportExportImportInProgress" xml:space="preserve">
     <value>Import en cours...</value>
   </data>
+  <data name="ImportExportCopyingFile" xml:space="preserve">
+    <value>Copie du fichier… ({0:F0} Mo)</value>
+  </data>
+  <data name="ErrorNotEnoughSpace" xml:space="preserve">
+    <value>Espace disque insuffisant pour importer ce fichier : environ {0:F1} Go nécessaires, {1:F1} Go disponibles.</value>
+  </data>
+  <data name="ErrorIncompleteFileCopy" xml:space="preserve">
+    <value>Copie du fichier incomplète : {0:F0} Mo copiés sur {1:F0} Mo attendus.</value>
+  </data>
   <data name="ImportExportExportSuccess" xml:space="preserve">
     <value>Export enregistré : {0}</value>
   </data>
