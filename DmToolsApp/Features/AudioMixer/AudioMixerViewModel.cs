@@ -516,7 +516,22 @@ namespace DmToolsApp.Features.AudioMixer
                 return;
             }
 
+            // _suppressHandlers évite qu'OnSelectedSessionChanged ne recharge les scènes en double
+            // (on vient de les récupérer ci-dessus) et ne présélectionne la première automatiquement :
+            // on veut enchaîner directement sur le dialog de sélection de scène, comme si
+            // l'utilisateur avait tapé sur le bouton scène juste après.
+            _suppressHandlers = true;
             SelectedSession = candidate;
+            Scenes = new ObservableCollection<Scene>(scenes);
+            SceneCount = scenes.Count;
+            _suppressHandlers = false;
+
+            await SelectScene();
+
+            // L'utilisateur peut annuler le dialog (tap à côté, retour) : on retombe alors sur la
+            // 1ère scène plutôt que de laisser le mixer sans scène sélectionnée du tout.
+            if (SelectedScene == null)
+                SelectedScene = Scenes.FirstOrDefault();
         }
 
         [RelayCommand]
