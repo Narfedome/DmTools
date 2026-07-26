@@ -29,7 +29,7 @@ static class WindowsHandlers
         // rendu natif reste calé sur une passe antérieure). Plutôt que rustiner ce rendu,
         // on bascule ce Slider précis sur l'orientation verticale native de WinUI, qui n'a
         // pas ce problème. Scopé via StyleId pour ne pas affecter les autres Slider de
-        // l'app (ChannelSettingsDialog, SceneTracksPage), qui restent horizontaux.
+        // l'app (ChannelSettingsDialog), qui restent horizontaux.
         // Testé sans cette bascule (retour au rendu MAUI tourné, comme sur les autres
         // plateformes) : le bug de redessin est bien revenu, ce n'était pas lié au thumb
         // bleu (cf. mapping "AccentThumbBrush" ci-dessous, qui est un souci séparé et

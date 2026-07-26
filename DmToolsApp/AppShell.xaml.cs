@@ -17,7 +17,6 @@ namespace DmToolsApp
             InitializeComponent();
             Routing.RegisterRoute(nameof(LibrarySpellEditPage), typeof(LibrarySpellEditPage));
             Routing.RegisterRoute(nameof(CategoryListPage), typeof(CategoryListPage));
-            Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));
             Routing.RegisterRoute(nameof(ImportExportPage), typeof(ImportExportPage));
 
             sessionStateService.StateChanged += () =>
