@@ -7,12 +7,13 @@ public partial class AudioMixerPage : ContentPage
     private readonly AudioMixerViewModel _vm;
 
     // MAUI ne réordonne pas les autres items en direct pendant le drag (pas d'équivalent au
-    // reorder animé natif d'un RecyclerView/UICollectionView) : ce feedback minimal (opacité +
-    // surlignage de la cible survolée) est ce qu'on peut faire sans réécrire le layout à la main.
+    // reorder animé natif d'un RecyclerView/UICollectionView) : ce feedback minimal (décalage +
+    // estompage de la carte glissée, encadré doré sur la carte SURVOLÉE) est ce qu'on peut faire
+    // sans réécrire le layout à la main.
     private VisualElement? _draggingElement;
 
-    private static Color HighlightColor =>
-        ((Color)Application.Current!.Resources["AppAccent"]).WithAlpha(0.25f);
+    private static Color AccentColor => (Color)Application.Current!.Resources["AppAccent"];
+    private static Color HighlightBackgroundColor => AccentColor.WithAlpha(0.12f);
 
     // Auto-scroll pendant le drag : CollectionView ne le fait pas nativement quand on approche
     // un bord alors que la liste horizontale déborde (scrollbar visible). ScrollTo n'accepte
@@ -43,15 +44,31 @@ public partial class AudioMixerPage : ContentPage
         // doit viser toute la carte : on remonte jusqu'à l'item racine (le Grid qui porte le
         // DropGestureRecognizer).
         _draggingElement = FindItemCard(element);
-        _draggingElement.Opacity = 0.5;
+        _draggingElement.Opacity = 0.55;
+        _draggingElement.TranslationX = 10;
     }
 
+    // Part de start.Parent, PAS de start : la poignée elle-même porte déjà un DragGestureRecognizer
+    // (donc GestureRecognizers.Count > 0), en la testant on la retrouvait immédiatement au lieu de
+    // remonter jusqu'à la vraie racine (celle qui porte le DropGestureRecognizer) — même bug que
+    // CampaignPage, cf. son FindGestureRoot pour le détail.
     private static VisualElement FindItemCard(VisualElement start)
     {
-        Element? current = start;
+        Element? current = start.Parent;
         while (current != null && current is not Grid { GestureRecognizers.Count: > 0 })
             current = current.Parent;
         return current as VisualElement ?? start;
+    }
+
+    // DragHighlightBorder est un Border transparent superposé à chaque carte (cf. XAML) :
+    // indépendant du Border du strip lui-même (dont le Stroke est déjà piloté par IsPlaying),
+    // pour ne jamais entrer en conflit avec cet indicateur. FindByName cherche dans le namescope
+    // de CETTE instance de DataTemplate réalisée par la CollectionView.
+    private static void SetHighlightBorder(VisualElement root, Color stroke, Color background)
+    {
+        if (root.FindByName<Border>("DragHighlightBorder") is not Border border) return;
+        border.Stroke = stroke;
+        border.BackgroundColor = background;
     }
 
     // Se déclenche sur la source une fois le geste terminé (succès ou non). Sur Android ce
@@ -59,7 +76,7 @@ public partial class AudioMixerPage : ContentPage
     // aussi l'opacité par sécurité si cet event ne se déclenche pas.
     private void OnChannelDropCompleted(object sender, DropCompletedEventArgs e)
     {
-        ResetDraggingOpacity();
+        ResetDraggingState();
         StopAutoScroll();
     }
 
@@ -68,14 +85,14 @@ public partial class AudioMixerPage : ContentPage
         if (sender is not VisualElement { BindingContext: ChannelStripViewModel hovered } element)
             return;
 
-        element.BackgroundColor = HighlightColor;
+        SetHighlightBorder(element, AccentColor, HighlightBackgroundColor);
         UpdateAutoScroll(e, hovered);
     }
 
     private void OnChannelDragLeave(object sender, DragEventArgs e)
     {
         if (sender is VisualElement element)
-            element.BackgroundColor = Colors.Transparent;
+            SetHighlightBorder(element, Colors.Transparent, Colors.Transparent);
         // L'auto-scroll n'est PAS arrêté ici : ce handler se déclenche aussi en passant d'une
         // carte à sa voisine (juste avant le DragOver de la suivante), l'arrêter à chaque fois
         // ferait repartir la progression de zéro à chaque item traversé.
@@ -84,8 +101,8 @@ public partial class AudioMixerPage : ContentPage
     private async void OnChannelDrop(object sender, DropEventArgs e)
     {
         if (sender is VisualElement targetElement)
-            targetElement.BackgroundColor = Colors.Transparent;
-        ResetDraggingOpacity();
+            SetHighlightBorder(targetElement, Colors.Transparent, Colors.Transparent);
+        ResetDraggingState();
         StopAutoScroll();
 
         if (sender is not Element { BindingContext: ChannelStripViewModel target })
@@ -151,10 +168,11 @@ public partial class AudioMixerPage : ContentPage
         _autoScrollDirection = 0;
     }
 
-    private void ResetDraggingOpacity()
+    private void ResetDraggingState()
     {
         if (_draggingElement == null) return;
         _draggingElement.Opacity = 1;
+        _draggingElement.TranslationX = 0;
         _draggingElement = null;
     }
 }

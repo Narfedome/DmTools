@@ -178,6 +178,14 @@
                                     </Border>
                                 </Grid>
                             </Grid>
+                            <!-- Encadré décoratif superposé, affiché pendant le glisser-déposer (cf.
+                                 AudioMixerPage.xaml.cs) : indépendant du Border du strip lui-même
+                                 (Stroke déjà piloté par IsPlaying), pour ne jamais entrer en conflit
+                                 avec cet indicateur. InputTransparent : n'intercepte jamais les gestes
+                                 destinés au contenu en-dessous (Play/Stop, slider, boutons). -->
+                            <Border x:Name="DragHighlightBorder" Grid.Column="0"
+                                    BackgroundColor="Transparent" Stroke="Transparent" StrokeThickness="2"
+                                    StrokeShape="RoundRectangle 8" InputTransparent="True"/>
                             <BoxView Grid.Column="1"
                                      Color="Gray"
                                      WidthRequest="1"
