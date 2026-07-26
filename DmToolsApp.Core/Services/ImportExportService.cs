@@ -421,20 +421,24 @@ namespace DmToolsApp.Services
             // de pistes). Sûr ici : phase 1 reste strictement séquentielle.
             var buffer = new byte[4 * 1024 * 1024];
 
-            foreach (var trackExport in tracks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var localPath = await ExtractAndVerifyHashAsync(zip, trackExport, result, trackIdMap, buffer, cancellationToken);
-                if (localPath != null)
-                    pending.Add((trackExport, localPath));
-
-                progress?.Report(new ImportProgress { CurrentItem = trackExport.Title, Processed = ++processed, Total = total });
-            }
-
+            // Couvre les 3 phases, pas seulement 2 et 3 : une annulation ou une erreur pendant la phase
+            // 1 elle-même (extraction, la plus longue - cf. doc de classe) laisserait sinon les pistes
+            // déjà extraites avant l'interruption orphelines sur disque, jamais nettoyées (le filet plus
+            // bas ne s'exécutait alors jamais, resté hors de portée de cette boucle).
             var resolvedPaths = new HashSet<string>();
             try
             {
+                foreach (var trackExport in tracks)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var localPath = await ExtractAndVerifyHashAsync(zip, trackExport, result, trackIdMap, buffer, cancellationToken);
+                    if (localPath != null)
+                        pending.Add((trackExport, localPath));
+
+                    progress?.Report(new ImportProgress { CurrentItem = trackExport.Title, Processed = ++processed, Total = total });
+                }
+
                 var outcomes = new ConcurrentBag<(TrackExport TrackExport, string LocalPath, bool IsDecodable)>();
 
                 // Chronomètre la phase dans son ensemble (temps réel écoulé), pas la somme des durées
@@ -534,8 +538,9 @@ namespace DmToolsApp.Services
             }
             finally
             {
-                // Une piste en attente jamais résolue (annulation, ou autre exception ayant coupé la
-                // boucle ci-dessus en plein milieu) resterait orpheline sur disque sans ce filet.
+                // Une piste en attente jamais résolue (annulation ou autre exception ayant coupé le
+                // traitement en plein milieu, phase 1 comprise depuis que le try l'englobe aussi)
+                // resterait orpheline sur disque sans ce filet.
                 foreach (var item in pending)
                 {
                     if (!resolvedPaths.Contains(item.LocalPath))
