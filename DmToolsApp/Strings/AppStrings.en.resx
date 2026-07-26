@@ -582,4 +582,7 @@
   <data name="ImportExportImportSummary" xml:space="preserve">
     <value>{0} campaign(s) imported, {1} track(s) copied, {2} reused, {3} rejected, {4} spell(s) imported.</value>
   </data>
+  <data name="ImportExportRejectDetails" xml:space="preserve">
+    <value>Rejection detail: {0} invalid hash, {1} unreadable audio, {2} missing entry, {3} other.</value>
+  </data>
 </root>

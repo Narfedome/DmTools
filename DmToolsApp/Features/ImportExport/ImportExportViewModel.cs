@@ -242,8 +242,12 @@ namespace DmToolsApp.Features.ImportExport
         {
             var popupView = new ImportProgressPopupView();
             popupView.ViewModel.Title = Loc["ImportExportImportInProgress"];
+            popupView.ViewModel.ShowCancelButton = true;
             var page = Shell.Current.CurrentPage;
             page.ShowPopup(popupView, new PopupOptions { CanBeDismissedByTappingOutsideOfPopup = false });
+
+            using var cts = new CancellationTokenSource();
+            popupView.ViewModel.CancelRequested += cts.Cancel;
 
             FileResult? file = null;
             try
@@ -257,7 +261,7 @@ namespace DmToolsApp.Features.ImportExport
                 var copyProgress = new Progress<long>(bytesRead =>
                     popupView.ViewModel.CurrentFileName = string.Format(Loc["ImportExportCopyingFile"], bytesRead / (1024.0 * 1024.0)));
 
-                file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress);
+                file = await _fileService.PickImportPackageAsync(Loc["ImportExportPickFile"], copyProgress, cts.Token);
                 if (file == null)
                 {
                     await page.ClosePopupAsync();
@@ -274,7 +278,7 @@ namespace DmToolsApp.Features.ImportExport
                     popupView.ViewModel.ProcessedCount = p.Processed;
                 });
 
-                var result = await _importExportService.ImportAsync(stream, progress);
+                var result = await _importExportService.ImportAsync(stream, progress, cts.Token);
                 await ReconcileDefaultCategoryTranslationsAsync();
 
                 // Les campagnes/pistes/sorts importés sont insérés directement en base, sans passer
@@ -287,9 +291,34 @@ namespace DmToolsApp.Features.ImportExport
                 await page.ClosePopupAsync();
                 await InitializeAsync();
 
-                await ShowInfoAsync(Loc["ImportExportTitle"], string.Format(
+                var summary = string.Format(
                     Loc["ImportExportImportSummary"],
-                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported));
+                    result.CampaignsImported, result.TracksCopied, result.TracksReused, result.TracksRejected, result.SpellsImported);
+
+                // Le détail des causes de rejet n'a d'intérêt que s'il y a effectivement des rejets -
+                // évite d'alourdir le message pour le cas normal (aucune piste rejetée).
+                if (result.TracksRejected > 0)
+                    summary += "\n" + string.Format(Loc["ImportExportRejectDetails"],
+                        result.TracksRejectedHashMismatch, result.TracksRejectedNotDecodable,
+                        result.TracksRejectedMissingEntry, result.TracksRejectedOther);
+
+                // TEMPORAIRE (diagnostic perf) : à retirer une fois la mesure faite (cf. ImportResult).
+                summary += $"\n[diag] extraction+hash+écriture={result.DiagExtractHashWrite.TotalSeconds:F1}s, " +
+                    $"vérif. décodable={result.DiagDecodabilityCheck.TotalSeconds:F1}s, " +
+                    $"sauvegarde DB={result.DiagDatabaseSave.TotalSeconds:F1}s";
+
+                await ShowInfoAsync(Loc["ImportExportTitle"], summary);
+            }
+            catch (OperationCanceledException)
+            {
+                // Pas de rollback : une campagne/piste déjà insérée avant l'annulation reste en base
+                // (comportement déjà documenté pour toute interruption d'import, cf. ImportCampaignAsync
+                // côté service) - on rafraîchit donc les listes plutôt que de les laisser figées, mais
+                // sans le résumé final puisque ImportAsync n'a pas eu l'occasion de le retourner.
+                WeakReferenceMessenger.Default.Send(new CampaignsUpdatedMessage());
+                WeakReferenceMessenger.Default.Send(new LibraryUpdatedMessage());
+                await page.ClosePopupAsync();
+                await InitializeAsync();
             }
             catch (Exception ex)
             {

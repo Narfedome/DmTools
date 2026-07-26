@@ -7,5 +7,9 @@ namespace DmToolsApp.Services
     public interface ITrackFileStore
     {
         string CopyTrackToLocal(string originalFilePath);
+
+        /// <summary>Réserve un chemin définitif (dossier Tracks) pour y écrire directement un fichier
+        /// à venir, sans passer par une copie ultérieure - cf. ImportExportService.ImportTrackAsync.</summary>
+        string ReserveTrackPath(string extension);
     }
 }

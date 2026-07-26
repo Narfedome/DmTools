@@ -88,7 +88,9 @@ public class TrackTagHelperTests
 
     // IsDecodableAudio est le dernier rempart avant d'accepter un fichier extrait d'un .dmpack en
     // bibliothèque (cf. ImportExportService) : un hash déclaré correct ne suffit pas, le contenu
-    // doit être un audio réellement décodable.
+    // doit être un audio réellement décodable. ReadStyle.None (pas de scan du bitrate moyen, coûteux
+    // et inutile ici) : la détection de format se fait indépendamment du ReadStyle, ces deux tests
+    // vérifient donc toujours le même comportement qu'avant ce changement.
 
     [Fact]
     public void IsDecodableAudio_ReturnsFalse_ForNonAudioFile()

@@ -47,6 +47,21 @@ namespace DmToolsApp.Models.ImportExport
         public int TracksReused { get; set; }
         public int TracksCopied { get; set; }
         public int TracksRejected { get; set; }
+
+        // Détail des causes de rejet (leur somme égale TracksRejected) : affiché à l'utilisateur
+        // uniquement s'il y a effectivement des rejets, pour comprendre pourquoi sans avoir à
+        // consulter des logs.
+        public int TracksRejectedHashMismatch { get; set; }
+        public int TracksRejectedNotDecodable { get; set; }
+        public int TracksRejectedMissingEntry { get; set; }
+        public int TracksRejectedOther { get; set; }
+
         public int SpellsImported { get; set; }
+
+        // TEMPORAIRE (diagnostic perf) : temps cumulé par phase sur toutes les pistes, pour savoir où
+        // part réellement le temps avant d'optimiser à l'aveugle. À retirer une fois la mesure faite.
+        public TimeSpan DiagExtractHashWrite { get; set; }
+        public TimeSpan DiagDecodabilityCheck { get; set; }
+        public TimeSpan DiagDatabaseSave { get; set; }
     }
 }

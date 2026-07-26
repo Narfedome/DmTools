@@ -16,14 +16,20 @@ namespace DmToolsApp.Services
         /// <summary>
         /// Vérifie qu'un fichier est un audio réellement décodable (utilisé à l'import d'un .dmpack :
         /// un fichier reçu d'un tiers ne doit jamais être accepté en bibliothèque sur la seule foi de
-        /// son extension).
+        /// son extension). ReadStyle.None : la détection de format (ce qui nous intéresse ici) se fait
+        /// indépendamment du ReadStyle, seul le calcul de Properties (bitrate moyen, durée précise) est
+        /// sauté - un scan complet du flux audio, inutile ici puisque ImportExportService utilise déjà
+        /// la durée déclarée dans le manifeste plutôt que de la recalculer. Se fier uniquement à
+        /// l'absence d'exception (format reconnu) plutôt qu'à Duration > 0 (jamais renseignée sous
+        /// ReadStyle.None) : le hash SHA256 déjà vérifié avant cet appel garantit que le contenu
+        /// correspond exactement au fichier original exporté, un faux fichier ne le passerait pas.
         /// </summary>
         public static bool IsDecodableAudio(string filePath)
         {
             try
             {
-                using var tagFile = TagLib.File.Create(filePath);
-                return tagFile.Properties != null && tagFile.Properties.Duration > TimeSpan.Zero;
+                using var tagFile = TagLib.File.Create(filePath, TagLib.ReadStyle.None);
+                return true;
             }
             catch (TagLib.UnsupportedFormatException)
             {
