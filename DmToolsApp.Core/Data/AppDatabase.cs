@@ -72,7 +72,11 @@ namespace DmToolsApp.Data
                 // versions précédentes (supprimer une campagne ne supprimait ni ses chapitres, ni
                 // leurs scènes, ni leurs pistes). L'ordre importe : parents d'abord.
                 conn.Execute("DELETE FROM SessionEntity WHERE CampaignId NOT IN (SELECT Id FROM CampaignEntity)");
-                conn.Execute("DELETE FROM SceneEntity WHERE SessionId NOT IN (SELECT Id FROM SessionEntity)");
+                // SessionId != 0 : exclut la scène orpheline du Mixer (SceneDataService.
+                // GetOrCreateOrphanSceneAsync, OrphanSceneSessionId = 0), volontairement sans
+                // chapitre parent - elle serait sinon reconnue comme orpheline "involontaire" et
+                // supprimée à chaque démarrage.
+                conn.Execute("DELETE FROM SceneEntity WHERE SessionId != 0 AND SessionId NOT IN (SELECT Id FROM SessionEntity)");
                 conn.Execute("DELETE FROM SceneTrackEntity WHERE SceneId NOT IN (SELECT Id FROM SceneEntity)");
                 conn.Execute("DELETE FROM SceneTrackEntity WHERE TrackId NOT IN (SELECT Id FROM TrackEntity)");
 

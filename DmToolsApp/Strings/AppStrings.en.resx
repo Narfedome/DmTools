@@ -189,6 +189,9 @@
   <data name="MixerNextScene" xml:space="preserve">
     <value>Next scene</value>
   </data>
+  <data name="MixerFreeform" xml:space="preserve">
+    <value>Freeform session</value>
+  </data>
   <data name="MixerGlobal" xml:space="preserve">
     <value>Global</value>
   </data>

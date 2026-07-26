@@ -21,16 +21,13 @@ namespace DmToolsApp.Features.Campaigns
     {
         private readonly ISceneDataService _sceneDataService;
         private readonly AudioMixerViewModel _audioMixerViewModel;
-        private readonly SessionStateService _sessionStateService;
 
         public CampaignViewModel(
             ISceneDataService sceneDataService,
-            AudioMixerViewModel audioMixerViewModel,
-            SessionStateService sessionStateService)
+            AudioMixerViewModel audioMixerViewModel)
         {
             _sceneDataService = sceneDataService;
             _audioMixerViewModel = audioMixerViewModel;
-            _sessionStateService = sessionStateService;
 
             // Les mutations normales (Create/Edit/Delete) patchent Rows directement, sans jamais
             // recharger depuis la base — mais un import ajoute des campagnes par un chemin qui ne
@@ -455,15 +452,12 @@ namespace DmToolsApp.Features.Campaigns
         }
 
         /// <summary>
-        /// La scène/chapitre/campagne supprimée était affichée dans le mixer (onglet visible dans le
-        /// shell, cf. SessionStateService) : sans ça, l'onglet resterait accessible indéfiniment,
-        /// pointant sur des données qui n'existent plus en base — SetActive(false) n'est autrement
-        /// jamais appelé nulle part.
+        /// La scène/chapitre/campagne supprimée était affichée dans le mixer : sans ça, il
+        /// continuerait de pointer sur des données qui n'existent plus en base.
         /// </summary>
         private void DeactivateMixer()
         {
             _audioMixerViewModel.ResetActiveScene();
-            _sessionStateService.SetActive(false);
         }
 
         private void RemoveSubtree(ExplorerRow row)
@@ -498,7 +492,9 @@ namespace DmToolsApp.Features.Campaigns
         [RelayCommand]
         public async Task Launch(SceneRow sceneRow)
         {
-            _sessionStateService.SetActive(true);
+            // Avant de naviguer : empêche AudioMixerPage.OnAppearing de charger la scène orpheline
+            // entre-temps (cf. AudioMixerViewModel.SuppressNextFreeformAutoLoad).
+            _audioMixerViewModel.SuppressNextFreeformAutoLoad = true;
             await Shell.Current.GoToAsync("//AudioMixerPage");
             await _audioMixerViewModel.LoadFromPlayAsync(sceneRow.ParentCampaign, sceneRow.ParentSession, sceneRow.Scene);
         }

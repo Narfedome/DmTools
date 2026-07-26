@@ -129,6 +129,30 @@ namespace DmToolsApp.Services
             }
         }
 
+        // SessionId=0 : aucun Chapitre réel n'a jamais cet Id (AutoIncrement démarre à 1), donc
+        // cette valeur est un marqueur sûr et sans ambiguïté pour "scène orpheline" (pas de
+        // campagne/chapitre parent). GetScenesAsync ne peut jamais la retourner (aucun chapitre
+        // réel n'a l'Id 0), elle reste donc naturellement invisible dans l'accordéon
+        // Campagne/Chapitre/Scène. Utilisée par le Mixer pour fonctionner sans passer par une
+        // scène (session ponctuelle hors campagne) : une seule scène orpheline, créée au premier
+        // besoin puis réutilisée telle quelle (son Titre n'est jamais affiché - le Mixer pilote
+        // son propre libellé "Session libre" côté UI).
+        public const int OrphanSceneSessionId = 0;
+
+        public async Task<Scene> GetOrCreateOrphanSceneAsync()
+        {
+            await _db.Initialization;
+            var existing = await _db.Connection.Table<SceneEntity>()
+                .Where(e => e.SessionId == OrphanSceneSessionId)
+                .FirstOrDefaultAsync();
+            if (existing != null)
+                return existing.ToModel();
+
+            var entity = new SceneEntity { SessionId = OrphanSceneSessionId, Title = "Freeform" };
+            await _db.Connection.InsertAsync(entity);
+            return entity.ToModel();
+        }
+
         public async Task DeleteSceneAsync(Scene scene)
         {
             await _db.Initialization;
@@ -278,6 +302,7 @@ namespace DmToolsApp.Services
         Task SaveSceneAsync(Scene scene);
         Task DeleteSceneAsync(Scene scene);
         Task ReorderScenesAsync(List<int> orderedSceneIds);
+        Task<Scene> GetOrCreateOrphanSceneAsync();
 
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);

@@ -82,7 +82,6 @@ namespace DmToolsApp
             builder.Services.AddSingleton<IStorageService, StorageService>();
             builder.Services.AddSingleton<ISceneDataService, SceneDataService>();
             builder.Services.AddSingleton<IImportExportService, ImportExportService>();
-            builder.Services.AddSingleton<SessionStateService>();
             builder.Services.AddTransient<OnboardingViewModel>();
             builder.Services.AddTransient<OnboardingPage>();
             builder.Services.AddTransient<SettingsViewModel>();

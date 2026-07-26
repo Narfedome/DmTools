@@ -31,6 +31,25 @@ public partial class AudioMixerPage : ContentPage
         BindingContext = vm;
     }
 
+    // Ouvrir le Mixer sans rien avoir chargé (onglet toujours visible, cf. AppShell) affichait un
+    // état vide avec le "+" désactivé (HasActiveScene) sans indiquer comment en sortir. Charger la
+    // scène orpheline automatiquement dans ce cas précis - jamais si une scène est déjà active,
+    // ni si CampaignViewModel.Launch est en train de charger une vraie scène (cf.
+    // SuppressNextFreeformAutoLoad, positionné avant la navigation - pas de race possible ici).
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (_vm.SuppressNextFreeformAutoLoad)
+        {
+            _vm.SuppressNextFreeformAutoLoad = false;
+            return;
+        }
+
+        if (!_vm.HasActiveScene)
+            await _vm.SelectFreeformScene();
+    }
+
     // Cf. SceneDataService.ReorderSceneTracksAsync : ne stocke que l'item glissé, pas un index,
     // pour rester valide même si l'ordre a changé entre le début du drag et le drop.
     private void OnChannelDragStarting(object sender, DragStartingEventArgs e)

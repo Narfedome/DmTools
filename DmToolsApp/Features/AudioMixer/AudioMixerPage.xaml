@@ -27,13 +27,14 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- TextMaximumWidth : sans borne (défaut = infini), un titre de session/scène long
                      déborde de sa colonne "*" et chevauche son voisin au lieu d'être tronqué (le
                      composant gère déjà LineBreakMode="TailTruncation" en interne, encore fallait-il
                      lui donner une largeur à respecter). -->
-                <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"                         
+                <components:IconTextButton Grid.Column="0" HorizontalOptions="Center"
                         Icon="{x:Static icons:SolidFont.Bookmark}" IconSize="13"
                         Text="{Binding SelectedSessionLabel}"
                         Command="{Binding SelectSessionCommand}"
@@ -60,6 +61,13 @@
                         Command="{Binding NextSceneCommand}"
                         IsEnabled="{Binding CanGoNextScene}"
                         Tooltip="{loc:Loc MixerNextScene}" />
+
+                <!-- Bascule sur la scène orpheline (sans campagne/chapitre) : utiliser le Mixer sans
+                     jamais passer par l'accordéon. -->
+                <components:FaIconButtonView Grid.Column="4"
+                        Icon="{x:Static icons:SolidFont.Bolt}"
+                        Command="{Binding SelectFreeformSceneCommand}"
+                        Tooltip="{loc:Loc MixerFreeform}" />
             </Grid>
         </Border>
 
@@ -88,6 +96,7 @@
             <components:FaIconButtonView Grid.Column="2"
                      Icon="{x:Static icons:SolidFont.Plus}"
                      Command="{Binding AddChannelCommand}"
+                     IsEnabled="{Binding HasActiveScene}"
                      Tooltip="{loc:Loc BtnAddChannel}" />
         </Grid>
 

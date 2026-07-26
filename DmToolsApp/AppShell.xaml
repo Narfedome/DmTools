@@ -19,8 +19,7 @@
 
         <Tab x:Name="AudioMixerTab"
              Title="AudioMixer"
-             Icon="{extensions:FaIcon Glyph={x:Static icons:SolidFont.Sliders}}"
-             IsVisible="False">
+             Icon="{extensions:FaIcon Glyph={x:Static icons:SolidFont.Sliders}}">
             <ShellContent Route="AudioMixerPage" ContentTemplate="{DataTemplate audioMixer:AudioMixerPage}" />
         </Tab>
 
