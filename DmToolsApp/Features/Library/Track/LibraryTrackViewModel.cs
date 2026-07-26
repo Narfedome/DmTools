@@ -62,10 +62,14 @@ namespace DmToolsApp.Features.Library
         // Deux variantes de l'état vide : "Tout" vide (aucune piste importée du tout) propose les
         // raccourcis d'import ; une catégorie spécifique vide (le filtre ne matche juste rien) affiche
         // un simple message, l'import n'y étant pas forcément pertinent (une piste importée n'atterrit
-        // pas nécessairement dans cette catégorie).
-        public bool ShowEmptyLibraryCard => !HasTrackItems && SelectedCategory == AllCategoriesLabel;
+        // pas nécessairement dans cette catégorie). _hasLoadedOnce : avant le tout premier chargement,
+        // SelectedCategory vaut encore "" (default), différent de AllCategoriesLabel - sans ce garde,
+        // ShowEmptyCategoryMessage s'affichait un instant au tout premier rendu de la page, avant même
+        // qu'InitializeAsync (appelé depuis OnNavigatedTo, donc après ce premier rendu) n'ait eu la
+        // main pour faire passer Loading.IsLoading à true.
+        public bool ShowEmptyLibraryCard => _hasLoadedOnce && !HasTrackItems && SelectedCategory == AllCategoriesLabel;
 
-        public bool ShowEmptyCategoryMessage => !HasTrackItems && SelectedCategory != AllCategoriesLabel;
+        public bool ShowEmptyCategoryMessage => _hasLoadedOnce && !HasTrackItems && SelectedCategory != AllCategoriesLabel;
 
         [ObservableProperty]
         private Track? selectedTrackItem;
@@ -179,6 +183,8 @@ namespace DmToolsApp.Features.Library
                     await ReloadAsync();
                 });
                 _hasLoadedOnce = true;
+                OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+                OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
             }
             finally
             {
