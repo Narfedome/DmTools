@@ -18,7 +18,7 @@ namespace DmToolsApp.Services
         public async Task<List<Campaign>> GetCampaignsAsync()
         {
             await _db.Initialization;
-            var entities = await _db.Connection.Table<CampaignEntity>().ToListAsync();
+            var entities = await _db.Connection.Table<CampaignEntity>().OrderBy(e => e.Position).ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
 
@@ -68,6 +68,7 @@ namespace DmToolsApp.Services
             await _db.Initialization;
             var entities = await _db.Connection.Table<SessionEntity>()
                 .Where(e => e.CampaignId == campaignId)
+                .OrderBy(e => e.Position)
                 .ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
@@ -108,6 +109,7 @@ namespace DmToolsApp.Services
             await _db.Initialization;
             var entities = await _db.Connection.Table<SceneEntity>()
                 .Where(e => e.SessionId == sessionId)
+                .OrderBy(e => e.Position)
                 .ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
@@ -227,20 +229,24 @@ namespace DmToolsApp.Services
             await _db.Connection.UpdateAsync(entity);
         }
 
+        // ── Réordonnancement (glisser-déposer) ────────────────────
+
         /// <summary>
-        /// Réassigne Position = index pour chaque SceneTrack de la liste, dans l'ordre donné (glisser-
-        /// déposer dans SceneTracksPage). En transaction : un déplacement touche potentiellement toutes
-        /// les pistes de la scène (pas seulement celle glissée), une interruption à mi-chemin laisserait
-        /// sinon des Position incohérentes entre elles (deux pistes à la même position, ou un trou).
+        /// Réassigne Position = index pour chaque entité de la liste, dans l'ordre donné. En
+        /// transaction : un déplacement touche potentiellement tous les frères (pas seulement
+        /// l'élément glissé), une interruption à mi-chemin laisserait sinon des Position
+        /// incohérentes entre eux (deux éléments à la même position, ou un trou). Un seul appelant
+        /// par niveau (Campagne/Chapitre/Scène/SceneTrack) passe déjà les ids d'un seul groupe de
+        /// frères (même parent) : aucune validation cross-parent n'est faite ici.
         /// </summary>
-        public async Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds)
+        private async Task ReorderAsync<T>(List<int> orderedIds) where T : IPositioned, new()
         {
             await _db.Initialization;
             await _db.Connection.RunInTransactionAsync(conn =>
             {
-                for (int i = 0; i < orderedSceneTrackIds.Count; i++)
+                for (int i = 0; i < orderedIds.Count; i++)
                 {
-                    var entity = conn.Find<SceneTrackEntity>(orderedSceneTrackIds[i]);
+                    var entity = conn.Find<T>(orderedIds[i]);
                     if (entity == null)
                         continue;
 
@@ -249,6 +255,11 @@ namespace DmToolsApp.Services
                 }
             });
         }
+
+        public Task ReorderCampaignsAsync(List<int> orderedCampaignIds) => ReorderAsync<CampaignEntity>(orderedCampaignIds);
+        public Task ReorderSessionsAsync(List<int> orderedSessionIds) => ReorderAsync<SessionEntity>(orderedSessionIds);
+        public Task ReorderScenesAsync(List<int> orderedSceneIds) => ReorderAsync<SceneEntity>(orderedSceneIds);
+        public Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds) => ReorderAsync<SceneTrackEntity>(orderedSceneTrackIds);
     }
 
     public interface ISceneDataService
@@ -256,14 +267,17 @@ namespace DmToolsApp.Services
         Task<List<Campaign>> GetCampaignsAsync();
         Task SaveCampaignAsync(Campaign campaign);
         Task DeleteCampaignAsync(Campaign campaign);
+        Task ReorderCampaignsAsync(List<int> orderedCampaignIds);
 
         Task<List<Session>> GetSessionsAsync(int campaignId);
         Task SaveSessionAsync(Session session);
         Task DeleteSessionAsync(Session session);
+        Task ReorderSessionsAsync(List<int> orderedSessionIds);
 
         Task<List<Scene>> GetScenesAsync(int sessionId);
         Task SaveSceneAsync(Scene scene);
         Task DeleteSceneAsync(Scene scene);
+        Task ReorderScenesAsync(List<int> orderedSceneIds);
 
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);

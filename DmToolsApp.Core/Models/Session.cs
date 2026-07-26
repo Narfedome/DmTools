@@ -9,6 +9,8 @@ namespace DmToolsApp.Models
 
         public int CampaignId { get; set; }
 
+        public int Position { get; set; }
+
         [ObservableProperty]
         private string title = string.Empty;
 

@@ -51,6 +51,16 @@ namespace DmToolsApp.Data
             await AddColumnIfMissingAsync("TrackEntity", "Category TEXT NOT NULL DEFAULT ''");
             await AddColumnIfMissingAsync("CategoryEntity", "LibraryType TEXT NOT NULL DEFAULT ''");
 
+            // Position ajoutée pour le glisser-déposer de l'accordéon Campagne/Chapitre/Scène : sur
+            // une DB existante, toutes les lignes prendraient sinon Position=0 (le DEFAULT de
+            // l'ALTER TABLE), et l'ordre affiché deviendrait indéterminé (dépendant de l'ordre de
+            // retour SQLite, non garanti) au lieu de rester celui d'avant la mise à jour. D'où le
+            // backfill par Id ci-dessous, exécuté une seule fois (uniquement quand la colonne vient
+            // d'être ajoutée, cf. AddColumnIfMissingAsync).
+            bool campaignPositionAdded = await AddColumnIfMissingAsync("CampaignEntity", "Position INTEGER NOT NULL DEFAULT 0");
+            bool sessionPositionAdded = await AddColumnIfMissingAsync("SessionEntity", "Position INTEGER NOT NULL DEFAULT 0");
+            bool scenePositionAdded = await AddColumnIfMissingAsync("SceneEntity", "Position INTEGER NOT NULL DEFAULT 0");
+
             // Purge + seed regroupés dans une transaction : plusieurs etapes liees (purge des
             // orphelins puis rattachement retroactif puis seed conditionne par le resultat de la
             // purge) - une interruption en plein milieu laisserait la DB dans un etat intermediaire
@@ -83,18 +93,31 @@ namespace DmToolsApp.Data
                     foreach (var name in _defaultTrackCategories.Union(existingTrackCategories, StringComparer.OrdinalIgnoreCase))
                         conn.Insert(new CategoryEntity { Name = name, LibraryType = nameof(Track) });
                 }
+
+                // Backfill par Id (= ordre d'insertion historique) plutôt qu'un ordre indéterminé.
+                if (campaignPositionAdded)
+                    conn.Execute("UPDATE CampaignEntity SET Position = " +
+                        "(SELECT COUNT(*) FROM CampaignEntity c2 WHERE c2.Id < CampaignEntity.Id)");
+                if (sessionPositionAdded)
+                    conn.Execute("UPDATE SessionEntity SET Position = " +
+                        "(SELECT COUNT(*) FROM SessionEntity s2 WHERE s2.CampaignId = SessionEntity.CampaignId AND s2.Id < SessionEntity.Id)");
+                if (scenePositionAdded)
+                    conn.Execute("UPDATE SceneEntity SET Position = " +
+                        "(SELECT COUNT(*) FROM SceneEntity sc2 WHERE sc2.SessionId = SceneEntity.SessionId AND sc2.Id < SceneEntity.Id)");
             });
         }
 
-        private async Task AddColumnIfMissingAsync(string table, string columnDefinition)
+        private async Task<bool> AddColumnIfMissingAsync(string table, string columnDefinition)
         {
             try
             {
                 await _db.ExecuteAsync($"ALTER TABLE {table} ADD COLUMN {columnDefinition}");
+                return true;
             }
             catch (SQLiteException ex) when (ex.Message.Contains("duplicate column", StringComparison.OrdinalIgnoreCase))
             {
                 // Colonne déjà présente (DB déjà migrée) : rien à faire.
+                return false;
             }
         }
     }

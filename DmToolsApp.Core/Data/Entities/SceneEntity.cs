@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-    public class SceneEntity
+    public class SceneEntity : IPositioned
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
@@ -13,5 +13,7 @@ namespace DmToolsApp.Data.Entities
         public int SessionId { get; set; }
 
         public string Title { get; set; } = string.Empty;
+
+        public int Position { get; set; }
     }
 }

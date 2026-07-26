@@ -7,6 +7,8 @@ namespace DmToolsApp.Models
     {
         public int Id { get; set; }
 
+        public int Position { get; set; }
+
         [ObservableProperty]
         private string title = string.Empty;
 
