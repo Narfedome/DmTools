@@ -41,6 +41,7 @@
          entre LibraryTrackView et LibrarySpellView avant cette factorisation (a un StrokeThickness=3
          pres sur l'etat Selected cote Spell, qui n'avait pas de raison d'etre - alignee sur Track). -->
     <Style x:Key="SelectableGridItemBorderStyle" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{DynamicResource AppSurfaceTranslucent}"/>
         <Setter Property="StrokeThickness" Value="2"/>
         <Setter Property="StrokeShape" Value="RoundRectangle 5"/>
         <Setter Property="HorizontalOptions" Value="{OnPlatform Default=Fill, WinUI=Center}"/>
@@ -56,7 +57,6 @@
                     <VisualState Name="Selected">
                         <VisualState.Setters>
                             <Setter Property="Stroke" Value="LightSkyBlue" />
-                            <Setter Property="Background" Value="Transparent" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
