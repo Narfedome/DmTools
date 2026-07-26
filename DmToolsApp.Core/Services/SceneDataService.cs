@@ -226,6 +226,29 @@ namespace DmToolsApp.Services
             entity.Volume = volume;
             await _db.Connection.UpdateAsync(entity);
         }
+
+        /// <summary>
+        /// Réassigne Position = index pour chaque SceneTrack de la liste, dans l'ordre donné (glisser-
+        /// déposer dans SceneTracksPage). En transaction : un déplacement touche potentiellement toutes
+        /// les pistes de la scène (pas seulement celle glissée), une interruption à mi-chemin laisserait
+        /// sinon des Position incohérentes entre elles (deux pistes à la même position, ou un trou).
+        /// </summary>
+        public async Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds)
+        {
+            await _db.Initialization;
+            await _db.Connection.RunInTransactionAsync(conn =>
+            {
+                for (int i = 0; i < orderedSceneTrackIds.Count; i++)
+                {
+                    var entity = conn.Find<SceneTrackEntity>(orderedSceneTrackIds[i]);
+                    if (entity == null)
+                        continue;
+
+                    entity.Position = i;
+                    conn.Update(entity);
+                }
+            });
+        }
     }
 
     public interface ISceneDataService
@@ -248,5 +271,6 @@ namespace DmToolsApp.Services
         Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackSettingsAsync(int sceneTrackId, double volume, bool isLooping, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
+        Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds);
     }
 }

@@ -215,6 +215,26 @@ namespace DmToolsApp.Features.AudioMixer
             CurrentChannels.Clear();
         }
 
+        // Appelée depuis le code-behind d'AudioMixerPage (gestionnaire Drop) pour réordonner les
+        // channel strips par glisser-déposer. Seuls les strips déjà persistés (SceneTrackId > 0)
+        // sont inclus dans la sauvegarde : un strip tout juste ajouté (aucune piste assignée) n'a
+        // pas encore de SceneTrack, sa position sera fixée normalement lors de son premier
+        // SaveChannelAsSceneTrack (qui lit déjà l'index courant dans CurrentChannels).
+        public async Task ReorderChannelsAsync(ChannelStripViewModel dragged, ChannelStripViewModel target)
+        {
+            if (dragged == null || target == null || ReferenceEquals(dragged, target)) return;
+
+            var oldIndex = CurrentChannels.IndexOf(dragged);
+            var newIndex = CurrentChannels.IndexOf(target);
+            if (oldIndex < 0 || newIndex < 0) return;
+
+            CurrentChannels.Move(oldIndex, newIndex);
+
+            var orderedIds = CurrentChannels.Where(c => c.SceneTrackId > 0).Select(c => c.SceneTrackId).ToList();
+            if (orderedIds.Count > 0)
+                await _sceneDataService.ReorderSceneTracksAsync(orderedIds);
+        }
+
         private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
         {
             if (_activeScene == null || channel.Track == null || channel.Track.Id == 0) return;

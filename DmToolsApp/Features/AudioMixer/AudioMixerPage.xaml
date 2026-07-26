@@ -108,10 +108,18 @@
         <!-- Channels -->
         <Border Grid.Row="2"
                 IsEnabled="{Binding Loading.IsLoading, Converter={StaticResource InverseBoolConverter}}">
-            <CollectionView ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
+            <CollectionView x:Name="ChannelsCollectionView" ItemsSource="{Binding CurrentChannels}" ItemsLayout="HorizontalList">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="corevm:ChannelStripViewModel">
+                        <!-- Drag restreint à la poignée (cf. plus bas), sur toutes les plateformes :
+                             sur Windows le drag souris démarre dès le mouvement (pas d'appui long
+                             ni de délai configurable), donc glisser depuis n'importe où sur la
+                             carte déclenchait le drag par erreur en scrollant la liste horizontale.
+                             Le Drop reste sur toute la carte (cible facile à viser). -->
                         <Grid>
+                            <Grid.GestureRecognizers>
+                                <DropGestureRecognizer AllowDrop="True" Drop="OnChannelDrop" DragOver="OnChannelDragOver" DragLeave="OnChannelDragLeave"/>
+                            </Grid.GestureRecognizers>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
@@ -140,7 +148,8 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="auto"/>
                                         <RowDefinition Height="auto"/>
-                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
                                     </Grid.RowDefinitions>
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Book}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=PickLibraryItemCommand}"
@@ -153,6 +162,20 @@
                                     <components:FaIconButtonView Icon="{x:Static icons:SolidFont.Xmark}"
                                                              Command="{Binding Source={RelativeSource AncestorType={x:Type local:AudioMixerViewModel}}, Path=RemoveChannelCommand}"
                                                              CommandParameter="{Binding .}" Grid.Row="2"/>
+
+                                    <!-- Poignée : seul point d'accroche du drag (cf. commentaire sur le Grid racine) -->
+                                    <Border Grid.Row="3" HorizontalOptions="Center"
+                                            BackgroundColor="{DynamicResource AppSurface}"
+                                            Stroke="{DynamicResource AppBorder}" StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="6,4">
+                                        <Border.GestureRecognizers>
+                                            <DragGestureRecognizer CanDrag="True" DragStarting="OnChannelDragStarting" DropCompleted="OnChannelDropCompleted"/>
+                                        </Border.GestureRecognizers>
+                                        <Label Text="{x:Static icons:SolidFont.Grip}"
+                                               FontFamily="FontSolid" FontSize="{OnIdiom Default=13, Desktop=11}"
+                                               TextColor="{DynamicResource AppTextMuted}"/>
+                                    </Border>
                                 </Grid>
                             </Grid>
                             <BoxView Grid.Column="1"
