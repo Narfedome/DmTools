@@ -20,10 +20,14 @@ public partial class LibraryTrackSelectorPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        // Stop any playing audio when leaving the library page via the ViewModel (use DI)
         if (BindingContext is LibraryTrackViewModel vm)
         {
+            // Stop any playing audio when leaving the library page via the ViewModel (use DI)
             vm.StopAudio();
+
+            // Interrompt un chargement en cours (cf. LibraryTrackViewModel._loadCts) plutôt que de le
+            // laisser continuer en arrière-plan pendant qu'aucune tuile n'est visible pour en profiter.
+            vm.CancelPendingLoad();
         }
     }
 }

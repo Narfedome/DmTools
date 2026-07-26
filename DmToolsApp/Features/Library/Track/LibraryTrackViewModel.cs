@@ -37,6 +37,29 @@ namespace DmToolsApp.Features.Library
         // ClearTrackItems() courrait avec lui - état de pagination incohérent.
         private readonly SemaphoreSlim _loadGate = new(1, 1);
 
+        // Permet d'interrompre un chargement en cours quand la page quitte l'écran (changement
+        // d'onglet, cf. LibraryTrackPage/LibraryTrackSelectorPage.OnDisappearing) : sans ça, un
+        // chargement démarré juste avant de quitter l'onglet (ex. juste après un gros import)
+        // continuait à solliciter le thread UI/la DB en arrière-plan pendant qu'aucune tuile n'est
+        // visible pour en profiter, au détriment de l'onglet réellement affiché. La requête DB
+        // elle-même n'est pas interrompue (sqlite-net-pcl ne le permet pas), seule la boucle qui
+        // ajoute les tuiles ensuite l'est. EnsureFreshLoadToken recrée le jeton s'il a déjà été
+        // annulé, pour qu'un nouveau chargement (retour sur l'onglet, scroll...) reparte normalement.
+        private CancellationTokenSource _loadCts = new();
+
+        public void CancelPendingLoad() => _loadCts.Cancel();
+
+        private CancellationToken EnsureFreshLoadToken()
+        {
+            if (_loadCts.IsCancellationRequested)
+            {
+                _loadCts.Dispose();
+                _loadCts = new CancellationTokenSource();
+            }
+
+            return _loadCts.Token;
+        }
+
         public LibraryMultiSelection<Track> Selection { get; } = new();
 
         public bool HasSelection => Selection.HasSelection;
@@ -271,6 +294,11 @@ namespace DmToolsApp.Features.Library
             await _loadGate.WaitAsync();
             try
             {
+                // Un rechargement complet (changement de catégorie, LibraryUpdatedMessage...) repart
+                // toujours d'un jeton frais, y compris si le précédent avait été annulé par un départ
+                // d'onglet entre-temps.
+                var token = EnsureFreshLoadToken();
+
                 // null = pas de filtre (Tout), "" = uniquement les pistes sans catégorie (Aucun
                 // dossier), sinon le nom exact de la catégorie choisie - cf. GetItemsPageAsync.
                 _categoryFilter = SelectedCategory == AllCategoriesLabel ? null
@@ -289,7 +317,7 @@ namespace DmToolsApp.Features.Library
                 // Appel direct de la version non verrouillée (pas LoadNextPageAsync) : le verrou est
                 // déjà tenu ici, un SemaphoreSlim n'étant pas réentrant, ré-attendre dessus bloquerait
                 // indéfiniment.
-                await LoadNextPageCoreAsync();
+                await LoadNextPageCoreAsync(token);
             }
             finally
             {
@@ -337,7 +365,8 @@ namespace DmToolsApp.Features.Library
             await _loadGate.WaitAsync();
             try
             {
-                await LoadNextPageCoreAsync();
+                var token = EnsureFreshLoadToken();
+                await LoadNextPageCoreAsync(token);
             }
             finally
             {
@@ -345,7 +374,7 @@ namespace DmToolsApp.Features.Library
             }
         }
 
-        private async Task LoadNextPageCoreAsync()
+        private async Task LoadNextPageCoreAsync(CancellationToken cancellationToken)
         {
             if (_isLoadingMore || !_hasMoreItems)
                 return;
@@ -361,7 +390,10 @@ namespace DmToolsApp.Features.Library
 
             try
             {
+                // La requête elle-même n'est pas annulable (sqlite-net-pcl ne le permet pas) : le
+                // jeton n'est vérifié qu'à partir d'ici, dans la boucle qui peuple TrackItems.
                 var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
+                _hasMoreItems = items.Count == PageSize;
 
                 // Ne précharge plus les pochettes ici : chaque tuile (TrackButtonViewModel) charge déjà
                 // la sienne en tâche de fond dès qu'elle reçoit sa track, avec un placeholder pendant ce
@@ -371,6 +403,11 @@ namespace DmToolsApp.Features.Library
                 // maintenant une à une au fil de la boucle ci-dessous, pochette à part.
                 foreach (var item in items)
                 {
+                    // Vérifié avant chaque tuile plutôt qu'une seule fois avant la boucle : une page
+                    // quittée (changement d'onglet) en plein milieu arrête d'en ajouter d'autres tout
+                    // de suite, pas seulement à la prochaine page.
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var track = (Track)item;
                     Selection.Track(track);
 
@@ -379,17 +416,25 @@ namespace DmToolsApp.Features.Library
                     // pas besoin de rechercher le groupe ailleurs que dans AddTrackToGroup.
                     AddTrackToGroup(track);
 
+                    // Incrémenté ici (par piste) plutôt qu'une fois après la boucle : si une annulation
+                    // interrompt la boucle en plein milieu, _loadedCount reflète alors exactement ce qui
+                    // a déjà été ajouté, et un prochain chargement reprend au bon endroit sans doublon
+                    // ni piste sautée.
+                    _loadedCount++;
+
                     // Laisse la main au thread UI entre chaque tuile (traitement des messages Windows -
                     // dont les taps sur les autres onglets) plutôt que d'enchaîner les 12 ajouts et
                     // réalisations visuelles en un seul bloc synchrone ininterrompu.
                     await Task.Yield();
                 }
 
-                _loadedCount += items.Count;
-                _hasMoreItems = items.Count == PageSize;
-
                 if (SelectedTrackItem == null)
                     SelectedTrackItem = TrackItems.FirstOrDefault()?.FirstOrDefault();
+            }
+            catch (OperationCanceledException)
+            {
+                // Page quittée pendant le chargement (changement d'onglet) : pas une vraie erreur à
+                // remonter, juste un chargement abandonné en cours de route.
             }
             finally
             {
