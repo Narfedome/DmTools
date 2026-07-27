@@ -44,12 +44,16 @@
 
                 <!-- Style Ghost : un chevron de navigation est une action secondaire, il ne doit
                      pas rivaliser visuellement avec les pickers (cf. même usage sur les chevrons
-                     de l'accordéon Campagnes). -->
+                     de l'accordéon Campagnes). Masqué (Opacity=0 + InputTransparent) plutôt que
+                     grisé (IsEnabled) en bout de scène/chapitre : IsVisible collapse l'espace en
+                     MAUI (pas d'équivalent du Visibility.Hidden de WPF), ce qui ferait sauter les
+                     pickers voisins à chaque franchissement de limite. -->
                 <components:FaIconButtonView Grid.Column="1"
                         Style="{StaticResource GhostIconButtonStyle}"
                         Icon="{x:Static icons:SolidFont.ChevronLeft}"
                         Command="{Binding PrevSceneCommand}"
-                        IsEnabled="{Binding CanGoPrevScene}"
+                        Opacity="{Binding CanGoPrevScene, Converter={StaticResource BoolToOpacityConverter}}"
+                        InputTransparent="{Binding CanGoPrevScene, Converter={StaticResource InverseBoolConverter}}"
                         Tooltip="{loc:Loc MixerPrevScene}" />
 
                 <components:IconTextButton Grid.Column="2" HorizontalOptions="Center"
@@ -64,7 +68,8 @@
                         Style="{StaticResource GhostIconButtonStyle}"
                         Icon="{x:Static icons:SolidFont.ChevronRight}"
                         Command="{Binding NextSceneCommand}"
-                        IsEnabled="{Binding CanGoNextScene}"
+                        Opacity="{Binding CanGoNextScene, Converter={StaticResource BoolToOpacityConverter}}"
+                        InputTransparent="{Binding CanGoNextScene, Converter={StaticResource InverseBoolConverter}}"
                         Tooltip="{loc:Loc MixerNextScene}" />
             </Grid>
 

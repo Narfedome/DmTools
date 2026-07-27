@@ -10,6 +10,7 @@
             <converters:BoolToTooltipPlayPauseConverter x:Key="BoolToTooltipPlayPauseConverter"/>
             <converters:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <converters:BoolToActiveStrokeConverter x:Key="BoolToActiveStrokeConverter" />
             <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
             <ResourceDictionary.MergedDictionaries>
