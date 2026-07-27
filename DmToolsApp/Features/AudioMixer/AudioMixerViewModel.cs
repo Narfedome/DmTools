@@ -513,9 +513,45 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
         [RelayCommand]
+        public async Task SelectCampaign()
+        {
+            var campaigns = await _sceneDataService.GetCampaignsAsync();
+            if (campaigns.Count == 0)
+            {
+                await ShowInfoAsync(Loc["ErrorTitle"], Loc["ErrorNoCampaigns"]);
+                return;
+            }
+
+            var index = await ShowActionSheetIndexAsync(Loc["MixerCampaign"], campaigns.Select(c => c.Title).ToArray());
+            if (index < 0) return;
+
+            var candidate = campaigns[index];
+
+            // Même logique que SelectSession pour les chapitres : on vérifie avant de peupler
+            // Sessions, pour ne pas enchaîner sur un sélecteur de chapitre vide.
+            var sessions = await _sceneDataService.GetSessionsAsync(candidate.Id);
+            if (sessions.Count == 0)
+            {
+                await ShowInfoAsync(Loc["ErrorTitle"], Loc["ErrorCampaignHasNoChapters"]);
+                return;
+            }
+
+            Sessions = new ObservableCollection<Session>(sessions);
+            await SelectSession();
+        }
+
+        [RelayCommand]
         public async Task SelectSession()
         {
-            if (!Sessions.Any()) return;
+            // Sessions n'est peuplée qu'après le choix d'une campagne : en freeform tout juste
+            // ouvert (aucune campagne encore chargée dans cette session d'appli), on enchaîne
+            // d'abord sur SelectCampaign plutôt que de ne rien faire — celui-ci repeuple Sessions
+            // et rappelle SelectSession lui-même une fois la campagne choisie.
+            if (!Sessions.Any())
+            {
+                await SelectCampaign();
+                return;
+            }
             // Sélection par index et non par titre : deux chapitres homonymes doivent rester
             // sélectionnables individuellement.
             var index = await ShowActionSheetIndexAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
@@ -555,7 +591,15 @@ namespace DmToolsApp.Features.AudioMixer
         [RelayCommand]
         public async Task SelectScene()
         {
-            if (!Scenes.Any()) return;
+            // Scenes n'est peuplée qu'après un chapitre sélectionné : sans chapitre (freeform tout
+            // juste ouvert, ou campagne déjà chargée mais aucun chapitre choisi), on enchaîne sur
+            // SelectSession plutôt que de ne rien faire — le bouton Scène se comporte alors comme
+            // le bouton Chapitre, peu importe lequel des deux a été cliqué.
+            if (!Scenes.Any())
+            {
+                await SelectSession();
+                return;
+            }
             var index = await ShowActionSheetIndexAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
             if (index >= 0) SelectedScene = Scenes[index];
         }

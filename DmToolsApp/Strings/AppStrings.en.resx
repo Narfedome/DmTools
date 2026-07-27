@@ -177,6 +177,9 @@
   <data name="BtnRemoveSceneTrack" xml:space="preserve">
     <value>Remove from scene</value>
   </data>
+  <data name="MixerCampaign" xml:space="preserve">
+    <value>Campaign</value>
+  </data>
   <data name="MixerChapter" xml:space="preserve">
     <value>Chapter</value>
   </data>
@@ -437,6 +440,12 @@
   </data>
   <data name="ErrorChapterHasNoScenes" xml:space="preserve">
     <value>This chapter has no scenes.</value>
+  </data>
+  <data name="ErrorNoCampaigns" xml:space="preserve">
+    <value>No campaigns exist yet.</value>
+  </data>
+  <data name="ErrorCampaignHasNoChapters" xml:space="preserve">
+    <value>This campaign has no chapters.</value>
   </data>
   <data name="ErrorTrackFileMissing" xml:space="preserve">
     <value>The audio file for this track could not be found.</value>
