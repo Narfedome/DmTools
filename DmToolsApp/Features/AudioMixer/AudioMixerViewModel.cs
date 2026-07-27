@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Components;
 using DmToolsApp.Components.Dialogs;
 using DmToolsApp.Features.Library;
@@ -29,6 +30,18 @@ namespace DmToolsApp.Features.AudioMixer
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
+
+            // SelectedSessionLabel/SelectedSceneLabel lisent Loc[...] dans leur getter mais ne sont
+            // notifiées que par les changements de SelectedSession/SelectedScene/IsFreeformActive :
+            // sans cet abonnement, changer de langue pendant qu'on est en freeform (où le libellé
+            // affiché vient justement de Loc et pas d'un titre de scène) laissait l'ancien texte
+            // affiché jusqu'au prochain changement de scène.
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this, (r, m) =>
+            {
+                var vm = (AudioMixerViewModel)r;
+                vm.OnPropertyChanged(nameof(SelectedSessionLabel));
+                vm.OnPropertyChanged(nameof(SelectedSceneLabel));
+            });
         }
 
         // ── Channels ──────────────────────────────────────────────
