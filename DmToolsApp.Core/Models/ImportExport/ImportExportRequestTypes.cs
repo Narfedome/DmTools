@@ -38,6 +38,12 @@ namespace DmToolsApp.Models.ImportExport
         public string CurrentItem { get; set; } = string.Empty;
         public int Processed { get; set; }
         public int Total { get; set; }
+
+        // Extraction terminée (Processed==Total dès ce stade), mais la vérification de décodabilité
+        // et la sauvegarde en base tournent encore : sans ce signal, l'appelant afficherait "Terminé"
+        // (Processed/Total au max) pendant que du travail reste en cours. Pas de texte ici (Core ne
+        // dépend pas de la localisation) - à l'appelant de traduire ce signal en message affiché.
+        public bool IsVerifyingTracks { get; set; }
     }
 
     /// <summary>Résumé d'un import, affiché à l'utilisateur en fin d'opération.</summary>
@@ -47,6 +53,22 @@ namespace DmToolsApp.Models.ImportExport
         public int TracksReused { get; set; }
         public int TracksCopied { get; set; }
         public int TracksRejected { get; set; }
+
+        // Détail des causes de rejet (leur somme égale TracksRejected) : affiché à l'utilisateur
+        // uniquement s'il y a effectivement des rejets, pour comprendre pourquoi sans avoir à
+        // consulter des logs.
+        public int TracksRejectedHashMismatch { get; set; }
+        public int TracksRejectedNotDecodable { get; set; }
+        public int TracksRejectedMissingEntry { get; set; }
+        public int TracksRejectedOther { get; set; }
+
         public int SpellsImported { get; set; }
+
+        // Durée par phase, affichée à l'utilisateur en fin d'import (utile pour se rendre compte du
+        // temps réel passé, et pour nous remonter un ressenti de lenteur avec des chiffres concrets).
+        public TimeSpan ExtractionDuration { get; set; }
+        public TimeSpan VerificationDuration { get; set; }
+        public TimeSpan DatabaseSaveDuration { get; set; }
+        public TimeSpan TotalDuration { get; set; }
     }
 }

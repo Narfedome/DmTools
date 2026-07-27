@@ -1,17 +1,17 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DmToolsApp.Components;
-using DmToolsApp.Components.Dialogs;
-using DmToolsApp.Features.Library;
+using CommunityToolkit.Mvvm.Messaging;
 using DmToolsApp.Models;
-using DmToolsApp.Models.Library;
 using DmToolsApp.Services;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-
 
 namespace DmToolsApp.Features.AudioMixer
 {
+    // Sélection de campagne/chapitre/scène, navigation, mode "sans scène" et cycle de vie de la
+    // scène active. La gestion des channel strips (CRUD, players, sauvegarde debouncée, reorder)
+    // est dans la partie AudioMixerViewModel.Channels.cs - les deux se partagent CurrentChannels et
+    // _activeScene, mais suivent des logiques indépendantes assez volumineuses pour justifier des
+    // fichiers séparés plutôt qu'une seule classe de 800+ lignes.
     public partial class AudioMixerViewModel : BaseViewModel
     {
         private readonly AudioMixerService _audioMixerService;
@@ -19,7 +19,6 @@ namespace DmToolsApp.Features.AudioMixer
         private readonly ISceneDataService _sceneDataService;
 
         private Scene? _activeScene;
-        private readonly Dictionary<ChannelStripViewModel, CancellationTokenSource> _pendingSaves = new();
 
         public AudioMixerViewModel(
             AudioMixerService audioMixerService,
@@ -29,266 +28,18 @@ namespace DmToolsApp.Features.AudioMixer
             _audioMixerService = audioMixerService;
             _pickerService = pickerService;
             _sceneDataService = sceneDataService;
-        }
 
-        // ── Channels ──────────────────────────────────────────────
-
-        [ObservableProperty]
-        private ObservableCollection<ChannelStripViewModel> currentChannels = new();
-
-        [RelayCommand]
-        public void AddChannel()
-        {
-            var channel = new ChannelStripViewModel() { DisplayTrackName = (LocalizationService.Instance["ChannelNew"] + " " + (CurrentChannels.Count + 1)), IsPlaying = false };
-            CurrentChannels.Add(channel);
-        }
-
-        [RelayCommand]
-        public void PlayAll()
-        {
-            foreach (var c in CurrentChannels)
-                c.Play();
-        }
-
-        [RelayCommand]
-        public void StopAll()
-        {
-            foreach (var c in CurrentChannels)
-                c.Stop();
-        }
-
-        [RelayCommand]
-        public async Task FadeOutAll()
-        {
-            var tasks = CurrentChannels.Select(c => c.FadeOut()).ToArray();
-            await Task.WhenAll(tasks);
-        }
-
-        // Les boutons livre/gear/X de chaque strip sont liés à UNE seule instance de commande du
-        // ViewModel (RelativeSource dans le template) : sans AllowConcurrentExecutions, le toolkit
-        // passe CanExecute à false pendant toute l'exécution async, et TOUS les boutons liés
-        // passent visuellement en état désactivé tant que le dialog est ouvert. Ce garde reprend
-        // le seul rôle utile de ce blocage : empêcher un double-tap d'ouvrir deux dialogs.
-        private bool _isStripDialogOpen;
-
-        [RelayCommand(AllowConcurrentExecutions = true)]
-        public async Task RemoveChannel(ChannelStripViewModel channel)
-        {
-            if (channel == null || _isStripDialogOpen)
-                return;
-            if (channel.Player == null)
+            // SelectedSessionLabel/SelectedSceneLabel lisent Loc[...] dans leur getter mais ne sont
+            // notifiées que par les changements de SelectedSession/SelectedScene/IsFreeformActive :
+            // sans cet abonnement, changer de langue pendant qu'on est en freeform (où le libellé
+            // affiché vient justement de Loc et pas d'un titre de scène) laissait l'ancien texte
+            // affiché jusqu'au prochain changement de scène.
+            WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this, (r, m) =>
             {
-                UnsubscribeChannel(channel);
-                if (channel.SceneTrackId > 0)
-                    await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
-                CurrentChannels.Remove(channel);
-                return;
-            }
-
-            _isStripDialogOpen = true;
-            try
-            {
-                // La lecture est suspendue le temps du dialogue, puis reprise UNIQUEMENT si elle
-                // était en cours : un TogglePlay inconditionnel lançait la lecture d'un strip à
-                // l'arrêt quand l'utilisateur annulait la suppression.
-                var wasPlaying = channel.IsPlaying;
-                channel.Pause();
-
-                bool confirm = await ConfirmAsync(Loc["DialogDelete"], string.Format(Loc["DialogRemoveChannel"], channel.DisplayTrackName));
-
-                if (!confirm)
-                {
-                    if (wasPlaying)
-                        channel.Play();
-                    return;
-                }
-
-                channel.Stop();
-                UnsubscribeChannel(channel);
-                channel.DisposePlayer();
-                if (channel.SceneTrackId > 0)
-                    await _sceneDataService.DeleteSceneTrackAsync(new SceneTrack { Id = channel.SceneTrackId });
-                CurrentChannels.Remove(channel);
-            }
-            finally
-            {
-                _isStripDialogOpen = false;
-            }
-        }
-
-        [RelayCommand(AllowConcurrentExecutions = true)]
-        public async Task PickLibraryItem(ChannelStripViewModel channel)
-        {
-            if (channel == null || _isStripDialogOpen) return;
-
-            _isStripDialogOpen = true;
-            try
-            {
-                var selectedLibraryItem = await _pickerService.PickTrackAsync();
-
-                if (selectedLibraryItem is not Track selectedTrack || !File.Exists(selectedTrack.FilePath))
-                    return;
-
-                channel.Player = await _audioMixerService.CreatePlayerAsync(selectedTrack.FilePath);
-                channel.Track = selectedTrack;
-                channel.DisplayTrackName = selectedTrack.Title;
-
-                await SaveChannelAsSceneTrack(channel);
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorAsync(ex);
-            }
-            finally
-            {
-                _isStripDialogOpen = false;
-            }
-        }
-
-        /// <summary>
-        /// Ouvre les paramètres de la piste assignée au channel strip dans une boîte de dialogue.
-        /// Save : applique au strip (le volume agit en direct sur le player) et persiste ; Cancel
-        /// (ou tap à côté) : referme sans rien toucher.
-        /// </summary>
-        [RelayCommand(AllowConcurrentExecutions = true)]
-        public async Task OpenChannelSettings(ChannelStripViewModel channel)
-        {
-            if (channel == null || _activeScene == null || channel.SceneTrackId == 0 || _isStripDialogOpen)
-                return;
-
-            _isStripDialogOpen = true;
-            try
-            {
-                // L'AutoPlay n'est pas porté par le strip : on relit l'état persisté de la piste.
-                var sceneTracks = await _sceneDataService.GetSceneTracksAsync(_activeScene.Id);
-                var persisted = sceneTracks.FirstOrDefault(st => st.Id == channel.SceneTrackId);
-                if (persisted == null)
-                    return;
-
-                var dialogViewModel = new ChannelSettingsDialogViewModel(
-                    channel.DisplayTrackName ?? persisted.Track.Title,
-                    channel.Volume,
-                    channel.IsLooping,
-                    channel.IsFadeIn,
-                    channel.IsFadeOut,
-                    persisted.AutoPlay);
-
-                var saved = await ShowDialogAsync(new ChannelSettingsDialog(dialogViewModel));
-                if (!saved)
-                    return;
-
-                channel.Volume = dialogViewModel.Volume;
-                channel.IsLooping = dialogViewModel.IsLooping;
-                channel.IsFadeIn = dialogViewModel.FadeIn;
-                channel.IsFadeOut = dialogViewModel.FadeOut;
-
-                // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée,
-                // redondante avec la sauvegarde immédiate et complète qui suit : on l'annule.
-                if (_pendingSaves.TryGetValue(channel, out var pendingCts))
-                {
-                    pendingCts.Cancel();
-                    _pendingSaves.Remove(channel);
-                }
-
-                await _sceneDataService.UpdateSceneTrackAsync(
-                    channel.SceneTrackId, dialogViewModel.Volume, dialogViewModel.IsLooping, dialogViewModel.AutoPlay, dialogViewModel.FadeIn, dialogViewModel.FadeOut);
-            }
-            finally
-            {
-                _isStripDialogOpen = false;
-            }
-        }
-
-        /// <summary>
-        /// Vide le mixer proprement : désabonnement des sauvegardes auto et libération des players
-        /// natifs (FileStream Windows / MediaPlayer Android). Utilisé au changement de scène et
-        /// avant la suppression massive de pistes (un player même en pause verrouille son fichier
-        /// sur Windows).
-        /// </summary>
-        public void ClearChannels()
-        {
-            foreach (var c in CurrentChannels)
-            {
-                UnsubscribeChannel(c);
-                c.DisposePlayer();
-            }
-            CurrentChannels.Clear();
-        }
-
-        private async Task SaveChannelAsSceneTrack(ChannelStripViewModel channel)
-        {
-            if (_activeScene == null || channel.Track == null || channel.Track.Id == 0) return;
-
-            var sceneTrack = new SceneTrack
-            {
-                Id = channel.SceneTrackId,
-                SceneId = _activeScene.Id,
-                Track = channel.Track,
-                Volume = channel.Volume,
-                IsLooping = channel.IsLooping,
-                FadeIn = channel.IsFadeIn,
-                FadeOut = channel.IsFadeOut,
-                AutoPlay = channel.IsPlaying,
-                Position = CurrentChannels.IndexOf(channel)
-            };
-
-            await _sceneDataService.SaveSceneTrackAsync(sceneTrack);
-            channel.SceneTrackId = sceneTrack.Id;
-
-            SubscribeChannel(channel);
-        }
-
-        // ── Subscriptions pour sauvegarde automatique ─────────────
-
-        private void SubscribeChannel(ChannelStripViewModel channel)
-        {
-            channel.PropertyChanged -= OnChannelPropertyChanged;
-            channel.PropertyChanged += OnChannelPropertyChanged;
-        }
-
-        private void UnsubscribeChannel(ChannelStripViewModel channel)
-        {
-            channel.PropertyChanged -= OnChannelPropertyChanged;
-            if (_pendingSaves.TryGetValue(channel, out var cts))
-            {
-                cts.Cancel();
-                _pendingSaves.Remove(channel);
-            }
-        }
-
-        private void OnChannelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (sender is not ChannelStripViewModel channel) return;
-            if (e.PropertyName is nameof(ChannelStripViewModel.Volume) or nameof(ChannelStripViewModel.IsLooping))
-                _ = DebouncedSaveChannel(channel);
-        }
-
-        private async Task DebouncedSaveChannel(ChannelStripViewModel channel)
-        {
-            if (channel.SceneTrackId == 0) return;
-
-            if (_pendingSaves.TryGetValue(channel, out var existingCts))
-                existingCts.Cancel();
-
-            var cts = new CancellationTokenSource();
-            _pendingSaves[channel] = cts;
-
-            try
-            {
-                await Task.Delay(500, cts.Token);
-                // Sauvegarde partielle : l'AutoPlay est un réglage explicite de l'utilisateur
-                // (dialog de paramètres / page des pistes de scène), il ne doit pas être écrasé
-                // par l'état de lecture du moment à chaque changement de volume ou de boucle.
-                await _sceneDataService.UpdateSceneTrackSettingsAsync(
-                    channel.SceneTrackId, channel.Volume, channel.IsLooping, channel.IsFadeIn, channel.IsFadeOut);
-            }
-            catch (OperationCanceledException) { }
-            finally
-            {
-                if (_pendingSaves.TryGetValue(channel, out var current) && current == cts)
-                    _pendingSaves.Remove(channel);
-                cts.Dispose();
-            }
+                var vm = (AudioMixerViewModel)r;
+                vm.OnPropertyChanged(nameof(SelectedSessionLabel));
+                vm.OnPropertyChanged(nameof(SelectedSceneLabel));
+            });
         }
 
         // ── Sélecteur de scène ────────────────────────────────────
@@ -311,11 +62,26 @@ namespace DmToolsApp.Features.AudioMixer
         [ObservableProperty]
         private int sceneCount = 0;
 
-        public bool CanGoPrevScene => SceneIndex > 1;
-        public bool CanGoNextScene => SceneIndex < SceneCount;
+        // Actif quand le Mixer tourne sur la scène orpheline (cf. SelectFreeformScene), en dehors
+        // de toute campagne/chapitre : SelectedSession/SelectedScene restent alors null (rien à
+        // afficher dans le sélecteur), d'où ce flag séparé pour piloter les libellés.
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SelectedSessionLabel))]
+        [NotifyPropertyChangedFor(nameof(SelectedSceneLabel))]
+        private bool isFreeformActive;
 
-        public string SelectedSessionLabel => SelectedSession?.Title ?? Loc["MixerChapter"];
-        public string SelectedSceneLabel   => SelectedScene?.Title   ?? Loc["MixerScene"];
+        // Permettent aux flèches prev/next de franchir une limite de chapitre (cf.
+        // RefreshChapterBoundaryFlagsAsync) : au bout de la scène courante, on regarde si le
+        // chapitre voisin existe ET a au moins une scène - jamais de saut en cascade jusqu'au
+        // prochain chapitre non-vide, comportement prévisible plutôt que surprenant.
+        private bool _hasPreviousChapterScene;
+        private bool _hasNextChapterScene;
+
+        public bool CanGoPrevScene => SceneIndex > 1 || _hasPreviousChapterScene;
+        public bool CanGoNextScene => SceneIndex < SceneCount || _hasNextChapterScene;
+
+        public string SelectedSessionLabel => IsFreeformActive ? Loc["MixerFreeform"] : SelectedSession?.Title ?? Loc["MixerChapter"];
+        public string SelectedSceneLabel   => IsFreeformActive ? Loc["MixerFreeform"] : SelectedScene?.Title   ?? Loc["MixerScene"];
 
         private bool _suppressHandlers;
 
@@ -376,6 +142,26 @@ namespace DmToolsApp.Features.AudioMixer
             SelectedScene = Scenes.FirstOrDefault();
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
+            await RefreshChapterBoundaryFlagsAsync();
+        }
+
+        /// <summary>
+        /// Vérifie si le chapitre précédent/suivant SelectedSession (dans Sessions) a au moins une
+        /// scène, pour piloter CanGoPrevScene/CanGoNextScene au-delà des limites du chapitre
+        /// courant. À rappeler chaque fois que Sessions ou SelectedSession changent (nouveau
+        /// chapitre chargé) - jamais de recherche en cascade au-delà du voisin immédiat.
+        /// </summary>
+        private async Task RefreshChapterBoundaryFlagsAsync()
+        {
+            var sessionIndex = SelectedSession != null ? Sessions.IndexOf(SelectedSession) : -1;
+
+            _hasPreviousChapterScene = sessionIndex > 0
+                && (await _sceneDataService.GetScenesAsync(Sessions[sessionIndex - 1].Id)).Count > 0;
+            _hasNextChapterScene = sessionIndex >= 0 && sessionIndex + 1 < Sessions.Count
+                && (await _sceneDataService.GetScenesAsync(Sessions[sessionIndex + 1].Id)).Count > 0;
+
+            OnPropertyChanged(nameof(CanGoPrevScene));
+            OnPropertyChanged(nameof(CanGoNextScene));
         }
 
         private async Task SaveCurrentSceneAsync()
@@ -430,12 +216,14 @@ namespace DmToolsApp.Features.AudioMixer
                     SelectedSession = matchedSession;
                     SelectedScene = matchedScene;
                     _suppressHandlers = false;
+                    IsFreeformActive = false;
 
                     SceneIndex = Scenes.IndexOf(matchedScene) + 1;
                     OnPropertyChanged(nameof(CanGoPrevScene));
                     OnPropertyChanged(nameof(CanGoNextScene));
+                    await RefreshChapterBoundaryFlagsAsync();
 
-                    playable = await PrepareSceneTracksAsync();
+                    playable = await PrepareSceneTracksAsync(matchedScene);
                 });
 
                 await PopulateChannelsAsync(playable);
@@ -451,6 +239,13 @@ namespace DmToolsApp.Features.AudioMixer
         public bool IsActiveSession(int sessionId) => _activeScene?.SessionId == sessionId;
         public bool IsActiveCampaign(int campaignId) => SelectedSession?.CampaignId == campaignId;
 
+        // Positionné par CampaignViewModel.Launch juste avant de naviguer vers le Mixer (donc
+        // toujours AVANT qu'AudioMixerPage.OnAppearing ne s'exécute, pas de course possible) :
+        // sans ça, le chargement automatique de la scène orpheline sur un Mixer vide (cf.
+        // AudioMixerPage.OnAppearing) pourrait chevaucher le chargement de la vraie scène lancée,
+        // et ce dernier serait silencieusement ignoré (bloqué par _isLoadingScene du premier).
+        public bool SuppressNextFreeformAutoLoad { get; set; }
+
         /// <summary>
         /// Réinitialise le mixer quand la campagne/chapitre/scène affichée vient d'être supprimée
         /// ailleurs (page Campagnes) : libère les players et vide le sélecteur au lieu de laisser le
@@ -460,24 +255,64 @@ namespace DmToolsApp.Features.AudioMixer
         {
             ClearChannels();
             _activeScene = null;
+            OnPropertyChanged(nameof(HasActiveScene));
 
             _suppressHandlers = true;
             SelectedScene = null;
             SelectedSession = null;
             _suppressHandlers = false;
+            IsFreeformActive = false;
 
             Scenes.Clear();
             Sessions.Clear();
             SceneCount = 0;
             SceneIndex = 1;
+            _hasPreviousChapterScene = false;
+            _hasNextChapterScene = false;
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
         }
 
         [RelayCommand]
+        public async Task SelectCampaign()
+        {
+            var campaigns = await _sceneDataService.GetCampaignsAsync();
+            if (campaigns.Count == 0)
+            {
+                await ShowInfoAsync(Loc["ErrorTitle"], Loc["ErrorNoCampaigns"]);
+                return;
+            }
+
+            var index = await ShowActionSheetIndexAsync(Loc["MixerCampaign"], campaigns.Select(c => c.Title).ToArray());
+            if (index < 0) return;
+
+            var candidate = campaigns[index];
+
+            // Même logique que SelectSession pour les chapitres : on vérifie avant de peupler
+            // Sessions, pour ne pas enchaîner sur un sélecteur de chapitre vide.
+            var sessions = await _sceneDataService.GetSessionsAsync(candidate.Id);
+            if (sessions.Count == 0)
+            {
+                await ShowInfoAsync(Loc["ErrorTitle"], Loc["ErrorCampaignHasNoChapters"]);
+                return;
+            }
+
+            Sessions = new ObservableCollection<Session>(sessions);
+            await SelectSession();
+        }
+
+        [RelayCommand]
         public async Task SelectSession()
         {
-            if (!Sessions.Any()) return;
+            // Sessions n'est peuplée qu'après le choix d'une campagne : en freeform tout juste
+            // ouvert (aucune campagne encore chargée dans cette session d'appli), on enchaîne
+            // d'abord sur SelectCampaign plutôt que de ne rien faire — celui-ci repeuple Sessions
+            // et rappelle SelectSession lui-même une fois la campagne choisie.
+            if (!Sessions.Any())
+            {
+                await SelectCampaign();
+                return;
+            }
             // Sélection par index et non par titre : deux chapitres homonymes doivent rester
             // sélectionnables individuellement.
             var index = await ShowActionSheetIndexAsync(Loc["MixerChapter"], Sessions.Select(s => s.Title).ToArray());
@@ -496,29 +331,90 @@ namespace DmToolsApp.Features.AudioMixer
                 return;
             }
 
+            // _suppressHandlers évite qu'OnSelectedSessionChanged ne recharge les scènes en double
+            // (on vient de les récupérer ci-dessus) et ne présélectionne la première automatiquement :
+            // on veut enchaîner directement sur le dialog de sélection de scène, comme si
+            // l'utilisateur avait tapé sur le bouton scène juste après.
+            _suppressHandlers = true;
             SelectedSession = candidate;
+            Scenes = new ObservableCollection<Scene>(scenes);
+            SceneCount = scenes.Count;
+            _suppressHandlers = false;
+            await RefreshChapterBoundaryFlagsAsync();
+
+            await SelectScene();
+
+            // L'utilisateur peut annuler le dialog (tap à côté, retour) : on retombe alors sur la
+            // 1ère scène plutôt que de laisser le mixer sans scène sélectionnée du tout.
+            if (SelectedScene == null)
+                SelectedScene = Scenes.FirstOrDefault();
         }
 
         [RelayCommand]
         public async Task SelectScene()
         {
-            if (!Scenes.Any()) return;
+            // Scenes n'est peuplée qu'après un chapitre sélectionné : sans chapitre (freeform tout
+            // juste ouvert, ou campagne déjà chargée mais aucun chapitre choisi), on enchaîne sur
+            // SelectSession plutôt que de ne rien faire — le bouton Scène se comporte alors comme
+            // le bouton Chapitre, peu importe lequel des deux a été cliqué.
+            if (!Scenes.Any())
+            {
+                await SelectSession();
+                return;
+            }
             var index = await ShowActionSheetIndexAsync(Loc["MixerScene"], Scenes.Select(s => s.Title).ToArray());
             if (index >= 0) SelectedScene = Scenes[index];
         }
 
         [RelayCommand]
-        public void PrevScene()
+        public async Task PrevScene()
         {
-            if (!CanGoPrevScene) return;
-            SelectedScene = Scenes[SceneIndex - 2];
+            if (SceneIndex > 1)
+            {
+                SelectedScene = Scenes[SceneIndex - 2];
+                return;
+            }
+            await GoToAdjacentChapterSceneAsync(direction: -1);
         }
 
         [RelayCommand]
-        public void NextScene()
+        public async Task NextScene()
         {
-            if (!CanGoNextScene) return;
-            SelectedScene = Scenes[SceneIndex];
+            if (SceneIndex < SceneCount)
+            {
+                SelectedScene = Scenes[SceneIndex];
+                return;
+            }
+            await GoToAdjacentChapterSceneAsync(direction: 1);
+        }
+
+        /// <summary>
+        /// Franchit une limite de chapitre depuis PrevScene/NextScene : bascule sur la dernière
+        /// scène du chapitre précédent (direction -1) ou la première du chapitre suivant
+        /// (direction +1). Ne fait rien si ce chapitre n'existe pas ou n'a aucune scène - cf.
+        /// RefreshChapterBoundaryFlagsAsync, qui garde CanGoPrevScene/CanGoNextScene cohérents avec
+        /// cette même condition pour que la flèche soit désactivée dans ce cas plutôt que de
+        /// sembler active sans rien faire.
+        /// </summary>
+        private async Task GoToAdjacentChapterSceneAsync(int direction)
+        {
+            if (SelectedSession == null) return;
+            var sessionIndex = Sessions.IndexOf(SelectedSession);
+            var targetIndex = sessionIndex + direction;
+            if (sessionIndex < 0 || targetIndex < 0 || targetIndex >= Sessions.Count) return;
+
+            var targetSession = Sessions[targetIndex];
+            var targetScenes = await _sceneDataService.GetScenesAsync(targetSession.Id);
+            if (targetScenes.Count == 0) return;
+
+            _suppressHandlers = true;
+            SelectedSession = targetSession;
+            Scenes = new ObservableCollection<Scene>(targetScenes);
+            SceneCount = targetScenes.Count;
+            _suppressHandlers = false;
+            await RefreshChapterBoundaryFlagsAsync();
+
+            SelectedScene = direction > 0 ? targetScenes[0] : targetScenes[^1];
         }
 
         // Empêche deux chargements de scène concurrents (l'UI est bloquée pendant le chargement,
@@ -530,6 +426,7 @@ namespace DmToolsApp.Features.AudioMixer
         {
             if (SelectedScene == null || _isLoadingScene) return;
             _isLoadingScene = true;
+            IsFreeformActive = false;
 
             // Bloque toute la navigation (onglets, changement de scène...) pendant la (re)création
             // des channel strips : changer de scène ou d'onglet en plein chargement laisserait des
@@ -545,7 +442,7 @@ namespace DmToolsApp.Features.AudioMixer
                 // création des lecteurs, potentiellement coûteuse par piste sur Android (cf.
                 // AudioMixerService.CreatePlayerAsync) - sinon les strips resteraient invisibles
                 // derrière le spinner jusqu'à ce que TOUS les lecteurs soient prêts.
-                await Loading.RunAsync(async () => { playable = await PrepareSceneTracksAsync(); });
+                await Loading.RunAsync(async () => { playable = await PrepareSceneTracksAsync(SelectedScene); });
 
                 await PopulateChannelsAsync(playable);
             }
@@ -558,12 +455,12 @@ namespace DmToolsApp.Features.AudioMixer
 
         /// <summary>
         /// Sauvegarde/fade out/vide les channels actuels et renvoie les pistes jouables de
-        /// SelectedScene. Appelé sous Loading.RunAsync par LoadScene ET LoadFromPlayAsync : dans
-        /// les deux cas ce doit être le MÊME empan Show/Hide que la préparation qui précède (sans
-        /// quoi IsLoading retombe à false puis repasse à true entre les deux, et l'overlay
-        /// clignote au lieu de rester affiché en continu).
+        /// <paramref name="scene"/>. Appelé sous Loading.RunAsync par LoadScene, LoadFromPlayAsync
+        /// ET SelectFreeformScene : dans tous les cas ce doit être le MÊME empan Show/Hide que la
+        /// préparation qui précède (sans quoi IsLoading retombe à false puis repasse à true entre
+        /// les deux, et l'overlay clignote au lieu de rester affiché en continu).
         /// </summary>
-        private async Task<List<SceneTrack>> PrepareSceneTracksAsync()
+        private async Task<List<SceneTrack>> PrepareSceneTracksAsync(Scene scene)
         {
             await SaveCurrentSceneAsync();
 
@@ -572,69 +469,74 @@ namespace DmToolsApp.Features.AudioMixer
 
             ClearChannels();
 
-            _activeScene = SelectedScene;
+            _activeScene = scene;
+            OnPropertyChanged(nameof(HasActiveScene));
 
-            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(SelectedScene!.Id);
+            var sceneTracks = await _sceneDataService.GetSceneTracksAsync(scene.Id);
             // Une piste illisible (fichier corrompu, verrouillé...) est simplement ignorée au lieu
             // de faire échouer toute la scène.
             return sceneTracks.Where(st => File.Exists(st.Track.FilePath)).ToList();
         }
 
+        // Sans scène chargée (ni réelle, ni la scène orpheline), AddChannel produirait un strip
+        // dont le picker de piste ne pourrait jamais persister (SaveChannelAsSceneTrack exige
+        // _activeScene) : le bouton "+" du Mixer se lie à ce flag plutôt que de laisser
+        // l'utilisateur découvrir le problème après coup, silencieusement.
+        public bool HasActiveScene => _activeScene != null;
+
         /// <summary>
-        /// Ajoute tout de suite un strip par piste jouable, dans l'ordre de la scène, avec
-        /// IsLoading à true (cf. binding dans AudioMixerPage.xaml qui désactive le strip et
-        /// affiche un spinner local) puis crée les lecteurs en parallèle - chaque strip bascule à
-        /// IsLoading=false dès que SON lecteur est prêt, indépendamment des autres. Volontairement
-        /// hors de Loading.RunAsync : sinon l'overlay plein écran resterait affiché jusqu'à ce que
-        /// TOUS les lecteurs soient créés, masquant cet affichage progressif.
+        /// Bascule le Mixer sur la scène orpheline (sans campagne/chapitre parent, cf.
+        /// SceneDataService.GetOrCreateOrphanSceneAsync) : permet de l'utiliser en dehors de toute
+        /// campagne. Une seule scène orpheline, créée au premier besoin puis réutilisée telle
+        /// quelle - son contenu survit d'une utilisation à l'autre comme une vraie scène. Se
+        /// comporte comme n'importe quel changement de scène (coupe/fade ce qui joue) : pas
+        /// d'overlay sans interruption pour l'instant, cf. discussion avec l'utilisateur.
         /// </summary>
-        private async Task PopulateChannelsAsync(List<SceneTrack> playable)
+        [RelayCommand]
+        public async Task SelectFreeformScene()
         {
-            var channels = playable.Select(st => new ChannelStripViewModel
+            if (_isLoadingScene || IsFreeformActive) return;
+            _isLoadingScene = true;
+
+            var shell = Shell.Current;
+            if (shell != null) shell.IsEnabled = false;
+
+            try
             {
-                SceneTrackId = st.Id,
-                Track = st.Track,
-                DisplayTrackName = st.Track.Title,
-                Volume = st.Volume,
-                IsLooping = st.IsLooping,
-                IsFadeIn = st.FadeIn,
-                IsFadeOut = st.FadeOut,
-                IsLoading = true
-            }).ToList();
+                List<SceneTrack> playable = new();
 
-            foreach (var channel in channels)
-                CurrentChannels.Add(channel);
+                await Loading.RunAsync(async () =>
+                {
+                    var orphanScene = await _sceneDataService.GetOrCreateOrphanSceneAsync();
 
-            // Echecs collectes plutot que remontes un par un : plusieurs strips se chargent en
-            // parallele (Task.WhenAll), un ShowErrorAsync par echec empilerait plusieurs popups
-            // modales d'un coup - une seule notification groupee a la fin est plus lisible.
-            var failedTracks = new List<string>();
-            var creationTasks = playable.Zip(channels, async (st, channel) =>
+                    // Sessions n'est PAS vidée : si une campagne était déjà chargée, le sélecteur
+                    // "Chapitre" reste utilisable pour y revenir sans repasser par l'accordéon.
+                    _suppressHandlers = true;
+                    SelectedSession = null;
+                    SelectedScene = null;
+                    _suppressHandlers = false;
+                    IsFreeformActive = true;
+
+                    Scenes.Clear();
+                    SceneCount = 0;
+                    SceneIndex = 0;
+                    // SelectedSession vient d'être remis à null (Sessions elle-même n'est pas
+                    // vidée) : pas de chapitre voisin à considérer tant qu'on est en freeform.
+                    _hasPreviousChapterScene = false;
+                    _hasNextChapterScene = false;
+                    OnPropertyChanged(nameof(CanGoPrevScene));
+                    OnPropertyChanged(nameof(CanGoNextScene));
+
+                    playable = await PrepareSceneTracksAsync(orphanScene);
+                });
+
+                await PopulateChannelsAsync(playable);
+            }
+            finally
             {
-                try
-                {
-                    channel.Player = await _audioMixerService.CreatePlayerAsync(st.Track.FilePath);
-                    SubscribeChannel(channel);
-
-                    if (st.AutoPlay)
-                        channel.Play();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[AudioMixerViewModel] Échec de création du lecteur pour '{st.Track.Title}' : {ex}");
-                    failedTracks.Add(st.Track.Title);
-                    CurrentChannels.Remove(channel);
-                }
-                finally
-                {
-                    channel.IsLoading = false;
-                }
-            });
-            await Task.WhenAll(creationTasks);
-
-            if (failedTracks.Count > 0)
-                await ShowInfoAsync(Loc["ErrorTitle"], string.Format(Loc["ErrorTracksFailedToLoad"], string.Join(", ", failedTracks)));
+                if (shell != null) shell.IsEnabled = true;
+                _isLoadingScene = false;
+            }
         }
     }
 }

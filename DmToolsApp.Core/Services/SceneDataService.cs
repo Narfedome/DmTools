@@ -18,7 +18,7 @@ namespace DmToolsApp.Services
         public async Task<List<Campaign>> GetCampaignsAsync()
         {
             await _db.Initialization;
-            var entities = await _db.Connection.Table<CampaignEntity>().ToListAsync();
+            var entities = await _db.Connection.Table<CampaignEntity>().OrderBy(e => e.Position).ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
 
@@ -68,6 +68,7 @@ namespace DmToolsApp.Services
             await _db.Initialization;
             var entities = await _db.Connection.Table<SessionEntity>()
                 .Where(e => e.CampaignId == campaignId)
+                .OrderBy(e => e.Position)
                 .ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
@@ -108,6 +109,7 @@ namespace DmToolsApp.Services
             await _db.Initialization;
             var entities = await _db.Connection.Table<SceneEntity>()
                 .Where(e => e.SessionId == sessionId)
+                .OrderBy(e => e.Position)
                 .ToListAsync();
             return entities.Select(e => e.ToModel()).ToList();
         }
@@ -125,6 +127,30 @@ namespace DmToolsApp.Services
             {
                 await _db.Connection.UpdateAsync(entity);
             }
+        }
+
+        // SessionId=0 : aucun Chapitre réel n'a jamais cet Id (AutoIncrement démarre à 1), donc
+        // cette valeur est un marqueur sûr et sans ambiguïté pour "scène orpheline" (pas de
+        // campagne/chapitre parent). GetScenesAsync ne peut jamais la retourner (aucun chapitre
+        // réel n'a l'Id 0), elle reste donc naturellement invisible dans l'accordéon
+        // Campagne/Chapitre/Scène. Utilisée par le Mixer pour fonctionner sans passer par une
+        // scène (session ponctuelle hors campagne) : une seule scène orpheline, créée au premier
+        // besoin puis réutilisée telle quelle (son Titre n'est jamais affiché - le Mixer pilote
+        // son propre libellé "Session libre" côté UI).
+        public const int OrphanSceneSessionId = 0;
+
+        public async Task<Scene> GetOrCreateOrphanSceneAsync()
+        {
+            await _db.Initialization;
+            var existing = await _db.Connection.Table<SceneEntity>()
+                .Where(e => e.SessionId == OrphanSceneSessionId)
+                .FirstOrDefaultAsync();
+            if (existing != null)
+                return existing.ToModel();
+
+            var entity = new SceneEntity { SessionId = OrphanSceneSessionId, Title = "Freeform" };
+            await _db.Connection.InsertAsync(entity);
+            return entity.ToModel();
         }
 
         public async Task DeleteSceneAsync(Scene scene)
@@ -226,6 +252,38 @@ namespace DmToolsApp.Services
             entity.Volume = volume;
             await _db.Connection.UpdateAsync(entity);
         }
+
+        // ── Réordonnancement (glisser-déposer) ────────────────────
+
+        /// <summary>
+        /// Réassigne Position = index pour chaque entité de la liste, dans l'ordre donné. En
+        /// transaction : un déplacement touche potentiellement tous les frères (pas seulement
+        /// l'élément glissé), une interruption à mi-chemin laisserait sinon des Position
+        /// incohérentes entre eux (deux éléments à la même position, ou un trou). Un seul appelant
+        /// par niveau (Campagne/Chapitre/Scène/SceneTrack) passe déjà les ids d'un seul groupe de
+        /// frères (même parent) : aucune validation cross-parent n'est faite ici.
+        /// </summary>
+        private async Task ReorderAsync<T>(List<int> orderedIds) where T : IPositioned, new()
+        {
+            await _db.Initialization;
+            await _db.Connection.RunInTransactionAsync(conn =>
+            {
+                for (int i = 0; i < orderedIds.Count; i++)
+                {
+                    var entity = conn.Find<T>(orderedIds[i]);
+                    if (entity == null)
+                        continue;
+
+                    entity.Position = i;
+                    conn.Update(entity);
+                }
+            });
+        }
+
+        public Task ReorderCampaignsAsync(List<int> orderedCampaignIds) => ReorderAsync<CampaignEntity>(orderedCampaignIds);
+        public Task ReorderSessionsAsync(List<int> orderedSessionIds) => ReorderAsync<SessionEntity>(orderedSessionIds);
+        public Task ReorderScenesAsync(List<int> orderedSceneIds) => ReorderAsync<SceneEntity>(orderedSceneIds);
+        public Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds) => ReorderAsync<SceneTrackEntity>(orderedSceneTrackIds);
     }
 
     public interface ISceneDataService
@@ -233,14 +291,18 @@ namespace DmToolsApp.Services
         Task<List<Campaign>> GetCampaignsAsync();
         Task SaveCampaignAsync(Campaign campaign);
         Task DeleteCampaignAsync(Campaign campaign);
+        Task ReorderCampaignsAsync(List<int> orderedCampaignIds);
 
         Task<List<Session>> GetSessionsAsync(int campaignId);
         Task SaveSessionAsync(Session session);
         Task DeleteSessionAsync(Session session);
+        Task ReorderSessionsAsync(List<int> orderedSessionIds);
 
         Task<List<Scene>> GetScenesAsync(int sessionId);
         Task SaveSceneAsync(Scene scene);
         Task DeleteSceneAsync(Scene scene);
+        Task ReorderScenesAsync(List<int> orderedSceneIds);
+        Task<Scene> GetOrCreateOrphanSceneAsync();
 
         Task<List<SceneTrack>> GetSceneTracksAsync(int sceneId);
         Task SaveSceneTrackAsync(SceneTrack sceneTrack);
@@ -248,5 +310,6 @@ namespace DmToolsApp.Services
         Task UpdateSceneTrackAsync(int sceneTrackId, double volume, bool isLooping, bool autoPlay, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackSettingsAsync(int sceneTrackId, double volume, bool isLooping, bool fadeIn, bool fadeOut);
         Task UpdateSceneTrackVolumeAsync(int sceneTrackId, float volume);
+        Task ReorderSceneTracksAsync(List<int> orderedSceneTrackIds);
     }
 }

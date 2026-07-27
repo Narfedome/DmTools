@@ -15,7 +15,11 @@ namespace DmToolsApp.Services
             _libraryDataService = libraryDataService;
         }
 
-        public Task<long> GetTotalLibrarySizeAsync()
+        // Task.Run (pas juste Task.FromResult) : appelée depuis SettingsViewModel.InitializeAsync à
+        // chaque ouverture de l'onglet Réglages - sans ça, l'énumération de fichiers + FileInfo.Length
+        // par fichier s'exécutait entièrement sur le thread UI appelant (aucun point d'I/O réellement
+        // asynchrone dans le corps), d'où un mini-freeze perceptible pour une bibliothèque conséquente.
+        public Task<long> GetTotalLibrarySizeAsync() => Task.Run(() =>
         {
             long total = 0;
 
@@ -28,8 +32,8 @@ namespace DmToolsApp.Services
                     total += new FileInfo(file).Length;
             }
 
-            return Task.FromResult(total);
-        }
+            return total;
+        });
 
         public async Task<List<(string Title, long SizeBytes)>> GetLargestTracksAsync(int count)
         {

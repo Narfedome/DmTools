@@ -37,6 +37,29 @@ namespace DmToolsApp.Features.Library
         // ClearTrackItems() courrait avec lui - état de pagination incohérent.
         private readonly SemaphoreSlim _loadGate = new(1, 1);
 
+        // Permet d'interrompre un chargement en cours quand la page quitte l'écran (changement
+        // d'onglet, cf. LibraryTrackPage/LibraryTrackSelectorPage.OnDisappearing) : sans ça, un
+        // chargement démarré juste avant de quitter l'onglet (ex. juste après un gros import)
+        // continuait à solliciter le thread UI/la DB en arrière-plan pendant qu'aucune tuile n'est
+        // visible pour en profiter, au détriment de l'onglet réellement affiché. La requête DB
+        // elle-même n'est pas interrompue (sqlite-net-pcl ne le permet pas), seule la boucle qui
+        // ajoute les tuiles ensuite l'est. EnsureFreshLoadToken recrée le jeton s'il a déjà été
+        // annulé, pour qu'un nouveau chargement (retour sur l'onglet, scroll...) reparte normalement.
+        private CancellationTokenSource _loadCts = new();
+
+        public void CancelPendingLoad() => _loadCts.Cancel();
+
+        private CancellationToken EnsureFreshLoadToken()
+        {
+            if (_loadCts.IsCancellationRequested)
+            {
+                _loadCts.Dispose();
+                _loadCts = new CancellationTokenSource();
+            }
+
+            return _loadCts.Token;
+        }
+
         public LibraryMultiSelection<Track> Selection { get; } = new();
 
         public bool HasSelection => Selection.HasSelection;
@@ -55,17 +78,32 @@ namespace DmToolsApp.Features.Library
         private string NoFolderLabel => Loc["LibImportNoCategory"];
 
         [ObservableProperty]
-        public ObservableCollection<Track> trackItems = new();
+        public ObservableCollection<TrackGroup> trackItems = new();
 
-        public bool HasTrackItems => TrackItems.Count > 0;
+        // TrackItems.Count compte les groupes (catégories), pas les pistes - utilisé par les
+        // heuristiques de pagination (seuil de scroll, remplissage de viewport, cf.
+        // LibraryTrackView.xaml.cs) qui doivent comparer un nombre de pistes chargées, pas de groupes.
+        public int LoadedTrackCount => TrackItems.Sum(g => g.Count);
+
+        public bool HasTrackItems => LoadedTrackCount > 0;
+
+        // La CollectionView reste groupée en permanence (structure interne toujours en TrackGroup,
+        // même un seul groupe en filtré) plutôt que de jongler entre deux formes de données selon le
+        // filtre : seul l'en-tête de section est masqué hors du filtre "Tout", où il serait redondant
+        // avec le bouton de filtre déjà affiché juste au-dessus.
+        public bool ShowGroupHeaders => SelectedCategory == AllCategoriesLabel;
 
         // Deux variantes de l'état vide : "Tout" vide (aucune piste importée du tout) propose les
         // raccourcis d'import ; une catégorie spécifique vide (le filtre ne matche juste rien) affiche
         // un simple message, l'import n'y étant pas forcément pertinent (une piste importée n'atterrit
-        // pas nécessairement dans cette catégorie).
-        public bool ShowEmptyLibraryCard => !HasTrackItems && SelectedCategory == AllCategoriesLabel;
+        // pas nécessairement dans cette catégorie). _hasLoadedOnce : avant le tout premier chargement,
+        // SelectedCategory vaut encore "" (default), différent de AllCategoriesLabel - sans ce garde,
+        // ShowEmptyCategoryMessage s'affichait un instant au tout premier rendu de la page, avant même
+        // qu'InitializeAsync (appelé depuis OnNavigatedTo, donc après ce premier rendu) n'ait eu la
+        // main pour faire passer Loading.IsLoading à true.
+        public bool ShowEmptyLibraryCard => _hasLoadedOnce && !HasTrackItems && SelectedCategory == AllCategoriesLabel;
 
-        public bool ShowEmptyCategoryMessage => !HasTrackItems && SelectedCategory != AllCategoriesLabel;
+        public bool ShowEmptyCategoryMessage => _hasLoadedOnce && !HasTrackItems && SelectedCategory != AllCategoriesLabel;
 
         [ObservableProperty]
         private Track? selectedTrackItem;
@@ -89,6 +127,7 @@ namespace DmToolsApp.Features.Library
         {
             OnPropertyChanged(nameof(ShowEmptyLibraryCard));
             OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+            OnPropertyChanged(nameof(ShowGroupHeaders));
 
             if (_suppressCategoryReload)
                 return;
@@ -138,8 +177,16 @@ namespace DmToolsApp.Features.Library
             {
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    await RefreshCategoriesAsync();
-                    await ReloadAsync();
+                    // Sans Loading.RunAsync, ce rechargement (déclenché après un import/edit, souvent
+                    // pendant que l'onglet Bibliothèque n'est même pas affiché) viderait TrackItems
+                    // puis le repeuplerait sans jamais activer le spinner - la carte "bibliothèque
+                    // vide" pouvait alors s'afficher un instant (ou plus, sur un gros import) à la
+                    // place.
+                    await Loading.RunAsync(async () =>
+                    {
+                        await RefreshCategoriesAsync();
+                        await ReloadAsync();
+                    });
                 });
             });
         }
@@ -179,6 +226,8 @@ namespace DmToolsApp.Features.Library
                     await ReloadAsync();
                 });
                 _hasLoadedOnce = true;
+                OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+                OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
             }
             finally
             {
@@ -245,6 +294,11 @@ namespace DmToolsApp.Features.Library
             await _loadGate.WaitAsync();
             try
             {
+                // Un rechargement complet (changement de catégorie, LibraryUpdatedMessage...) repart
+                // toujours d'un jeton frais, y compris si le précédent avait été annulé par un départ
+                // d'onglet entre-temps.
+                var token = EnsureFreshLoadToken();
+
                 // null = pas de filtre (Tout), "" = uniquement les pistes sans catégorie (Aucun
                 // dossier), sinon le nom exact de la catégorie choisie - cf. GetItemsPageAsync.
                 _categoryFilter = SelectedCategory == AllCategoriesLabel ? null
@@ -263,7 +317,7 @@ namespace DmToolsApp.Features.Library
                 // Appel direct de la version non verrouillée (pas LoadNextPageAsync) : le verrou est
                 // déjà tenu ici, un SemaphoreSlim n'étant pas réentrant, ré-attendre dessus bloquerait
                 // indéfiniment.
-                await LoadNextPageCoreAsync();
+                await LoadNextPageCoreAsync(token);
             }
             finally
             {
@@ -273,10 +327,33 @@ namespace DmToolsApp.Features.Library
 
         private void ClearTrackItems()
         {
-            foreach (var t in TrackItems)
-                Selection.Untrack(t);
+            foreach (var group in TrackItems)
+                foreach (var t in group)
+                    Selection.Untrack(t);
 
             TrackItems.Clear();
+        }
+
+        private string CategoryDisplayName(string category) => string.IsNullOrEmpty(category) ? NoFolderLabel : category;
+
+        /// <summary>Ajoute une piste à la fin du groupe (catégorie) correspondant dans TrackItems, en
+        /// créant ce groupe s'il n'existe pas encore. TrackItems.CollectionChanged (cf. constructeur)
+        /// ne se déclenche que quand un groupe est ajouté/retiré, pas quand une piste s'ajoute à un
+        /// groupe déjà présent - les notifications ci-dessous couvrent donc ce cas manquant.</summary>
+        private void AddTrackToGroup(Track track)
+        {
+            var groupName = CategoryDisplayName(track.Category);
+            var group = TrackItems.FirstOrDefault(g => g.Name == groupName);
+            if (group == null)
+            {
+                group = new TrackGroup(groupName);
+                TrackItems.Add(group);
+            }
+
+            group.Add(track);
+            OnPropertyChanged(nameof(HasTrackItems));
+            OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+            OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
         }
 
         // Point d'entrée externe (scroll) : passe par _loadGate pour ne jamais s'exécuter pendant
@@ -288,7 +365,8 @@ namespace DmToolsApp.Features.Library
             await _loadGate.WaitAsync();
             try
             {
-                await LoadNextPageCoreAsync();
+                var token = EnsureFreshLoadToken();
+                await LoadNextPageCoreAsync(token);
             }
             finally
             {
@@ -296,7 +374,7 @@ namespace DmToolsApp.Features.Library
             }
         }
 
-        private async Task LoadNextPageCoreAsync()
+        private async Task LoadNextPageCoreAsync(CancellationToken cancellationToken)
         {
             if (_isLoadingMore || !_hasMoreItems)
                 return;
@@ -312,7 +390,10 @@ namespace DmToolsApp.Features.Library
 
             try
             {
+                // La requête elle-même n'est pas annulable (sqlite-net-pcl ne le permet pas) : le
+                // jeton n'est vérifié qu'à partir d'ici, dans la boucle qui peuple TrackItems.
                 var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
+                _hasMoreItems = items.Count == PageSize;
 
                 // Ne précharge plus les pochettes ici : chaque tuile (TrackButtonViewModel) charge déjà
                 // la sienne en tâche de fond dès qu'elle reçoit sa track, avec un placeholder pendant ce
@@ -322,9 +403,24 @@ namespace DmToolsApp.Features.Library
                 // maintenant une à une au fil de la boucle ci-dessous, pochette à part.
                 foreach (var item in items)
                 {
+                    // Vérifié avant chaque tuile plutôt qu'une seule fois avant la boucle : une page
+                    // quittée (changement d'onglet) en plein milieu arrête d'en ajouter d'autres tout
+                    // de suite, pas seulement à la prochaine page.
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var track = (Track)item;
                     Selection.Track(track);
-                    TrackItems.Add(track);
+
+                    // La requête (GetItemsPageAsync) trie par catégorie : les pistes d'un même groupe
+                    // sortent toujours consécutives, y compris à cheval sur deux pages successives -
+                    // pas besoin de rechercher le groupe ailleurs que dans AddTrackToGroup.
+                    AddTrackToGroup(track);
+
+                    // Incrémenté ici (par piste) plutôt qu'une fois après la boucle : si une annulation
+                    // interrompt la boucle en plein milieu, _loadedCount reflète alors exactement ce qui
+                    // a déjà été ajouté, et un prochain chargement reprend au bon endroit sans doublon
+                    // ni piste sautée.
+                    _loadedCount++;
 
                     // Laisse la main au thread UI entre chaque tuile (traitement des messages Windows -
                     // dont les taps sur les autres onglets) plutôt que d'enchaîner les 12 ajouts et
@@ -332,11 +428,13 @@ namespace DmToolsApp.Features.Library
                     await Task.Yield();
                 }
 
-                _loadedCount += items.Count;
-                _hasMoreItems = items.Count == PageSize;
-
                 if (SelectedTrackItem == null)
-                    SelectedTrackItem = TrackItems.FirstOrDefault();
+                    SelectedTrackItem = TrackItems.FirstOrDefault()?.FirstOrDefault();
+            }
+            catch (OperationCanceledException)
+            {
+                // Page quittée pendant le chargement (changement d'onglet) : pas une vraie erreur à
+                // remonter, juste un chargement abandonné en cours de route.
             }
             finally
             {
@@ -384,12 +482,13 @@ namespace DmToolsApp.Features.Library
         public async Task SelectAll()
         {
             var ids = await _libraryDataService.GetItemIdsAsync(typeof(Track), _categoryFilter);
+            var allTracks = TrackItems.SelectMany(g => g);
 
             // Bascule : si tout est déjà sélectionné, un nouvel appui tout désélectionne.
             if (ids.Count > 0 && Selection.ContainsAll(ids))
-                Selection.DeselectAll(TrackItems);
+                Selection.DeselectAll(allTracks);
             else
-                Selection.SelectIds(ids, TrackItems);
+                Selection.SelectIds(ids, allTracks);
         }
 
         /// <summary>
@@ -409,7 +508,7 @@ namespace DmToolsApp.Features.Library
             // Une seule piste ciblée (que ce soit via une case cochée ou l'item tapé) : même message
             // que la suppression individuelle, avec son titre plutôt qu'un simple compteur.
             var message = ids.Count == 1
-                ? string.Format(Loc["DialogDeleteTrackConfirm"], (TrackItems.FirstOrDefault(t => t.Id == ids[0]) ?? SelectedTrackItem)?.Title)
+                ? string.Format(Loc["DialogDeleteTrackConfirm"], (TrackItems.SelectMany(g => g).FirstOrDefault(t => t.Id == ids[0]) ?? SelectedTrackItem)?.Title)
                 : string.Format(Loc["LibDeleteSelectedConfirm"], ids.Count);
 
             if (!await ConfirmAsync(Loc["DialogDelete"], message))
@@ -431,15 +530,23 @@ namespace DmToolsApp.Features.Library
                     _fileService.DeleteTrackFromLocal(track.ImagePath);
             }
 
-            foreach (var item in TrackItems.Where(t => ids.Contains(t.Id)).ToList())
+            foreach (var group in TrackItems.ToList())
             {
-                Selection.Untrack(item);
-                TrackItems.Remove(item);
-                _loadedCount--;
+                foreach (var item in group.Where(t => ids.Contains(t.Id)).ToList())
+                {
+                    Selection.Untrack(item);
+                    group.Remove(item);
+                    _loadedCount--;
+                }
+
+                // Un groupe vidé de toutes ses pistes ne doit pas laisser un en-tête de catégorie
+                // sans rien en dessous.
+                if (group.Count == 0)
+                    TrackItems.Remove(group);
             }
 
             Selection.Clear();
-            SelectedTrackItem = TrackItems.FirstOrDefault();
+            SelectedTrackItem = TrackItems.FirstOrDefault()?.FirstOrDefault();
 
             await RefreshCategoriesAsync();
         }
@@ -557,7 +664,7 @@ namespace DmToolsApp.Features.Library
                         if (_categoryFilter == null || string.Equals(track.Category, _categoryFilter, StringComparison.OrdinalIgnoreCase))
                         {
                             Selection.Track(track);
-                            TrackItems.Add(track);
+                            AddTrackToGroup(track);
                             _loadedCount++;
                         }
 

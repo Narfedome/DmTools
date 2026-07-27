@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DmToolsApp.Data.Entities
 {
-   public  class SceneTrackEntity
+   public  class SceneTrackEntity : IPositioned
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }

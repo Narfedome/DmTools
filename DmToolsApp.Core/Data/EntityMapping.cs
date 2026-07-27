@@ -54,36 +54,40 @@ namespace DmToolsApp.Data
             Description = m.Description
         };
 
-        public static Campaign ToModel(this CampaignEntity e) => new() { Id = e.Id, Title = e.Title };
+        public static Campaign ToModel(this CampaignEntity e) => new() { Id = e.Id, Title = e.Title, Position = e.Position };
 
-        public static CampaignEntity ToEntity(this Campaign m) => new() { Id = m.Id, Title = m.Title };
+        public static CampaignEntity ToEntity(this Campaign m) => new() { Id = m.Id, Title = m.Title, Position = m.Position };
 
         public static Session ToModel(this SessionEntity e) => new()
         {
             Id = e.Id,
             CampaignId = e.CampaignId,
-            Title = e.Title
+            Title = e.Title,
+            Position = e.Position
         };
 
         public static SessionEntity ToEntity(this Session m) => new()
         {
             Id = m.Id,
             CampaignId = m.CampaignId,
-            Title = m.Title
+            Title = m.Title,
+            Position = m.Position
         };
 
         public static Scene ToModel(this SceneEntity e) => new()
         {
             Id = e.Id,
             SessionId = e.SessionId,
-            Title = e.Title
+            Title = e.Title,
+            Position = e.Position
         };
 
         public static SceneEntity ToEntity(this Scene m) => new()
         {
             Id = m.Id,
             SessionId = m.SessionId,
-            Title = m.Title
+            Title = m.Title,
+            Position = m.Position
         };
 
         /// <param name="track">Piste jointe (chargée séparément — SQLite-net ne fait pas de jointure).</param>

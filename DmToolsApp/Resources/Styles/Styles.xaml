@@ -114,6 +114,24 @@
         <Setter Property="Padding" Value="{DynamicResource AppButtonPadding}"/>
         <Setter Property="MinimumHeightRequest" Value="{DynamicResource AppMinTouchTarget}"/>
         <Setter Property="MinimumWidthRequest" Value="{DynamicResource AppMinTouchTarget}"/>
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.85" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                            <Setter Property="Scale" Value="0.97" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
     </Style>
 
     <!-- Bouton d'option (liste de choix) pour ActionSheetDialog -->

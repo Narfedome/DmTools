@@ -3,7 +3,6 @@ using DmToolsApp.Extensions;
 using DmToolsApp.Features.Campaigns;
 using DmToolsApp.Features.ImportExport;
 using DmToolsApp.Features.Library;
-using DmToolsApp.Resources.Icons;
 using DmToolsApp.Services;
 
 namespace DmToolsApp
@@ -12,23 +11,12 @@ namespace DmToolsApp
     {
         private readonly LocalizationService _loc = LocalizationService.Instance;
 
-        public AppShell(SessionStateService sessionStateService)
+        public AppShell()
         {
             InitializeComponent();
             Routing.RegisterRoute(nameof(LibrarySpellEditPage), typeof(LibrarySpellEditPage));
             Routing.RegisterRoute(nameof(CategoryListPage), typeof(CategoryListPage));
-            Routing.RegisterRoute(nameof(SceneTracksPage), typeof(SceneTracksPage));
             Routing.RegisterRoute(nameof(ImportExportPage), typeof(ImportExportPage));
-
-            sessionStateService.StateChanged += () =>
-            {
-                bool active = sessionStateService.IsSessionActive;
-                AudioMixerTab.IsVisible = active;
-                // Force icon re-render — MAUI doesn't redraw FontImageSource on IsVisible toggle
-                if (active)
-                    AudioMixerTab.Icon = new FaIconExtension { Glyph = SolidFont.Sliders }
-                        .ProvideValue(null!);
-            };
 
             WeakReferenceMessenger.Default.Register<LanguageChangedMessage>(this,
                 (r, m) => ((AppShell)r).UpdateTabTitles());

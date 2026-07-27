@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,8 +35,11 @@ namespace DmToolsApp.Services
     public class ImportExportService : IImportExportService
     {
         private const int FormatVersion = 1;
+        // Garde-fous anti zip-bomb (cf. doc de classe), pas des limites d'usage normal : une piste d'1h
+        // en Opus tient dans ~60 Mo, donc 500 Mo par piste laisse une large marge. 20 Go au total couvre
+        // une bibliothèque complète (FullBackup) sans jamais s'en approcher pour un usage légitime.
         private const long MaxTrackEntryBytes = 500L * 1024 * 1024;
-        private const long MaxTotalUncompressedBytes = 2L * 1024 * 1024 * 1024;
+        private const long MaxTotalUncompressedBytes = 20L * 1024 * 1024 * 1024;
         private const string ManifestEntryName = "manifest.json";
         private const string SignatureEntryName = "manifest.sig";
 
@@ -105,7 +110,14 @@ namespace DmToolsApp.Services
                 .ToDictionary(t => t.Id);
 
             int processed = 0;
-            foreach (var trackId in trackIdsToInclude)
+
+            // Trié par Id (ordre de création initial dans la bibliothèque), pas par ordre d'itération
+            // du HashSet (qui suit l'ordre de traversée des scènes d'une campagne) : la liste "toute la
+            // bibliothèque" sort ainsi toujours dans son ordre d'origine, indépendamment des campagnes
+            // qui référencent chaque piste - un réimport reproduit alors le même ordre relatif que la
+            // bibliothèque source, les liens de campagne n'étant que des références par Id dans le
+            // manifeste (cf. BuildCampaignExportAsync, déjà construit avant cette boucle).
+            foreach (var trackId in trackIdsToInclude.OrderBy(id => id))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!allTracksById.TryGetValue(trackId, out var track) || string.IsNullOrEmpty(track.FilePath) || !File.Exists(track.FilePath))
@@ -212,6 +224,60 @@ namespace DmToolsApp.Services
         }
 
         // ── Import ────────────────────────────────────────────────
+        //
+        // Historique et raisons des choix ci-dessous (mécanique non triviale, à ne pas re-régresser
+        // sans relire ce qui suit) :
+        //
+        // Version initiale (avant optimisation) : chaque piste était extraite vers un fichier
+        // temporaire, son hash recalculé en relisant ce fichier en entier, sa décodabilité vérifiée en
+        // le relisant une troisième fois (TagLib), puis copiée une seconde fois vers son emplacement
+        // définitif - soit ~2 écritures et ~3 lectures complètes par piste pour une seule opération
+        // logiquement nécessaire. Mesuré sur une bibliothèque réelle de 239 pistes (~9 Go) : environ
+        // 12 minutes rien que pour l'extraction+hash+décodabilité.
+        //
+        // Ce qui a été changé, et pourquoi :
+        //  1) Écriture directe à l'emplacement définitif (ExtractAndVerifyHashAsync), hash calculé à la
+        //     volée pendant cette même écriture (IncrementalHash) au lieu d'une passe de lecture dédiée
+        //     après coup - élimine la moitié des passes disque.
+        //  2) Buffer de copie remonté de 80 Ko (défaut Stream.CopyToAsync) à 4 Mo - a divisé par ~3 le
+        //     temps de cette phase à lui seul (mesuré : 455s -> 151s sur la même bibliothèque), en
+        //     réduisant le nombre d'allers-retours de lecture/écriture.
+        //  3) IsDecodableAudio bascule sur TagLib.ReadStyle.None : la détection de format (ce qui nous
+        //     intéresse ici) se fait indépendamment du ReadStyle chez TagLib, seul le calcul du bitrate
+        //     moyen (coûteux, un scan complet du flux audio) est sauté. Le check historique exigeait en
+        //     plus Duration > 0 pour rejeter un conteneur reconnu mais vide - abandonné ici (Duration
+        //     vaut toujours zéro sous ReadStyle.None) car : (a) Track.Duration à l'import vient déjà du
+        //     manifeste, jamais de ce scan ; (b) IsDecodableAudio n'est utilisé que par l'import (seul
+        //     appelant, vérifié) donc rien d'autre n'en dépend ; (c) le hash SHA256 déjà vérifié avant
+        //     cet appel garantit que le contenu correspond exactement au fichier original exporté - un
+        //     faux fichier ne le passerait pas. Gain mesuré : 283s -> 222s (moins que "quasiment zéro"
+        //     espéré : pour l'Ogg/Opus, la lecture des pages d'en-tête de flux se fait elle aussi
+        //     indépendamment du ReadStyle et représente une part significative du coût, incompressible
+        //     sans réécrire nous-mêmes le parsing Ogg).
+        //  4) Pipeline en 3 phases plutôt qu'un seul passage séquentiel par piste (cf.
+        //     ImportTracksAsync) : la phase 2 (décodabilité, le poste de temps restant le plus lourd)
+        //     est parallélisée entre plusieurs pistes à la fois, chaque piste étant déjà écrite sur son
+        //     propre fichier local à ce stade - indépendant du ZipArchive partagé, donc sans risque. La
+        //     phase 1 (extraction depuis le zip), elle, DOIT rester séquentielle : ZipArchive ne permet
+        //     pas la lecture concurrente de plusieurs entrées sur la même instance/flux partagé (vérifié
+        //     dans la doc .NET avant d'implémenter - piste explicitement écartée pour cette étape).
+        //
+        // Limite rencontrée, importante à connaître avant de retoucher ce fichier : le gain réel de la
+        // parallélisation de la phase 2 dépend fortement de la plateforme. Mesuré sur un émulateur
+        // Android : 222s séquentiel -> 193s réel en parallèle à 4 (~13% seulement, pas les ~75%
+        // attendus d'un vrai parallélisme CPU) - le stockage flash mobile ne scale pas bien avec des
+        // lectures concurrentes, le disque reste le facteur limitant, pas le CPU. Sur Windows (SSD) en
+        // revanche : 42s d'extraction contre 37s de décodabilité, un ratio bien plus proche de l'idéal -
+        // la parallélisation y est un vrai gain net. Non vérifié : un appareil Android réel (pas
+        // l'émulateur, dont le disque virtuel QCOW2 ajoute un overhead que le stockage flash natif d'un
+        // téléphone n'a pas) pourrait très bien scaler mieux que ce qui a été mesuré ici.
+        //
+        // Alternatives de librairies envisagées puis écartées (aucune n'aurait aidé) : CryptoStream à la
+        // place de la boucle read+hash+write manuelle (même travail réel, perte du contrôle sur la
+        // taille de buffer) ; une lib zip tierce (nos entrées sont stockées sans compression à l'export,
+        // "extraire" est déjà une simple copie d'octets) ; un sniffer de format plus léger que TagLib
+        // (affaiblirait la vraie validation de structure contre un fichier forgé, pour gagner quelques
+        // secondes).
 
         public async Task<ImportResult> ImportAsync(Stream source, IProgress<ImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
@@ -257,18 +323,7 @@ namespace DmToolsApp.Services
             var result = new ImportResult();
             var trackIdMap = new Dictionary<int, int>();
 
-            int processed = 0;
-            foreach (var trackExport in manifest.Tracks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var newTrackId = await ImportTrackAsync(zip, trackExport, result);
-                if (newTrackId is int id)
-                    trackIdMap[trackExport.Id] = id;
-                else
-                    result.TracksRejected++;
-
-                progress?.Report(new ImportProgress { CurrentItem = trackExport.Title, Processed = ++processed, Total = manifest.Tracks.Count });
-            }
+            await ImportTracksAsync(zip, manifest.Tracks, result, trackIdMap, progress, cancellationToken);
 
             foreach (var campaignExport in manifest.Campaigns)
             {
@@ -336,72 +391,238 @@ namespace DmToolsApp.Services
             }
         }
 
-        /// <returns>Le nouvel Id local de la track (réutilisée ou copiée), ou null si l'entrée a été rejetée.</returns>
-        private async Task<int?> ImportTrackAsync(ZipArchive zip, TrackExport trackExport, ImportResult result)
+        /// <summary>
+        /// Traite les pistes en 3 phases plutôt qu'une par une de bout en bout :
+        /// 1) Extraction + hash - séquentielle (ZipArchive n'autorise pas de lecture concurrente de
+        ///    plusieurs entrées sur la même instance/flux partagé - cf. investigation qui a écarté la
+        ///    parallélisation de cette étape précise).
+        /// 2) Vérification de décodabilité (TagLib) - chaque piste est déjà écrite sur son propre
+        ///    fichier local à ce stade, indépendant du zip partagé : plusieurs peuvent être validées
+        ///    en parallèle sans aucun risque de corruption, ce qui divise son temps total par le degré
+        ///    de parallélisme choisi (mesuré comme le deuxième poste de temps le plus important après
+        ///    l'extraction, cf. ImportResult.VerificationDuration).
+        /// 3) Sauvegarde en base - séquentielle (pas de gain à paralléliser des écritures SQLite, déjà
+        ///    mesuré comme négligeable, cf. ImportResult.DatabaseSaveDuration).
+        /// </summary>
+        private async Task ImportTracksAsync(ZipArchive zip, List<TrackExport> tracks, ImportResult result,
+            Dictionary<int, int> trackIdMap, IProgress<ImportProgress>? progress, CancellationToken cancellationToken)
+        {
+            // Temps réel total des 3 phases, affiché à l'utilisateur en fin d'import (cf.
+            // ImportResult.TotalDuration) - mesuré séparément de la somme des durées par phase, qui
+            // peut être trompeuse une fois qu'une phase se parallélise (cf. phase 2 ci-dessous).
+            var totalStopwatch = Stopwatch.StartNew();
+
+            var total = tracks.Count;
+            var processed = 0;
+
+            var pending = new List<(TrackExport TrackExport, string LocalPath)>();
+            // Réutilisé entre pistes plutôt que réalloué à chaque appel : évite de faire churner un
+            // buffer de 4 Mo par piste (pression GC inutile sur une bibliothèque de plusieurs centaines
+            // de pistes). Sûr ici : phase 1 reste strictement séquentielle.
+            var buffer = new byte[4 * 1024 * 1024];
+
+            // Couvre les 3 phases, pas seulement 2 et 3 : une annulation ou une erreur pendant la phase
+            // 1 elle-même (extraction, la plus longue - cf. doc de classe) laisserait sinon les pistes
+            // déjà extraites avant l'interruption orphelines sur disque, jamais nettoyées (le filet plus
+            // bas ne s'exécutait alors jamais, resté hors de portée de cette boucle).
+            var resolvedPaths = new HashSet<string>();
+            try
+            {
+                foreach (var trackExport in tracks)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var localPath = await ExtractAndVerifyHashAsync(zip, trackExport, result, trackIdMap, buffer, cancellationToken);
+                    if (localPath != null)
+                        pending.Add((trackExport, localPath));
+
+                    progress?.Report(new ImportProgress { CurrentItem = trackExport.Title, Processed = ++processed, Total = total });
+                }
+
+                var outcomes = new ConcurrentBag<(TrackExport TrackExport, string LocalPath, bool IsDecodable)>();
+
+                // Chronomètre la phase dans son ensemble (temps réel écoulé), pas la somme des durées
+                // de chaque tâche individuelle - avec plusieurs tâches concurrentes, cette somme n'a
+                // plus aucun rapport avec le temps réellement écoulé.
+                var phaseStopwatch = Stopwatch.StartNew();
+                var verifiedCount = 0;
+                await Parallel.ForEachAsync(pending,
+                    new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = cancellationToken },
+                    async (item, ct) =>
+                    {
+                        bool isDecodable;
+                        try
+                        {
+                            isDecodable = await Task.Run(() => TrackTagHelper.IsDecodableAudio(item.LocalPath), ct);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch
+                        {
+                            // Lecture du fichier fraîchement écrit en échec (disque, permissions...) :
+                            // traité comme non décodable plutôt que de faire échouer tout le lot pour
+                            // cette seule piste.
+                            isDecodable = false;
+                        }
+                        outcomes.Add((item.TrackExport, item.LocalPath, isDecodable));
+
+                        // Compteur dédié à cette phase (pas le Processed/Total de la phase 1, déjà à
+                        // son maximum) : IsVerifyingTracks signale à l'appelant de changer de message
+                        // affiché plutôt que de réutiliser le décompte de pistes de la phase 1.
+                        progress?.Report(new ImportProgress
+                        {
+                            Processed = Interlocked.Increment(ref verifiedCount),
+                            Total = pending.Count,
+                            IsVerifyingTracks = true
+                        });
+                    });
+                result.VerificationDuration = phaseStopwatch.Elapsed;
+
+                foreach (var outcome in outcomes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!outcome.IsDecodable)
+                    {
+                        result.TracksRejectedNotDecodable++;
+                        result.TracksRejected++;
+                        resolvedPaths.Add(outcome.LocalPath);
+                        try { File.Delete(outcome.LocalPath); } catch { /* meilleur effort */ }
+                        continue;
+                    }
+
+                    try
+                    {
+                        var track = new Track
+                        {
+                            Title = outcome.TrackExport.Title,
+                            Category = outcome.TrackExport.Category,
+                            Duration = TimeSpan.FromSeconds(outcome.TrackExport.DurationSeconds),
+                            Volume = outcome.TrackExport.DefaultVolume,
+                            Hash = outcome.TrackExport.Hash,
+                            FilePath = outcome.LocalPath
+                        };
+
+                        var dbStopwatch = Stopwatch.StartNew();
+                        await _libraryDataService.SaveLibraryItemAsync(track);
+
+                        // La catégorie du manifeste n'est autrement enregistrée que pour un backup complet
+                        // (via manifest.Library.Categories) : pour les autres niveaux d'export, une catégorie
+                        // "custom" (ni Musique/Ambiance/SFX) resterait un simple texte sur la track, invisible
+                        // dans le sélecteur/la gestion des catégories tant qu'elle n'existe pas ici aussi.
+                        if (!string.IsNullOrEmpty(track.Category))
+                            await _libraryDataService.EnsureCategoryAsync(typeof(Track), track.Category);
+                        result.DatabaseSaveDuration += dbStopwatch.Elapsed;
+
+                        result.TracksCopied++;
+                        trackIdMap[outcome.TrackExport.Id] = track.Id;
+                        resolvedPaths.Add(outcome.LocalPath);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch
+                    {
+                        // La sauvegarde en base peut échouer (disque plein...) une fois la piste déjà
+                        // écrite et validée : rejetée simplement plutôt que de faire échouer tout
+                        // l'import à cause d'elle.
+                        result.TracksRejectedOther++;
+                        result.TracksRejected++;
+                        resolvedPaths.Add(outcome.LocalPath);
+                        try { File.Delete(outcome.LocalPath); } catch { /* meilleur effort */ }
+                    }
+                }
+            }
+            finally
+            {
+                // Une piste en attente jamais résolue (annulation ou autre exception ayant coupé le
+                // traitement en plein milieu, phase 1 comprise depuis que le try l'englobe aussi)
+                // resterait orpheline sur disque sans ce filet.
+                foreach (var item in pending)
+                {
+                    if (!resolvedPaths.Contains(item.LocalPath))
+                    {
+                        try { File.Delete(item.LocalPath); } catch { /* meilleur effort */ }
+                    }
+                }
+            }
+
+            result.TotalDuration = totalStopwatch.Elapsed;
+        }
+
+        /// <summary>
+        /// Phase 1 (dédup + extraction + vérification de hash) pour une piste. Renvoie le chemin local
+        /// si la piste doit être validée en phase 2 (décodabilité), ou null si déjà résolue ici
+        /// (réutilisée, entrée manquante, ou hash invalide - result/trackIdMap déjà mis à jour dans ce
+        /// cas).
+        /// </summary>
+        private async Task<string?> ExtractAndVerifyHashAsync(ZipArchive zip, TrackExport trackExport, ImportResult result,
+            Dictionary<int, int> trackIdMap, byte[] buffer, CancellationToken cancellationToken)
         {
             var existing = await _libraryDataService.FindTrackByHashAsync(trackExport.Hash, excludeId: 0);
             if (existing != null)
             {
                 result.TracksReused++;
-                return existing.Id;
+                trackIdMap[trackExport.Id] = existing.Id;
+                return null;
             }
 
             var entry = zip.GetEntry(trackExport.FileEntry);
             if (entry == null)
+            {
+                result.TracksRejectedMissingEntry++;
+                result.TracksRejected++;
                 return null;
+            }
 
-            var tempPath = Path.Combine(Path.GetTempPath(), $"dmpack-import-{Guid.NewGuid():N}{Path.GetExtension(trackExport.FileEntry)}");
-            string? localPath = null;
+            // Écrit directement à l'emplacement définitif (dossier Tracks) en calculant le hash à la
+            // volée pendant la copie, plutôt que d'extraire vers un fichier temporaire puis de le
+            // recopier une seconde fois vers le stockage local (cf. l'ancien appel à CopyTrackToLocal) :
+            // pour une bibliothèque de plusieurs Go, ça évite de relire/réécrire chaque piste deux fois.
+            var localPath = _trackFileStore.ReserveTrackPath(Path.GetExtension(trackExport.FileEntry));
+            var stopwatch = Stopwatch.StartNew();
             try
             {
+                using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
                 using (var entryStream = entry.Open())
-                using (var fileStream = File.Create(tempPath))
-                    await entryStream.CopyToAsync(fileStream);
-
-                var actualHash = TrackTagHelper.ComputeSha256(tempPath);
-                if (!string.Equals(actualHash, trackExport.Hash, StringComparison.OrdinalIgnoreCase))
-                    return null;
-
-                if (!TrackTagHelper.IsDecodableAudio(tempPath))
-                    return null;
-
-                localPath = _trackFileStore.CopyTrackToLocal(tempPath);
-                var track = new Track
+                using (var fileStream = File.Create(localPath))
                 {
-                    Title = trackExport.Title,
-                    Category = trackExport.Category,
-                    Duration = TimeSpan.FromSeconds(trackExport.DurationSeconds),
-                    Volume = trackExport.DefaultVolume,
-                    Hash = trackExport.Hash,
-                    FilePath = localPath
-                };
-                await _libraryDataService.SaveLibraryItemAsync(track);
+                    int bytesRead;
+                    while ((bytesRead = await entryStream.ReadAsync(buffer, cancellationToken)) > 0)
+                    {
+                        hasher.AppendData(buffer, 0, bytesRead);
+                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                    }
+                }
+                var actualHash = Convert.ToHexString(hasher.GetHashAndReset());
+                result.ExtractionDuration += stopwatch.Elapsed;
 
-                // La catégorie du manifeste n'est autrement enregistrée que pour un backup complet
-                // (via manifest.Library.Categories) : pour les autres niveaux d'export, une catégorie
-                // "custom" (ni Musique/Ambiance/SFX) resterait un simple texte sur la track, invisible
-                // dans le sélecteur/la gestion des catégories tant qu'elle n'existe pas ici aussi.
-                if (!string.IsNullOrEmpty(track.Category))
-                    await _libraryDataService.EnsureCategoryAsync(typeof(Track), track.Category);
+                if (!string.Equals(actualHash, trackExport.Hash, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.TracksRejectedHashMismatch++;
+                    result.TracksRejected++;
+                    try { File.Delete(localPath); } catch { /* meilleur effort */ }
+                    return null;
+                }
 
-                result.TracksCopied++;
-                return track.Id;
+                return localPath;
+            }
+            catch (OperationCanceledException)
+            {
+                try { File.Delete(localPath); } catch { /* meilleur effort */ }
+                throw;
             }
             catch
             {
-                // La piste a pu être copiée dans le stockage local avant l'échec (base de données,
-                // disque plein...) : sans ce nettoyage, ce fichier resterait orphelin, sans plus
-                // aucune ligne Track pour le référencer. On rejette simplement cette piste plutôt
-                // que de faire échouer tout l'import à cause d'elle.
-                if (localPath != null)
-                {
-                    try { File.Delete(localPath); } catch { /* meilleur effort */ }
-                }
+                // L'écriture peut échouer (disque plein...) une fois la piste déjà partiellement
+                // écrite : rejetée simplement plutôt que de faire échouer tout l'import à cause d'elle.
+                result.TracksRejectedOther++;
+                result.TracksRejected++;
+                try { File.Delete(localPath); } catch { /* meilleur effort */ }
                 return null;
-            }
-            finally
-            {
-                try { File.Delete(tempPath); } catch { /* meilleur effort, le fichier temporaire est jetable */ }
             }
         }
 

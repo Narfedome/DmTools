@@ -74,6 +74,7 @@
                  IsVisible="{Binding HasTrackItems}"
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding TrackItems}"
+                 IsGrouped="True"
                  SelectionMode="Single"
                  SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
                  Scrolled="OnCollectionViewScrolled"
@@ -90,6 +91,19 @@
                                    Margin="0,10"
                                    HeightRequest="30"/>
             </CollectionView.Footer>
+            <!-- Toujours groupé en interne (cf. LibraryTrackViewModel.ShowGroupHeaders) : seul l'en-tête
+                 est masqué hors du filtre "Tout", où il serait redondant avec le bouton de filtre déjà
+                 affiché au-dessus de la liste. -->
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Name}"
+                           IsVisible="{Binding Source={x:Reference root}, Path=BindingContext.ShowGroupHeaders}"
+                           FontAttributes="Bold"
+                           FontSize="{DynamicResource AppFontSizeSectionTitle}"
+                           TextColor="{DynamicResource AppText}"
+                           Margin="4,12,4,4"/>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource SelectableGridItemBorderStyle}">
