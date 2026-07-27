@@ -72,18 +72,16 @@
                                             Opacity="{Binding Volume, Converter={StaticResource VolumeToOpacityConverter}}"
                                             Background="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"/>
 
-                                    <components:MixerChannelCardView />
-
                                     <!-- Bandes de fade in (haut) / fade out (bas) : réglages persistés
                                          sur la piste de scène (IsFadeIn/IsFadeOut), affichées
                                          indépendamment de la lecture en cours - une information de
                                          configuration, pas un état "en train de se produire". Placées
-                                         APRÈS MixerChannelCardView (donc par-dessus) : en dessous, le
-                                         bouton play et la poignée - tous deux opaques - les recouvraient
-                                         entièrement et les rendaient invisibles. Chaque bande occupe 1/4
-                                         de la hauteur de la carte (Grid en étoiles) plutôt qu'une hauteur
-                                         fixe en pixels : une bande de quelques px passait inaperçue sur
-                                         une carte haute, un ratio reste visible quelle que soit la taille. -->
+                                         AVANT MixerChannelCardView (donc derrière) : à 1/4 de la hauteur
+                                         de la carte, la zone déborde largement des boutons eux-mêmes
+                                         (bouton play, poignée), donc reste visible tout autour même en
+                                         dessous - contrairement à l'ancienne bande fixe de 26px, quasi
+                                         entièrement recouverte. Derrière, les boutons restent nets plutôt
+                                         que teintés par-dessus. -->
                                     <Grid InputTransparent="True">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="1*"/>
@@ -97,6 +95,8 @@
                                                 IsVisible="{Binding IsFadeOut}"
                                                 Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
                                     </Grid>
+
+                                    <components:MixerChannelCardView />
                                 </Grid>
                             </Border>
                             <!-- Encadré décoratif superposé, affiché pendant le glisser-déposer (cf.
