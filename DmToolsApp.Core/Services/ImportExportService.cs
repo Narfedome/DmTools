@@ -323,13 +323,12 @@ namespace DmToolsApp.Services
             var result = new ImportResult();
             var trackIdMap = new Dictionary<int, int>();
 
+            // Ordre volontaire en 3 temps plutôt qu'un traitement des campagnes interfolé avec les
+            // pistes : 1) toute la bibliothèque (pistes, sorts, catégories) d'abord, aucune campagne
+            // n'en dépend jamais dans l'autre sens ; 2) la structure Campagne/Chapitre/Scène, sans
+            // aucune référence à une piste ; 3) le lien scène-piste (SceneTrack) en dernier, une fois
+            // que les deux existent des deux côtés (trackIdMap complet, scènes créées).
             await ImportTracksAsync(zip, manifest.Tracks, result, trackIdMap, progress, cancellationToken);
-
-            foreach (var campaignExport in manifest.Campaigns)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await ImportCampaignAsync(campaignExport, trackIdMap, result);
-            }
 
             if (manifest.Library != null)
             {
@@ -344,6 +343,23 @@ namespace DmToolsApp.Services
                     var type = category.LibraryType == nameof(Spell) ? typeof(Spell) : typeof(Track);
                     await _libraryDataService.EnsureCategoryAsync(type, category.Name);
                 }
+            }
+
+            // (SceneExport importé, Id de la scène nouvellement créée) : accumulé pendant la création
+            // de la structure, consommé juste après pour créer les SceneTrack - la scène "de destination"
+            // n'existe qu'une fois la structure entière posée, donc ce lien ne peut pas se faire dans la
+            // même passe sans risquer de référencer une scène pas encore enregistrée.
+            var sceneLinks = new List<(SceneExport SceneExport, int NewSceneId)>();
+            foreach (var campaignExport in manifest.Campaigns)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ImportCampaignStructureAsync(campaignExport, result, sceneLinks);
+            }
+
+            foreach (var (sceneExport, newSceneId) in sceneLinks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ImportSceneTracksAsync(sceneExport, newSceneId, trackIdMap);
             }
 
             return result;
@@ -517,6 +533,7 @@ namespace DmToolsApp.Services
                         result.DatabaseSaveDuration += dbStopwatch.Elapsed;
 
                         result.TracksCopied++;
+                        result.ImportedTracks.Add(track);
                         trackIdMap[outcome.TrackExport.Id] = track.Id;
                         resolvedPaths.Add(outcome.LocalPath);
                     }
@@ -633,7 +650,11 @@ namespace DmToolsApp.Services
         // echouer tout l'import). Cout : une campagne incomplete en base si interrompu en cours de
         // route (pas de perte d'integrite referentielle - chaque ligne enfant reference bien un
         // parent reellement sauvegarde, juste incomplet). Choix delibere, pas un oubli.
-        private async Task ImportCampaignAsync(CampaignExport campaignExport, Dictionary<int, int> trackIdMap, ImportResult result)
+        /// <summary>
+        /// Crée la structure Campagne/Chapitre/Scène, sans aucun lien vers une piste (cf.
+        /// ImportSceneTracksAsync, appelée séparément une fois toute la structure posée).
+        /// </summary>
+        private async Task ImportCampaignStructureAsync(CampaignExport campaignExport, ImportResult result, List<(SceneExport SceneExport, int NewSceneId)> sceneLinks)
         {
             var campaign = new Campaign { Title = campaignExport.Title };
             await _sceneDataService.SaveCampaignAsync(campaign);
@@ -648,27 +669,35 @@ namespace DmToolsApp.Services
                 {
                     var scene = new Scene { SessionId = session.Id, Title = sceneExport.Title };
                     await _sceneDataService.SaveSceneAsync(scene);
-
-                    foreach (var sceneTrackExport in sceneExport.SceneTracks)
-                    {
-                        // Track absente du manifeste ou rejetée à l'import (sécurité) : le canal est
-                        // simplement omis plutôt que de faire échouer tout l'import de la campagne.
-                        if (!trackIdMap.TryGetValue(sceneTrackExport.TrackId, out var newTrackId))
-                            continue;
-
-                        await _sceneDataService.SaveSceneTrackAsync(new SceneTrack
-                        {
-                            SceneId = scene.Id,
-                            Track = new Track { Id = newTrackId },
-                            Position = sceneTrackExport.Position,
-                            Volume = sceneTrackExport.Volume,
-                            AutoPlay = sceneTrackExport.AutoPlay,
-                            IsLooping = sceneTrackExport.IsLooping,
-                            FadeIn = sceneTrackExport.FadeIn,
-                            FadeOut = sceneTrackExport.FadeOut
-                        });
-                    }
+                    sceneLinks.Add((sceneExport, scene.Id));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Crée les SceneTrack (lien scène-piste) d'une scène déjà créée par
+        /// ImportCampaignStructureAsync, une fois la bibliothèque de pistes entièrement importée.
+        /// </summary>
+        private async Task ImportSceneTracksAsync(SceneExport sceneExport, int sceneId, Dictionary<int, int> trackIdMap)
+        {
+            foreach (var sceneTrackExport in sceneExport.SceneTracks)
+            {
+                // Track absente du manifeste ou rejetée à l'import (sécurité) : le canal est
+                // simplement omis plutôt que de faire échouer tout l'import de la campagne.
+                if (!trackIdMap.TryGetValue(sceneTrackExport.TrackId, out var newTrackId))
+                    continue;
+
+                await _sceneDataService.SaveSceneTrackAsync(new SceneTrack
+                {
+                    SceneId = sceneId,
+                    Track = new Track { Id = newTrackId },
+                    Position = sceneTrackExport.Position,
+                    Volume = sceneTrackExport.Volume,
+                    AutoPlay = sceneTrackExport.AutoPlay,
+                    IsLooping = sceneTrackExport.IsLooping,
+                    FadeIn = sceneTrackExport.FadeIn,
+                    FadeOut = sceneTrackExport.FadeOut
+                });
             }
         }
     }

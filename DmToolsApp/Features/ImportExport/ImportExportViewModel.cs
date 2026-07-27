@@ -20,6 +20,7 @@ namespace DmToolsApp.Features.ImportExport
         private readonly ISceneDataService _sceneDataService;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
+        private readonly CoverArtService _coverArtService;
 
         private List<Campaign> _campaigns = new();
         private ExportLevel _selectedLevel = ExportLevel.StructureOnly;
@@ -43,12 +44,14 @@ namespace DmToolsApp.Features.ImportExport
             IImportExportService importExportService,
             ISceneDataService sceneDataService,
             ILibraryDataService libraryDataService,
-            FileService fileService)
+            FileService fileService,
+            CoverArtService coverArtService)
         {
             _importExportService = importExportService;
             _sceneDataService = sceneDataService;
             _libraryDataService = libraryDataService;
             _fileService = fileService;
+            _coverArtService = coverArtService;
             selectedLevelLabel = LevelLabel(_selectedLevel);
         }
 
@@ -285,6 +288,12 @@ namespace DmToolsApp.Features.ImportExport
                 var result = await _importExportService.ImportAsync(stream, progress, cts.Token);
                 await ReconcileDefaultCategoryTranslationsAsync();
 
+                // Pré-chauffe les pochettes AVANT LibraryUpdatedMessage : sans ça, la Bibliothèque
+                // recharge avec des ImagePath vides et chaque tuile relance sa propre extraction
+                // TagLib au premier affichage, perceptible comme un ralentissement en scrollant juste
+                // après un gros import - cf. discussion avec l'utilisateur.
+                var coverDuration = await WarmUpImportedCoversAsync(result.ImportedTracks, popupView.ViewModel);
+
                 // Les campagnes/pistes/sorts importés sont insérés directement en base, sans passer
                 // par les commandes normales (Create/Edit) qui patchent déjà les listes affichées :
                 // sans ces messages, la page Campagnes et la Bibliothèque restent figées jusqu'au
@@ -308,10 +317,11 @@ namespace DmToolsApp.Features.ImportExport
 
                 // Durée affichée en toutes circonstances (pas juste en cas de lenteur perçue) : donne à
                 // l'utilisateur un repère concret, et à nous un chiffre exploitable s'il nous remonte
-                // un ressenti de lenteur plutôt qu'une simple impression.
+                // un ressenti de lenteur plutôt qu'une simple impression. Le total inclut la préchauffe
+                // des pochettes (result.TotalDuration ne la couvre pas, calculée côté Core avant elle).
                 summary += "\n" + string.Format(Loc["ImportExportDurationSummary"],
-                    FormatDuration(result.TotalDuration), FormatDuration(result.ExtractionDuration),
-                    FormatDuration(result.VerificationDuration));
+                    FormatDuration(result.TotalDuration + coverDuration), FormatDuration(result.ExtractionDuration),
+                    FormatDuration(result.VerificationDuration), FormatDuration(coverDuration));
 
                 await ShowInfoAsync(Loc["ImportExportTitle"], summary);
             }
@@ -369,6 +379,37 @@ namespace DmToolsApp.Features.ImportExport
                     await _libraryDataService.RenameCategoryAsync(typeof(Spell), variant, canonical);
                 }
             }
+        }
+
+        /// <summary>
+        /// Pré-extrait et met en cache la pochette de chaque piste tout juste importée, au lieu de
+        /// la laisser à l'extraction paresseuse au premier affichage dans la Bibliothèque - après un
+        /// gros import, scroller la liste pour la première fois relançait sinon une extraction
+        /// TagLib par piste au fil du défilement, perceptible comme un ralentissement. Affichée comme
+        /// une phase supplémentaire de la popup d'import plutôt qu'en silence, pour que l'attente
+        /// reste expliquée. GetCoverAsync limite déjà en interne à 3 extractions simultanées (cf.
+        /// CoverArtService.CoverLoadThrottle) - aucune pistes réutilisées (dédupliquées par hash) n'y
+        /// passent, uniquement celles tout juste copiées.
+        /// </summary>
+        private async Task<TimeSpan> WarmUpImportedCoversAsync(List<Track> tracks, ImportProgressViewModel progressViewModel)
+        {
+            if (tracks.Count == 0) return TimeSpan.Zero;
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            progressViewModel.CurrentFileName = Loc["ImportExportLoadingCovers"];
+            progressViewModel.ProcessedCount = 0;
+            progressViewModel.TotalCount = tracks.Count;
+
+            var warmed = 0;
+            await Task.WhenAll(tracks.Select(async track =>
+            {
+                try { await _coverArtService.GetCoverAsync(track); }
+                catch { /* best effort : la Bibliothèque ré-extraira au premier affichage sinon */ }
+                progressViewModel.ProcessedCount = Interlocked.Increment(ref warmed);
+            }));
+
+            return stopwatch.Elapsed;
         }
 
         private static string LevelLabel(ExportLevel level) => level switch

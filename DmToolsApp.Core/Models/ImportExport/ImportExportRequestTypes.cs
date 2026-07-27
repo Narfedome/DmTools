@@ -1,3 +1,5 @@
+using DmToolsApp.Models.Library;
+
 namespace DmToolsApp.Models.ImportExport
 {
     public enum ExportLevel
@@ -63,6 +65,11 @@ namespace DmToolsApp.Models.ImportExport
         public int TracksRejectedOther { get; set; }
 
         public int SpellsImported { get; set; }
+
+        // Pistes tout juste créées (Track.Id/FilePath renseignés), exposées pour que l'appelant
+        // (App, jamais Core) puisse pré-chauffer leur pochette via CoverArtService après l'import -
+        // Core ne dépend pas de MAUI, donc cette extraction ne peut pas se faire ici.
+        public List<Track> ImportedTracks { get; } = new();
 
         // Durée par phase, affichée à l'utilisateur en fin d'import (utile pour se rendre compte du
         // temps réel passé, et pour nous remonter un ressenti de lenteur avec des chiffres concrets).
