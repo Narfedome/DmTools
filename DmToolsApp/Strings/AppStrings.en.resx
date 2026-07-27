@@ -193,7 +193,7 @@
     <value>Next scene</value>
   </data>
   <data name="MixerFreeform" xml:space="preserve">
-    <value>Freeform session</value>
+    <value>Freeform scene</value>
   </data>
   <data name="MixerGlobal" xml:space="preserve">
     <value>Global</value>
