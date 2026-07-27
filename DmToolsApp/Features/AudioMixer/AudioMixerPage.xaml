@@ -63,10 +63,12 @@
                         Tooltip="{loc:Loc MixerNextScene}" />
 
                 <!-- Bascule sur la scène orpheline (sans campagne/chapitre) : utiliser le Mixer sans
-                     jamais passer par l'accordéon. -->
+                     jamais passer par l'accordéon. Masqué une fois qu'on y est déjà (IsFreeformActive) :
+                     rebasculer dessus n'a pas de sens tant qu'on n'a pas quitté le freeform. -->
                 <components:FaIconButtonView Grid.Column="4"
                         Icon="{x:Static icons:SolidFont.Bolt}"
                         Command="{Binding SelectFreeformSceneCommand}"
+                        IsVisible="{Binding IsFreeformActive, Converter={StaticResource InverseBoolConverter}}"
                         Tooltip="{loc:Loc MixerFreeform}" />
             </Grid>
         </Border>
