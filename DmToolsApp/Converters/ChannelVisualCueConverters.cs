@@ -47,7 +47,7 @@ namespace DmToolsApp.Converters
                 EndPoint = fromBottom ? new Point(0, 0) : new Point(0, 1),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop { Color = color.WithAlpha(0.8f), Offset = 0f },
+                    new GradientStop { Color = color.WithAlpha(0.65f), Offset = 0f },
                     new GradientStop { Color = Colors.Transparent, Offset = 1f }
                 }
             };
