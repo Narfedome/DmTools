@@ -64,8 +64,15 @@
                                  restent lisibles quel que soit le volume. Ici, au niveau du DataTemplate
                                  plutôt que dans MixerChannelCardView, pour que ça couvre toute la carte
                                  (boutons compris) et reste au même niveau que DragHighlightBorder, qui
-                                 joue un rôle décoratif similaire. -->
-                            <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                                 joue un rôle décoratif similaire.
+                                 StrokeShape="Rectangle" (pas RoundRectangle) : coins carrés, rendent
+                                 mieux avec un fond plein/dégradé qu'un arrondi (cf. discussion avec
+                                 l'utilisateur) - rupture volontaire avec le reste de l'appli (accordéon,
+                                 dialogues...), qui reste arrondi partout ailleurs. C'est ce Border
+                                 EXTÉRIEUR qui clippe tout son contenu à sa forme : changer la forme d'un
+                                 calque intérieur seul (fond, bandes) n'aurait aucun effet visuel tant que
+                                 celui-ci reste arrondi. -->
+                            <Border Grid.Column="0" StrokeThickness="1" StrokeShape="Rectangle"
                                     Stroke="{DynamicResource AppBorder}">
                                 <Grid>
                                     <!-- LiveVolume (pas Volume) : suit le volume RÉEL du player, qui
@@ -94,11 +101,11 @@
                                             <RowDefinition Height="1*"/>
                                         </Grid.RowDefinitions>
                                         <Border Grid.Row="0" StrokeThickness="0"
-                                                IsVisible="{Binding IsFadeIn}"
-                                                Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}}"/>
-                                        <Border Grid.Row="2" StrokeThickness="0"
                                                 IsVisible="{Binding IsFadeOut}"
-                                                Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
+                                                Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}}"/>
+                                        <Border Grid.Row="2" StrokeThickness="0"
+                                                IsVisible="{Binding IsFadeIn}"
+                                                Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
                                     </Grid>
 
                                     <components:MixerChannelCardView />
@@ -111,7 +118,7 @@
                                  en-dessous (Play/Stop, slider, boutons). -->
                             <Border x:Name="DragHighlightBorder" Grid.Column="0"
                                     BackgroundColor="Transparent" Stroke="Transparent" StrokeThickness="2"
-                                    StrokeShape="RoundRectangle 8" InputTransparent="True"/>
+                                    StrokeShape="Rectangle" InputTransparent="True"/>
                             <BoxView Grid.Column="1"
                                      Color="Gray"
                                      WidthRequest="1"
