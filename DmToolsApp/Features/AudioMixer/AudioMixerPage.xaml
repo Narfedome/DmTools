@@ -68,8 +68,13 @@
                             <Border Grid.Column="0" StrokeThickness="1" StrokeShape="RoundRectangle 8"
                                     Stroke="{DynamicResource AppBorder}">
                                 <Grid>
+                                    <!-- LiveVolume (pas Volume) : suit le volume RÉEL du player, qui
+                                         rampe pendant un fade in/out (par piste, "Fade Out All", ou
+                                         changement de scène - tous passent par FadeOut/FadeInAsync) au
+                                         lieu de rester figé sur le réglage cible affiché par le slider.
+                                         Rend le fade visible en direct sur ce fond, pas seulement audible. -->
                                     <Border StrokeThickness="0" InputTransparent="True"
-                                            Opacity="{Binding Volume, Converter={StaticResource VolumeToOpacityConverter}}"
+                                            Opacity="{Binding LiveVolume, Converter={StaticResource VolumeToOpacityConverter}}"
                                             Background="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"/>
 
                                     <!-- Bandes de fade in (haut) / fade out (bas) : réglages persistés
