@@ -12,7 +12,7 @@
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
             <converters:BoolToActiveStrokeConverter x:Key="BoolToActiveStrokeConverter" />
-            <converters:VolumeToRowStarConverter x:Key="VolumeToRowStarConverter" />
+            <converters:VolumeToOpacityConverter x:Key="VolumeToOpacityConverter" />
             <converters:FadeEdgeBrushConverter x:Key="FadeEdgeBrushConverter" />
             <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
             <ResourceDictionary.MergedDictionaries>
