@@ -6,12 +6,6 @@ public partial class AudioMixerPage : ContentPage
 {
     private readonly AudioMixerViewModel _vm;
 
-    // MAUI ne réordonne pas les autres items en direct pendant le drag (pas d'équivalent au
-    // reorder animé natif d'un RecyclerView/UICollectionView) : ce feedback minimal (décalage +
-    // estompage de la carte glissée, encadré doré sur la carte SURVOLÉE) est ce qu'on peut faire
-    // sans réécrire le layout à la main.
-    private VisualElement? _draggingElement;
-
     private static Color AccentColor => (Color)Application.Current!.Resources["AppAccent"];
     private static Color HighlightBackgroundColor => AccentColor.WithAlpha(0.12f);
 
@@ -50,35 +44,6 @@ public partial class AudioMixerPage : ContentPage
             await _vm.SelectFreeformScene();
     }
 
-    // Cf. SceneDataService.ReorderSceneTracksAsync : ne stocke que l'item glissé, pas un index,
-    // pour rester valide même si l'ordre a changé entre le début du drag et le drop.
-    private void OnChannelDragStarting(object sender, DragStartingEventArgs e)
-    {
-        if (sender is not VisualElement { BindingContext: ChannelStripViewModel channel } element)
-            return;
-
-        e.Data.Properties["Channel"] = channel;
-
-        // Le sender est la poignée (seul point d'accroche du drag, cf. XAML), mais l'estompage
-        // doit viser toute la carte : on remonte jusqu'à l'item racine (le Grid qui porte le
-        // DropGestureRecognizer).
-        _draggingElement = FindItemCard(element);
-        _draggingElement.Opacity = 0.55;
-        _draggingElement.TranslationX = 10;
-    }
-
-    // Part de start.Parent, PAS de start : la poignée elle-même porte déjà un DragGestureRecognizer
-    // (donc GestureRecognizers.Count > 0), en la testant on la retrouvait immédiatement au lieu de
-    // remonter jusqu'à la vraie racine (celle qui porte le DropGestureRecognizer) — même bug que
-    // CampaignPage, cf. son FindGestureRoot pour le détail.
-    private static VisualElement FindItemCard(VisualElement start)
-    {
-        Element? current = start.Parent;
-        while (current != null && current is not Grid { GestureRecognizers.Count: > 0 })
-            current = current.Parent;
-        return current as VisualElement ?? start;
-    }
-
     // DragHighlightBorder est un Border transparent superposé à chaque carte (cf. XAML) :
     // indépendant du Border du strip lui-même (dont le Stroke est déjà piloté par IsPlaying),
     // pour ne jamais entrer en conflit avec cet indicateur. FindByName cherche dans le namescope
@@ -88,15 +53,6 @@ public partial class AudioMixerPage : ContentPage
         if (root.FindByName<Border>("DragHighlightBorder") is not Border border) return;
         border.Stroke = stroke;
         border.BackgroundColor = background;
-    }
-
-    // Se déclenche sur la source une fois le geste terminé (succès ou non). Sur Android ce
-    // n'est pas toujours fiable (bug connu dotnet/maui#17554) : OnChannelDrop réinitialise
-    // aussi l'opacité par sécurité si cet event ne se déclenche pas.
-    private void OnChannelDropCompleted(object sender, DropCompletedEventArgs e)
-    {
-        ResetDraggingState();
-        StopAutoScroll();
     }
 
     private void OnChannelDragOver(object sender, DragEventArgs e)
@@ -121,7 +77,9 @@ public partial class AudioMixerPage : ContentPage
     {
         if (sender is VisualElement targetElement)
             SetHighlightBorder(targetElement, Colors.Transparent, Colors.Transparent);
-        ResetDraggingState();
+        // Filet de sécurité : sur Android, MixerChannelCardView.OnDropCompleted (côté source du
+        // drag) ne se déclenche pas toujours de façon fiable (bug connu dotnet/maui#17554).
+        MixerChannelCardView.ResetDraggingCard();
         StopAutoScroll();
 
         if (sender is not Element { BindingContext: ChannelStripViewModel target })
@@ -185,13 +143,5 @@ public partial class AudioMixerPage : ContentPage
         _autoScrollTimer.Stop();
         _autoScrollTimer = null;
         _autoScrollDirection = 0;
-    }
-
-    private void ResetDraggingState()
-    {
-        if (_draggingElement == null) return;
-        _draggingElement.Opacity = 1;
-        _draggingElement.TranslationX = 0;
-        _draggingElement = null;
     }
 }
