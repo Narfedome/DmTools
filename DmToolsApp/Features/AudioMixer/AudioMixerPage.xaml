@@ -80,22 +80,23 @@
                                          configuration, pas un état "en train de se produire". Placées
                                          APRÈS MixerChannelCardView (donc par-dessus) : en dessous, le
                                          bouton play et la poignée - tous deux opaques - les recouvraient
-                                         entièrement et les rendaient invisibles. -->
-                                    <Border VerticalOptions="Start" HeightRequest="26" StrokeThickness="0" InputTransparent="True"
-                                            IsVisible="{Binding IsFadeIn}"
-                                            Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}}"/>
-                                    <Border VerticalOptions="End" HeightRequest="26" StrokeThickness="0" InputTransparent="True"
-                                            IsVisible="{Binding IsFadeOut}"
-                                            Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
-
-                                    <!-- Lecture automatique au chargement de la scène (réglage persisté) :
-                                         seul repère sans équivalent dégradé/remplissage pertinent (booléen
-                                         simple), une icône reste plus explicite qu'une couleur à cette taille. -->
-                                    <Label Text="{x:Static icons:SolidFont.Bolt}" FontFamily="FontSolid" FontSize="11"
-                                           TextColor="{DynamicResource AppAccent}"
-                                           HorizontalOptions="End" VerticalOptions="Start" Margin="0,2,2,0"
-                                           InputTransparent="True"
-                                           IsVisible="{Binding IsAutoPlay}"/>
+                                         entièrement et les rendaient invisibles. Chaque bande occupe 1/4
+                                         de la hauteur de la carte (Grid en étoiles) plutôt qu'une hauteur
+                                         fixe en pixels : une bande de quelques px passait inaperçue sur
+                                         une carte haute, un ratio reste visible quelle que soit la taille. -->
+                                    <Grid InputTransparent="True">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="1*"/>
+                                            <RowDefinition Height="2*"/>
+                                            <RowDefinition Height="1*"/>
+                                        </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" StrokeThickness="0"
+                                                IsVisible="{Binding IsFadeIn}"
+                                                Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}}"/>
+                                        <Border Grid.Row="2" StrokeThickness="0"
+                                                IsVisible="{Binding IsFadeOut}"
+                                                Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
+                                    </Grid>
                                 </Grid>
                             </Border>
                             <!-- Encadré décoratif superposé, affiché pendant le glisser-déposer (cf.

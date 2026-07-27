@@ -26,12 +26,11 @@ namespace DmToolsApp.Converters
 
     // Bande de dégradé signalant un fade in/out actif (cf. IsFadeIn/IsFadeOut sur
     // ChannelStripViewModel) : ConverterParameter="Bottom" pour la bande de fade out, sinon fade
-    // in. Transparent PILE sur le bord de la carte, coloré en s'enfonçant vers le centre - pas
-    // l'inverse (une première version faisait le contraire, jugée "dans le mauvais sens" : le bord
-    // est le point de silence du fade, la couleur doit apparaître en s'en éloignant, comme le
-    // volume qui monte/descend). Couleur accent PRIMAIRE (CurrentAccent, l'or des boutons) plutôt
-    // que la secondaire (violette, déjà utilisée par le fond "en lecture" ci-dessus) : sans ça, les
-    // deux repères se confondaient visuellement.
+    // in. Coloré PILE sur le bord de la carte, transparent en s'enfonçant vers le centre (le sens
+    // d'origine, confirmé correct - la taille de la zone, pas le sens, était le problème : cf.
+    // FadeZoneStar dans AudioMixerPage.xaml). Couleur accent PRIMAIRE (CurrentAccent, l'or des
+    // boutons) plutôt que la secondaire (violette, déjà utilisée par le fond "en lecture"
+    // ci-dessus) : sans ça, les deux repères se confondaient visuellement.
     public class FadeEdgeBrushConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -48,8 +47,8 @@ namespace DmToolsApp.Converters
                 EndPoint = fromBottom ? new Point(0, 0) : new Point(0, 1),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop { Color = Colors.Transparent, Offset = 0f },
-                    new GradientStop { Color = color.WithAlpha(0.8f), Offset = 1f }
+                    new GradientStop { Color = color.WithAlpha(0.8f), Offset = 0f },
+                    new GradientStop { Color = Colors.Transparent, Offset = 1f }
                 }
             };
         }
