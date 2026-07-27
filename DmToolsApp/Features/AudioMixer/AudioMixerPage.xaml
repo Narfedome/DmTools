@@ -81,10 +81,10 @@
                                          APRÈS MixerChannelCardView (donc par-dessus) : en dessous, le
                                          bouton play et la poignée - tous deux opaques - les recouvraient
                                          entièrement et les rendaient invisibles. -->
-                                    <Border VerticalOptions="Start" HeightRequest="18" StrokeThickness="0" InputTransparent="True"
+                                    <Border VerticalOptions="Start" HeightRequest="26" StrokeThickness="0" InputTransparent="True"
                                             IsVisible="{Binding IsFadeIn}"
                                             Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}}"/>
-                                    <Border VerticalOptions="End" HeightRequest="18" StrokeThickness="0" InputTransparent="True"
+                                    <Border VerticalOptions="End" HeightRequest="26" StrokeThickness="0" InputTransparent="True"
                                             IsVisible="{Binding IsFadeOut}"
                                             Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
 
