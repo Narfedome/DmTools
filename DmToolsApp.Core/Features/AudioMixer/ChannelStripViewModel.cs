@@ -144,6 +144,21 @@ namespace DmToolsApp.Components
         [NotifyPropertyChangedFor(nameof(HasSceneTrack))]
         private int sceneTrackId;
 
+        /// <summary>
+        /// Force les bindings dépendant du thème (fond/bandes des repères visuels côté UI, dont la
+        /// couleur est lue directement depuis ThemeService plutôt que via une DynamicResource qui se
+        /// rafraîchirait toute seule) à se réévaluer. À appeler depuis l'App layer sur
+        /// ThemeService.ThemeChanged - Core ne peut pas s'y abonner lui-même (aucune dépendance à
+        /// ThemeService ici). Un simple changement de valeur ne suffit pas ([ObservableProperty]
+        /// ignore un set qui ne change rien), d'où ce déclenchement manuel des notifications.
+        /// </summary>
+        public void RefreshThemeDependentBindings()
+        {
+            OnPropertyChanged(nameof(IsPlaying));
+            OnPropertyChanged(nameof(IsFadeIn));
+            OnPropertyChanged(nameof(IsFadeOut));
+        }
+
         // Le bouton de paramètres (gear) n'a de sens que si le strip est persisté comme piste de
         // scène : c'est là que vivent les réglages édités par SceneTracksPage.
         public bool HasSceneTrack => SceneTrackId > 0;
