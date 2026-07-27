@@ -601,6 +601,9 @@
     <value>Détail des rejets : {0} hash invalide, {1} audio illisible, {2} entrée manquante, {3} autre.</value>
   </data>
   <data name="ImportExportDurationSummary" xml:space="preserve">
-    <value>Terminé en {0} (extraction : {1}, vérification audio : {2}).</value>
+    <value>Terminé en {0} (extraction : {1}, vérification audio : {2}, pochettes : {3}).</value>
+  </data>
+  <data name="ImportExportLoadingCovers" xml:space="preserve">
+    <value>Chargement des pochettes…</value>
   </data>
 </root>
