@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -455,17 +454,23 @@ namespace DmToolsApp.Services
                     progress?.Report(new ImportProgress { CurrentItem = trackExport.Title, Processed = ++processed, Total = total });
                 }
 
-                var outcomes = new ConcurrentBag<(TrackExport TrackExport, string LocalPath, bool IsDecodable)>();
+                // Tableau indexé (pas un ConcurrentBag) : chaque tâche parallèle écrit à SA position
+                // d'origine plutôt que d'ajouter au fil de l'eau - un ConcurrentBag ne garantit aucun
+                // ordre d'énumération, ce qui mélangeait l'ordre des pistes à la sauvegarde (phase 3,
+                // séquentielle) selon le hasard de la concurrence. Comme l'affichage de la bibliothèque
+                // trie par Id (donc par ordre d'insertion), l'ordre du manifeste d'origine se perdait.
+                var outcomes = new (TrackExport TrackExport, string LocalPath, bool IsDecodable)[pending.Count];
 
                 // Chronomètre la phase dans son ensemble (temps réel écoulé), pas la somme des durées
                 // de chaque tâche individuelle - avec plusieurs tâches concurrentes, cette somme n'a
                 // plus aucun rapport avec le temps réellement écoulé.
                 var phaseStopwatch = Stopwatch.StartNew();
                 var verifiedCount = 0;
-                await Parallel.ForEachAsync(pending,
+                await Parallel.ForEachAsync(Enumerable.Range(0, pending.Count),
                     new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = cancellationToken },
-                    async (item, ct) =>
+                    async (i, ct) =>
                     {
+                        var item = pending[i];
                         bool isDecodable;
                         try
                         {
@@ -482,7 +487,7 @@ namespace DmToolsApp.Services
                             // cette seule piste.
                             isDecodable = false;
                         }
-                        outcomes.Add((item.TrackExport, item.LocalPath, isDecodable));
+                        outcomes[i] = (item.TrackExport, item.LocalPath, isDecodable);
 
                         // Compteur dédié à cette phase (pas le Processed/Total de la phase 1, déjà à
                         // son maximum) : IsVerifyingTracks signale à l'appelant de changer de message

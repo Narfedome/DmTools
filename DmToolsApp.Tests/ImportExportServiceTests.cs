@@ -311,6 +311,35 @@ public class ImportExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExportImport_PreservesOriginalTrackOrder()
+    {
+        // La phase de vérification de décodabilité (ImportTracksAsync) tourne en parallèle : un
+        // ConcurrentBag y écrivait autrefois les résultats dans un ordre dépendant du hasard de la
+        // concurrence, mélangeant l'ordre de sauvegarde (donc des Id, dont dépend l'affichage de la
+        // bibliothèque) par rapport au manifeste d'origine. 12 pistes pour donner une vraie chance
+        // aux 4 tâches parallèles de se terminer dans le désordre si la régression revenait.
+        await using var source = await ImportExportTestContext.CreateAsync();
+        var titles = new List<string>();
+        for (int i = 0; i < 12; i++)
+        {
+            var title = $"Track {i:D2}";
+            titles.Add(title);
+            var wavPath = CreateWavFile(0.1);
+            var track = new Track { Title = title, FilePath = wavPath, Hash = TrackTagHelper.ComputeSha256(wavPath) };
+            await source.Library.SaveLibraryItemAsync(track);
+        }
+
+        using var zipStream = new MemoryStream();
+        await source.Service.ExportAsync(new ExportRequest { Level = ExportLevel.AudioLibraryOnly }, zipStream);
+
+        await using var dest = await ImportExportTestContext.CreateAsync();
+        zipStream.Position = 0;
+        var result = await dest.Service.ImportAsync(zipStream);
+
+        Assert.Equal(titles, result.ImportedTracks.Select(t => t.Title).ToList());
+    }
+
+    [Fact]
     public async Task ExportImport_AudioLibraryOnly_RegistersCustomTrackCategory()
     {
         // manifest.Library.Categories n'est rempli qu'en FullBackup : ce niveau d'export est
