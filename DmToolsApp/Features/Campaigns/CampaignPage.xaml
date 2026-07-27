@@ -187,17 +187,22 @@
              le vrai début du chargement, Loading.IsLoading vaut encore false lui aussi, ce qui faisait
              apparaître brièvement le bouton "Créer" avant le spinner. -->
         <Grid Grid.Row="0" IsVisible="{Binding IsInitialized}">
-            <!-- État vide : aucune campagne -->
-            <VerticalStackLayout IsVisible="{Binding HasCampaigns, Converter={StaticResource InverseBoolConverter}}"
-                                 VerticalOptions="Center" HorizontalOptions="Center" Spacing="12" Padding="24">
-                <Label Text="{x:Static icons:SolidFont.Map}" FontFamily="FontSolid" FontSize="{OnIdiom Default=40, Desktop=34}"
-                       TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
-                <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
-                       HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                <Label Text="{loc:Loc EmptyCampaignsBody}" TextColor="{DynamicResource AppTextMuted}"
-                       HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                <Button Text="{loc:Loc DialogCreateItem}" Command="{Binding CreateCommand}" Margin="0,8,0,0"/>
-            </VerticalStackLayout>
+            <!-- État vide : aucune campagne. Même gabarit et même largeur fixe que la Bibliothèque vide
+                 (LibraryTrackView.xaml) : carte SectionCardBorderStyle (celle des blocs de Réglages)
+                 pour regrouper visuellement le message plutôt que du texte flottant seul. -->
+            <Border IsVisible="{Binding HasCampaigns, Converter={StaticResource InverseBoolConverter}}"
+                    Style="{StaticResource SectionCardBorderStyle}" WidthRequest="340"
+                    HorizontalOptions="Center" VerticalOptions="Center">
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Label Text="{x:Static icons:SolidFont.Map}" FontFamily="FontSolid" FontSize="{OnIdiom Default=40, Desktop=34}"
+                           TextColor="{DynamicResource AppTextMuted}" HorizontalOptions="Center"/>
+                    <Label Text="{loc:Loc EmptyCampaignsTitle}" FontSize="{OnIdiom Default=18, Desktop=15}" FontAttributes="Bold"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                    <Label Text="{loc:Loc EmptyCampaignsBody}" TextColor="{DynamicResource AppTextMuted}"
+                           HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                    <Button Text="{loc:Loc DialogCreateItem}" Command="{Binding CreateCommand}" Margin="0,8,0,0"/>
+                </VerticalStackLayout>
+            </Border>
 
             <CollectionView ItemsSource="{Binding Rows}"
                             SelectionMode="None"

@@ -6,10 +6,13 @@ namespace DmToolsApp.Features.Library;
 public partial class LibraryTrackView : ContentView
 {
     public LibraryTrackView()
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
+#if WINDOWS
+        ItemsCollection.Loaded += OnItemsCollectionLoadedWindows;
+#endif
     }
-        
+
     public static readonly BindableProperty IsCrudProperty =
     BindableProperty.Create(nameof(IsCrud), typeof(bool), typeof(LibraryTrackView), default(bool));
 
@@ -21,6 +24,10 @@ public partial class LibraryTrackView : ContentView
 
     // RemainingItemsThresholdReachedCommand est peu fiable sur certaines plateformes (notamment quand la vue
     // est imbriquée dans un ControlTemplate comme WatermarkedLayout) : on détecte la fin de liste manuellement.
+    // Fonctionne sur Android/iOS/MacCatalyst. Sur Windows, le ScrollViewer natif sous-jacent au
+    // CollectionView n'est jamais retrouvé par le handler MAUI (bug WinUI connu, cf.
+    // dotnet/maui#12725 et #15914) : Scrolled ne s'y déclenche donc jamais, d'où le hook natif
+    // séparé ci-dessous pour cette seule plateforme (cf. #if WINDOWS).
     private void OnCollectionViewScrolled(object? sender, ItemsViewScrolledEventArgs e)
     {
         if (e.LastVisibleItemIndex < 0 || BindingContext is not LibraryTrackViewModel vm)
@@ -32,43 +39,111 @@ public partial class LibraryTrackView : ContentView
         }
     }
 
-    // Si la page chargée tient déjà entièrement dans le viewport (ex. plein écran Desktop sans
-    // barre de défilement), aucun Scrolled ne se déclenche jamais et la pagination reste bloquée
-    // indéfiniment, même s'il reste des pistes à charger - un seul chargement de page (PageSize)
-    // est d'ailleurs très insuffisant pour couvrir un grand écran (ex. ~70 tuiles visibles en plein
-    // écran 1080p contre 15 chargées par page). SizeChanged se déclenche au premier affichage et à
-    // chaque redimensionnement (bascule plein écran comprise) : on boucle alors les chargements
-    // jusqu'à avoir de quoi couvrir l'espace visible estimé.
-    // Desktop uniquement (meme garde que ResponsiveGridSpanBehavior, meme raison) : sur Android/iOS
-    // un ecran de telephone est de toute facon toujours plus petit qu'une page (PageSize=15), le
-    // probleme d'origine n'existe pas la-bas. Pire : SizeChanged peut s'y declencher PENDANT une
-    // passe de layout du CollectionView natif (RecyclerView), et muter TrackItems immediatement
-    // dedans plantait l'appli ("Cannot call this method while RecyclerView is computing a layout").
-    private void OnCollectionViewSizeChanged(object? sender, EventArgs e)
+#if WINDOWS
+    private Microsoft.UI.Xaml.Controls.ScrollViewer? _nativeScrollViewer;
+    private int _hookAttempts;
+
+    private void OnItemsCollectionLoadedWindows(object? sender, EventArgs e)
     {
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop && BindingContext is LibraryTrackViewModel vm)
-            _ = FillViewportAsync(vm);
+        _hookAttempts = 0;
+        ScheduleHookAttempt();
+
+        // Bascule plein écran / redimensionnement : la page chargée peut ne plus suffire à remplir
+        // le viewport agrandi, auquel cas il n'y a plus rien à scroller pour déclencher un chargement
+        // (ScrollableHeight reste à 0). On ne réagit pas à la taille intermédiaire remontée pendant
+        // l'animation elle-même : SizeChanged ne sert ici que de simple déclencheur pour revérifier,
+        // une fois le layout stabilisé, la mesure réelle exposée par le ScrollViewer natif.
+        // -= puis += : Loaded peut se redéclencher sur la même instance (ex. retour de navigation),
+        // ce qui empilerait sinon un abonnement supplémentaire à chaque fois.
+        ItemsCollection.SizeChanged -= OnItemsCollectionSizeChangedWindows;
+        ItemsCollection.SizeChanged += OnItemsCollectionSizeChangedWindows;
     }
 
-    // Meme largeur de tuile que ResponsiveGridSpanBehavior (qui calcule le nombre de colonnes a
-    // partir d'elle) : les tuiles sont approximativement carrees (image 120 + marge 5 de chaque
-    // cote + la ligne de titre en dessous), donc la meme valeur sert d'estimation de hauteur.
-    // +2 lignes de marge pour garder un vrai potentiel de scroll (sinon la derniere ligne visible
-    // colle exactement au bord, sans espace pour re-declencher Scrolled plus tard).
-    private const double EstimatedTileSize = 150;
+    private void OnItemsCollectionSizeChangedWindows(object? sender, EventArgs e) =>
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(250), () => ScheduleViewportFillCheck());
 
-    private async Task FillViewportAsync(LibraryTrackViewModel vm)
+    private void ScheduleHookAttempt()
     {
-        if (ItemsCollection.Width <= 0 || ItemsCollection.Height <= 0)
+        if (TryHookNativeScrollViewer())
+        {
+            ScheduleViewportFillCheck();
+            return;
+        }
+
+        // Le template natif n'est pas forcément réalisé au moment de Loaded : quelques tentatives
+        // espacées suffisent à couvrir le délai (constaté : plusieurs centaines de ms sur Windows).
+        _hookAttempts++;
+        if (_hookAttempts >= 20)
             return;
 
-        var columns = Math.Max(1, (int)(ItemsCollection.Width / EstimatedTileSize));
-        var rows = (int)(ItemsCollection.Height / EstimatedTileSize) + 2;
-        var neededItems = columns * rows;
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(200), ScheduleHookAttempt);
+    }
 
-        while (vm.TrackItems.Count < neededItems && vm.LoadMoreTracksCommand.CanExecute(null))
+    // Charge des pages supplémentaires tant que le contenu chargé ne remplit pas le viewport (donc
+    // rien à scroller pour déclencher un chargement autrement) : LoadMoreTracksCommand est un no-op
+    // sûr une fois la bibliothèque épuisée (cf. _hasMoreItems dans le ViewModel), la borne d'essais
+    // n'est là que pour éviter de vérifier indéfiniment si jamais ScrollableHeight ne bouge jamais.
+    private void ScheduleViewportFillCheck(int attemptsLeft = 10)
+    {
+        if (_nativeScrollViewer == null || BindingContext is not LibraryTrackViewModel vm)
+            return;
+
+        if (_nativeScrollViewer.ScrollableHeight > 0)
+            return;
+
+        if (vm.LoadMoreTracksCommand.CanExecute(null))
+            vm.LoadMoreTracksCommand.Execute(null);
+
+        if (attemptsLeft <= 0)
+            return;
+
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(300), () => ScheduleViewportFillCheck(attemptsLeft - 1));
+    }
+
+    private bool TryHookNativeScrollViewer()
+    {
+        if (_nativeScrollViewer != null)
+            return true;
+
+        if (ItemsCollection.Handler?.PlatformView is not Microsoft.UI.Xaml.DependencyObject platformView)
+            return false;
+
+        _nativeScrollViewer = FindDescendant<Microsoft.UI.Xaml.Controls.ScrollViewer>(platformView);
+        if (_nativeScrollViewer == null)
+            return false;
+
+        _nativeScrollViewer.ViewChanged += OnNativeScrollViewerViewChanged;
+        return true;
+    }
+
+    private void OnNativeScrollViewerViewChanged(object? sender, Microsoft.UI.Xaml.Controls.ScrollViewerViewChangedEventArgs e)
+    {
+        if (sender is not Microsoft.UI.Xaml.Controls.ScrollViewer scrollViewer || BindingContext is not LibraryTrackViewModel vm)
+            return;
+
+        const double thresholdPixels = 400;
+        bool nearBottom = scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight - thresholdPixels;
+        if (nearBottom && vm.LoadMoreTracksCommand.CanExecute(null))
         {
-            await vm.LoadMoreTracksCommand.ExecuteAsync(null);
+            vm.LoadMoreTracksCommand.Execute(null);
         }
     }
+
+    private static T? FindDescendant<T>(Microsoft.UI.Xaml.DependencyObject root) where T : Microsoft.UI.Xaml.DependencyObject
+    {
+        int count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T target)
+                return target;
+
+            var descendant = FindDescendant<T>(child);
+            if (descendant != null)
+                return descendant;
+        }
+
+        return null;
+    }
+#endif
 }

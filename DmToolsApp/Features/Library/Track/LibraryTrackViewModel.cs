@@ -13,19 +13,29 @@ namespace DmToolsApp.Features.Library
 {
     public partial class LibraryTrackViewModel : BaseViewModel
     {
+        // Sur Windows, si une page ne suffit pas à remplir le viewport (donc rien à scroller pour en
+        // charger plus), LibraryTrackView.xaml.cs recharge automatiquement des pages supplémentaires
+        // (ScheduleViewportFillCheck) - pas besoin d'une valeur artificiellement grande ici.
         private const int PageSize = 15;
 
         private readonly ILibraryPickerNavigationService _navigation;
         private readonly ILibraryDataService _libraryDataService;
         private readonly FileService _fileService;
         private readonly AudioPlayerService _audioPlayerService;
-        private readonly CoverArtService _coverArtService;
 
         private int _loadedCount;
         private bool _hasMoreItems = true;
         private bool _isLoadingMore;
         private bool _suppressCategoryReload;
         private string? _categoryFilter;
+
+        // Verrou couvrant toute mutation de l'état de pagination (_loadedCount/_hasMoreItems/
+        // TrackItems) : ReloadAsync (vidage + rechargement, déclenché par changement de catégorie/
+        // InitializeAsync/LibraryUpdatedMessage) et LoadNextPageAsync (ajout d'une page, déclenché par
+        // le scroll - cf. LibraryTrackView.xaml.cs) sont deux chemins indépendants vers cet état
+        // partagé. Sans lui, un scroll qui arriverait pendant qu'un ReloadAsync est au milieu de son
+        // ClearTrackItems() courrait avec lui - état de pagination incohérent.
+        private readonly SemaphoreSlim _loadGate = new(1, 1);
 
         public LibraryMultiSelection<Track> Selection { get; } = new();
 
@@ -39,10 +49,23 @@ namespace DmToolsApp.Features.Library
 
         private string AllCategoriesLabel => Loc["LibAllCategories"];
 
+        // Réutilise le même libellé que le choix "Aucun dossier" du dialogue d'import (PickImportCategoryAsync) :
+        // catégorie native représentant Track.Category vide, non stockée en CategoryEntity, non
+        // renommable/supprimable (cf. CategoryListViewModel).
+        private string NoFolderLabel => Loc["LibImportNoCategory"];
+
         [ObservableProperty]
         public ObservableCollection<Track> trackItems = new();
 
         public bool HasTrackItems => TrackItems.Count > 0;
+
+        // Deux variantes de l'état vide : "Tout" vide (aucune piste importée du tout) propose les
+        // raccourcis d'import ; une catégorie spécifique vide (le filtre ne matche juste rien) affiche
+        // un simple message, l'import n'y étant pas forcément pertinent (une piste importée n'atterrit
+        // pas nécessairement dans cette catégorie).
+        public bool ShowEmptyLibraryCard => !HasTrackItems && SelectedCategory == AllCategoriesLabel;
+
+        public bool ShowEmptyCategoryMessage => !HasTrackItems && SelectedCategory != AllCategoriesLabel;
 
         [ObservableProperty]
         private Track? selectedTrackItem;
@@ -64,6 +87,9 @@ namespace DmToolsApp.Features.Library
 
         partial void OnSelectedCategoryChanged(string value)
         {
+            OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+            OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+
             if (_suppressCategoryReload)
                 return;
 
@@ -85,14 +111,18 @@ namespace DmToolsApp.Features.Library
             }
         }
 
-        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService, CoverArtService coverArtService)
+        public LibraryTrackViewModel(ILibraryPickerNavigationService navigation, ILibraryDataService libraryDataService, AudioPlayerService audioPlayerService, FileService fileService)
         {
             _navigation = navigation;
             _libraryDataService = libraryDataService;
             _audioPlayerService = audioPlayerService;
             _fileService = fileService;
-            _coverArtService = coverArtService;
-            TrackItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasTrackItems));
+            TrackItems.CollectionChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(HasTrackItems));
+                OnPropertyChanged(nameof(ShowEmptyLibraryCard));
+                OnPropertyChanged(nameof(ShowEmptyCategoryMessage));
+            };
             Selection.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(Selection.SelectedCount))
@@ -165,6 +195,7 @@ namespace DmToolsApp.Features.Library
 
             Categories.Clear();
             Categories.Add(AllCategoriesLabel);
+            Categories.Add(NoFolderLabel);
             foreach (var c in existing)
                 Categories.Add(c);
 
@@ -173,20 +204,71 @@ namespace DmToolsApp.Features.Library
             _suppressCategoryReload = false;
         }
 
+        private bool _isReloading;
+        private bool _reloadPending;
+
+        // ReloadAsync a plusieurs déclencheurs indépendants (changement de catégorie, message
+        // LibraryUpdatedMessage après import, InitializeAsync) qui peuvent se chevaucher. Sans ce
+        // garde-fou, un second ReloadAsync concurrent viderait/reconstruirait TrackItems PENDANT que
+        // le premier est encore en train de le peupler. On sérialise donc les appels : un appel déjà
+        // en cours absorbe les suivants et relance une passe (avec l'état le plus à jour, ex. la
+        // dernière catégorie choisie) juste après, plutôt que de les laisser s'exécuter en parallèle.
         private async Task ReloadAsync()
         {
-            _categoryFilter = SelectedCategory == AllCategoriesLabel ? null : SelectedCategory;
+            if (_isReloading)
+            {
+                _reloadPending = true;
+                return;
+            }
 
-            ClearTrackItems();
-            _loadedCount = 0;
-            _hasMoreItems = true;
-            SelectedTrackItem = null;
+            _isReloading = true;
+            try
+            {
+                do
+                {
+                    _reloadPending = false;
+                    await ReloadCoreAsync();
+                } while (_reloadPending);
+            }
+            finally
+            {
+                _isReloading = false;
+            }
+        }
 
-            // Changer de catégorie change le contexte de sélection multiple : on repart de zéro
-            // pour éviter de supprimer par erreur des pistes qu'on ne voit plus.
-            Selection.Clear();
+        private async Task ReloadCoreAsync()
+        {
+            // Tient _loadGate pendant tout le reset + premier chargement de page : un LoadNextPageAsync
+            // externe (scroll - cf. LibraryTrackView.xaml.cs) qui arriverait pendant ce temps attend
+            // simplement que le verrou se libère au lieu de muter _loadedCount/TrackItems en même temps
+            // que ce reset (cf. commentaire sur _loadGate).
+            await _loadGate.WaitAsync();
+            try
+            {
+                // null = pas de filtre (Tout), "" = uniquement les pistes sans catégorie (Aucun
+                // dossier), sinon le nom exact de la catégorie choisie - cf. GetItemsPageAsync.
+                _categoryFilter = SelectedCategory == AllCategoriesLabel ? null
+                    : SelectedCategory == NoFolderLabel ? string.Empty
+                    : SelectedCategory;
 
-            await LoadNextPageAsync();
+                ClearTrackItems();
+                _loadedCount = 0;
+                _hasMoreItems = true;
+                SelectedTrackItem = null;
+
+                // Changer de catégorie change le contexte de sélection multiple : on repart de zéro
+                // pour éviter de supprimer par erreur des pistes qu'on ne voit plus.
+                Selection.Clear();
+
+                // Appel direct de la version non verrouillée (pas LoadNextPageAsync) : le verrou est
+                // déjà tenu ici, un SemaphoreSlim n'étant pas réentrant, ré-attendre dessus bloquerait
+                // indéfiniment.
+                await LoadNextPageCoreAsync();
+            }
+            finally
+            {
+                _loadGate.Release();
+            }
         }
 
         private void ClearTrackItems()
@@ -197,7 +279,24 @@ namespace DmToolsApp.Features.Library
             TrackItems.Clear();
         }
 
+        // Point d'entrée externe (scroll) : passe par _loadGate pour ne jamais s'exécuter pendant
+        // qu'un ReloadCoreAsync est au milieu de son reset (cf. commentaire sur _loadGate).
+        // ReloadCoreAsync, qui tient déjà le verrou, appelle directement LoadNextPageCoreAsync plutôt
+        // que cette enveloppe, pour éviter un blocage sur un SemaphoreSlim non réentrant.
         private async Task LoadNextPageAsync()
+        {
+            await _loadGate.WaitAsync();
+            try
+            {
+                await LoadNextPageCoreAsync();
+            }
+            finally
+            {
+                _loadGate.Release();
+            }
+        }
+
+        private async Task LoadNextPageCoreAsync()
         {
             if (_isLoadingMore || !_hasMoreItems)
                 return;
@@ -215,12 +314,12 @@ namespace DmToolsApp.Features.Library
             {
                 var items = await _libraryDataService.GetItemsPageAsync(typeof(Track), _loadedCount, PageSize, _categoryFilter);
 
-                // Précharge les pochettes de la page avant de révéler les tuiles : l'indicateur de
-                // chargement de la liste (spinner du haut ou du footer selon le cas) couvre alors tout
-                // le temps de chargement réel (DB + lecture des tags audio), au lieu de disparaître
-                // avant que les tuiles n'aient fini d'apparaître avec leur pochette.
-                await Task.WhenAll(items.Select(i => _coverArtService.GetCoverAsync((Track)i)));
-
+                // Ne précharge plus les pochettes ici : chaque tuile (TrackButtonViewModel) charge déjà
+                // la sienne en tâche de fond dès qu'elle reçoit sa track, avec un placeholder pendant ce
+                // temps (cf. TrackButtonView.xaml). Attendre ici bloquait l'apparition de toute la page
+                // derrière la pochette la plus lente à extraire (repli TagLib pour une piste sans
+                // ImagePath en cache, ex. legacy ou fraîchement importée) - les tuiles apparaissent
+                // maintenant une à une au fil de la boucle ci-dessous, pochette à part.
                 foreach (var item in items)
                 {
                     var track = (Track)item;
