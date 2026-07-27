@@ -254,6 +254,59 @@ section > .container > p.section-intro {
   font-size: 0.95rem;
 }
 
+/* What's new */
+.whatsnew-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+@media (max-width: 860px) {
+  .whatsnew-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .whatsnew-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.whatsnew-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.whatsnew-card h3 {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 0;
+  text-align: center;
+}
+
+.whatsnew-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+.whatsnew-more {
+  text-align: center;
+  margin-top: 44px;
+}
+
+.whatsnew-more a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.whatsnew-more a:hover {
+  text-decoration: underline;
+}
+
 /* Screenshots */
 /* Colonnes explicites plutôt qu'auto-fit/minmax : à des largeurs de conteneur entre 1x et 2x le
    minimum (typique en mobile portrait), auto-fit créait 2 colonnes très inégales (ex. 180px / 75px)
