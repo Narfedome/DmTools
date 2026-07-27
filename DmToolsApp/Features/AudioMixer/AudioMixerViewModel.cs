@@ -70,8 +70,15 @@ namespace DmToolsApp.Features.AudioMixer
         [NotifyPropertyChangedFor(nameof(SelectedSceneLabel))]
         private bool isFreeformActive;
 
-        public bool CanGoPrevScene => SceneIndex > 1;
-        public bool CanGoNextScene => SceneIndex < SceneCount;
+        // Permettent aux flèches prev/next de franchir une limite de chapitre (cf.
+        // RefreshChapterBoundaryFlagsAsync) : au bout de la scène courante, on regarde si le
+        // chapitre voisin existe ET a au moins une scène - jamais de saut en cascade jusqu'au
+        // prochain chapitre non-vide, comportement prévisible plutôt que surprenant.
+        private bool _hasPreviousChapterScene;
+        private bool _hasNextChapterScene;
+
+        public bool CanGoPrevScene => SceneIndex > 1 || _hasPreviousChapterScene;
+        public bool CanGoNextScene => SceneIndex < SceneCount || _hasNextChapterScene;
 
         public string SelectedSessionLabel => IsFreeformActive ? Loc["MixerFreeform"] : SelectedSession?.Title ?? Loc["MixerChapter"];
         public string SelectedSceneLabel   => IsFreeformActive ? Loc["MixerFreeform"] : SelectedScene?.Title   ?? Loc["MixerScene"];
@@ -135,6 +142,26 @@ namespace DmToolsApp.Features.AudioMixer
             SelectedScene = Scenes.FirstOrDefault();
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
+            await RefreshChapterBoundaryFlagsAsync();
+        }
+
+        /// <summary>
+        /// Vérifie si le chapitre précédent/suivant SelectedSession (dans Sessions) a au moins une
+        /// scène, pour piloter CanGoPrevScene/CanGoNextScene au-delà des limites du chapitre
+        /// courant. À rappeler chaque fois que Sessions ou SelectedSession changent (nouveau
+        /// chapitre chargé) - jamais de recherche en cascade au-delà du voisin immédiat.
+        /// </summary>
+        private async Task RefreshChapterBoundaryFlagsAsync()
+        {
+            var sessionIndex = SelectedSession != null ? Sessions.IndexOf(SelectedSession) : -1;
+
+            _hasPreviousChapterScene = sessionIndex > 0
+                && (await _sceneDataService.GetScenesAsync(Sessions[sessionIndex - 1].Id)).Count > 0;
+            _hasNextChapterScene = sessionIndex >= 0 && sessionIndex + 1 < Sessions.Count
+                && (await _sceneDataService.GetScenesAsync(Sessions[sessionIndex + 1].Id)).Count > 0;
+
+            OnPropertyChanged(nameof(CanGoPrevScene));
+            OnPropertyChanged(nameof(CanGoNextScene));
         }
 
         private async Task SaveCurrentSceneAsync()
@@ -194,6 +221,7 @@ namespace DmToolsApp.Features.AudioMixer
                     SceneIndex = Scenes.IndexOf(matchedScene) + 1;
                     OnPropertyChanged(nameof(CanGoPrevScene));
                     OnPropertyChanged(nameof(CanGoNextScene));
+                    await RefreshChapterBoundaryFlagsAsync();
 
                     playable = await PrepareSceneTracksAsync(matchedScene);
                 });
@@ -239,6 +267,8 @@ namespace DmToolsApp.Features.AudioMixer
             Sessions.Clear();
             SceneCount = 0;
             SceneIndex = 1;
+            _hasPreviousChapterScene = false;
+            _hasNextChapterScene = false;
             OnPropertyChanged(nameof(CanGoPrevScene));
             OnPropertyChanged(nameof(CanGoNextScene));
         }
@@ -310,6 +340,7 @@ namespace DmToolsApp.Features.AudioMixer
             Scenes = new ObservableCollection<Scene>(scenes);
             SceneCount = scenes.Count;
             _suppressHandlers = false;
+            await RefreshChapterBoundaryFlagsAsync();
 
             await SelectScene();
 
@@ -336,17 +367,54 @@ namespace DmToolsApp.Features.AudioMixer
         }
 
         [RelayCommand]
-        public void PrevScene()
+        public async Task PrevScene()
         {
-            if (!CanGoPrevScene) return;
-            SelectedScene = Scenes[SceneIndex - 2];
+            if (SceneIndex > 1)
+            {
+                SelectedScene = Scenes[SceneIndex - 2];
+                return;
+            }
+            await GoToAdjacentChapterSceneAsync(direction: -1);
         }
 
         [RelayCommand]
-        public void NextScene()
+        public async Task NextScene()
         {
-            if (!CanGoNextScene) return;
-            SelectedScene = Scenes[SceneIndex];
+            if (SceneIndex < SceneCount)
+            {
+                SelectedScene = Scenes[SceneIndex];
+                return;
+            }
+            await GoToAdjacentChapterSceneAsync(direction: 1);
+        }
+
+        /// <summary>
+        /// Franchit une limite de chapitre depuis PrevScene/NextScene : bascule sur la dernière
+        /// scène du chapitre précédent (direction -1) ou la première du chapitre suivant
+        /// (direction +1). Ne fait rien si ce chapitre n'existe pas ou n'a aucune scène - cf.
+        /// RefreshChapterBoundaryFlagsAsync, qui garde CanGoPrevScene/CanGoNextScene cohérents avec
+        /// cette même condition pour que la flèche soit désactivée dans ce cas plutôt que de
+        /// sembler active sans rien faire.
+        /// </summary>
+        private async Task GoToAdjacentChapterSceneAsync(int direction)
+        {
+            if (SelectedSession == null) return;
+            var sessionIndex = Sessions.IndexOf(SelectedSession);
+            var targetIndex = sessionIndex + direction;
+            if (sessionIndex < 0 || targetIndex < 0 || targetIndex >= Sessions.Count) return;
+
+            var targetSession = Sessions[targetIndex];
+            var targetScenes = await _sceneDataService.GetScenesAsync(targetSession.Id);
+            if (targetScenes.Count == 0) return;
+
+            _suppressHandlers = true;
+            SelectedSession = targetSession;
+            Scenes = new ObservableCollection<Scene>(targetScenes);
+            SceneCount = targetScenes.Count;
+            _suppressHandlers = false;
+            await RefreshChapterBoundaryFlagsAsync();
+
+            SelectedScene = direction > 0 ? targetScenes[0] : targetScenes[^1];
         }
 
         // Empêche deux chargements de scène concurrents (l'UI est bloquée pendant le chargement,
@@ -452,6 +520,10 @@ namespace DmToolsApp.Features.AudioMixer
                     Scenes.Clear();
                     SceneCount = 0;
                     SceneIndex = 0;
+                    // SelectedSession vient d'être remis à null (Sessions elle-même n'est pas
+                    // vidée) : pas de chapitre voisin à considérer tant qu'on est en freeform.
+                    _hasPreviousChapterScene = false;
+                    _hasNextChapterScene = false;
                     OnPropertyChanged(nameof(CanGoPrevScene));
                     OnPropertyChanged(nameof(CanGoNextScene));
 
