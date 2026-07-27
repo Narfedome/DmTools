@@ -21,7 +21,45 @@
                 StrokeShape="RoundRectangle 8"
                 Stroke="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"
                 Padding="4">
-            <components:ChannelStripView />
+            <Grid>
+                <!-- Remplissage bas-vers-haut proportionnel au volume, dans la même couleur que le
+                     contour "en lecture" (BoolToActiveStrokeConverter) : repère d'ambiance sur le
+                     mix global d'un coup d'œil, sans jamais réduire la lisibilité du strip
+                     au-dessus - contrairement à une opacité appliquée à toute la carte (écartée
+                     après comparaison, cf. discussion avec l'utilisateur : ça ressemblait trop à un
+                     canal désactivé à faible volume). InputTransparent : ne doit jamais intercepter
+                     les gestes destinés au slider/aux boutons du strip par-dessus. -->
+                <Grid InputTransparent="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="{Binding Volume, Converter={StaticResource VolumeToRowStarConverter}, ConverterParameter=Invert}"/>
+                        <RowDefinition Height="{Binding Volume, Converter={StaticResource VolumeToRowStarConverter}}"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="1" StrokeThickness="0" Opacity="0.35"
+                            Background="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"/>
+                </Grid>
+
+                <components:ChannelStripView />
+
+                <!-- Bandes de fade in (haut) / fade out (bas) : réglages persistés sur la piste de
+                     scène (IsFadeIn/IsFadeOut), affichées indépendamment de la lecture en cours -
+                     c'est une information de configuration, pas un état "en train de se produire". -->
+                <Border VerticalOptions="Start" HeightRequest="18" StrokeThickness="0" InputTransparent="True"
+                        IsVisible="{Binding IsFadeIn}"
+                        Background="{Binding IsFadeIn, Converter={StaticResource FadeEdgeBrushConverter}}"/>
+                <Border VerticalOptions="End" HeightRequest="18" StrokeThickness="0" InputTransparent="True"
+                        IsVisible="{Binding IsFadeOut}"
+                        Background="{Binding IsFadeOut, Converter={StaticResource FadeEdgeBrushConverter}, ConverterParameter=Bottom}"/>
+
+                <!-- Lecture automatique au chargement de la scène (réglage persisté, cf. dialogue
+                     de paramètres) : seul repère qui n'a pas d'équivalent dégradé/remplissage
+                     pertinent (booléen simple), une icône reste plus explicite qu'une couleur ou
+                     un motif à cette taille. -->
+                <Label Text="{x:Static icons:SolidFont.Bolt}" FontFamily="FontSolid" FontSize="11"
+                       TextColor="{DynamicResource AppAccent}"
+                       HorizontalOptions="End" VerticalOptions="Start" Margin="0,2,2,0"
+                       InputTransparent="True"
+                       IsVisible="{Binding IsAutoPlay}"/>
+            </Grid>
         </Border>
         <ActivityIndicator Grid.Row="0"
                 IsRunning="{Binding IsLoading}"

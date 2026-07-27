@@ -123,6 +123,13 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private bool isFadeOut;
 
+        // Réglage persisté sur la piste de scène (édité via le dialogue de paramètres) : la piste
+        // démarre automatiquement au chargement de la scène. N'affecte pas Play() lui-même (piloté
+        // depuis AudioMixerViewModel.PopulateChannelsAsync, qui lit SceneTrack.AutoPlay directement)
+        // - uniquement là pour que le strip puisse afficher ce réglage.
+        [ObservableProperty]
+        private bool isAutoPlay;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasSceneTrack))]
         private int sceneTrackId;
