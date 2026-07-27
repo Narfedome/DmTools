@@ -151,12 +151,17 @@ namespace DmToolsApp.Services
                     ["AppBorder"]          = Color.FromArgb("#D8D0EE"),
                 },
 
+            // AppAccentSecondary en pin très sombre plutôt qu'une nuance claire de vert (cf.
+            // discussion avec l'utilisateur : boutons et repères "en lecture"/fade se confondaient
+            // trop, contraste insuffisant entre deux verts proches). Même valeur en clair et en
+            // sombre (comme Taverne Ambrée ci-dessous) : assez sombre pour rester un accent net
+            // dans les deux cas.
             AppPalette.ForetProfonde => dark
                 ? new() {
                     ["AppBackground"]      = Color.FromArgb("#1A2318"),
                     ["AppSurface"]         = Color.FromArgb("#243020"),
                     ["AppAccent"]          = Color.FromArgb("#7AAF5C"),
-                    ["AppAccentSecondary"] = Color.FromArgb("#4A7A2C"),
+                    ["AppAccentSecondary"] = Color.FromArgb("#1F3D14"),
                     ["AppText"]            = Color.FromArgb("#E8F0E4"),
                     ["AppTextMuted"]       = Color.FromArgb("#8A9E80"),
                     ["AppBorder"]          = Color.FromArgb("#354A2A"),
@@ -165,7 +170,7 @@ namespace DmToolsApp.Services
                     ["AppBackground"]      = Color.FromArgb("#EDF4E8"),
                     ["AppSurface"]         = Color.FromArgb("#F5FAF2"),
                     ["AppAccent"]          = Color.FromArgb("#4A7A2C"),
-                    ["AppAccentSecondary"] = Color.FromArgb("#7AAF5C"),
+                    ["AppAccentSecondary"] = Color.FromArgb("#1F3D14"),
                     ["AppText"]            = Color.FromArgb("#1A2318"),
                     ["AppTextMuted"]       = Color.FromArgb("#3A5A28"),
                     ["AppBorder"]          = Color.FromArgb("#C8DFC0"),
@@ -191,12 +196,14 @@ namespace DmToolsApp.Services
                     ["AppBorder"]          = Color.FromArgb("#E8D5B0"),
                 },
 
+            // AppAccentSecondary en ardoise indigo plutôt qu'une nuance de bleu, même raison que
+            // ForetProfonde ci-dessus. Même valeur en clair et en sombre.
             AppPalette.AcierBrume => dark
                 ? new() {
                     ["AppBackground"]      = Color.FromArgb("#141C24"),
                     ["AppSurface"]         = Color.FromArgb("#1E2C3A"),
                     ["AppAccent"]          = Color.FromArgb("#5B8FA8"),
-                    ["AppAccentSecondary"] = Color.FromArgb("#3D6A85"),
+                    ["AppAccentSecondary"] = Color.FromArgb("#4A5580"),
                     ["AppText"]            = Color.FromArgb("#E0ECF4"),
                     ["AppTextMuted"]       = Color.FromArgb("#7A9AAE"),
                     ["AppBorder"]          = Color.FromArgb("#2E3F50"),
@@ -205,7 +212,7 @@ namespace DmToolsApp.Services
                     ["AppBackground"]      = Color.FromArgb("#EBF2F7"),
                     ["AppSurface"]         = Color.FromArgb("#F5FAFD"),
                     ["AppAccent"]          = Color.FromArgb("#2E6B8A"),
-                    ["AppAccentSecondary"] = Color.FromArgb("#5B8FA8"),
+                    ["AppAccentSecondary"] = Color.FromArgb("#4A5580"),
                     ["AppText"]            = Color.FromArgb("#141C24"),
                     ["AppTextMuted"]       = Color.FromArgb("#3A5A70"),
                     ["AppBorder"]          = Color.FromArgb("#C5D8E8"),

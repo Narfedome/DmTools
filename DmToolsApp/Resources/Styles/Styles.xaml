@@ -79,6 +79,11 @@
         <Setter Property="StrokeThickness" Value="1"/>
     </Style>
 
+    <Style TargetType="Border"  x:Key="NoRoundedBorder">
+        <Setter Property="Stroke" Value="{DynamicResource AppBorder}" />
+        <Setter Property="StrokeThickness" Value="1"/>
+    </Style>
+
     <!-- Carte utilisée par les popups thémées (dialogues de confirmation/saisie/choix, import) -->
     <Style TargetType="Border" x:Key="DialogCardBorderStyle">
         <Setter Property="BackgroundColor" Value="{DynamicResource AppSurface}" />

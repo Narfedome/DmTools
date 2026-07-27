@@ -100,6 +100,16 @@ namespace DmToolsApp.Components
 
         public int DisplayVolume => (int)(Volume * 100);
 
+        // Volume RÉEL du player à l'instant présent, distinct de Volume (le réglage cible affiché
+        // par le slider) : pendant un fade in/out, Player.Volume rampe progressivement de/vers
+        // Volume sans jamais toucher à cette dernière (le slider ne doit pas bouger tout seul sous
+        // le doigt de l'utilisateur). LiveVolume suit ce ramping pas à pas, pour que tout affichage
+        // qui veut représenter "combien de son sort réellement là, maintenant" (ex. le fond
+        // "en lecture" du channel strip côté UI) puisse s'y brancher plutôt que sur Volume, qui
+        // resterait figé à la cible pendant toute la durée du fade.
+        [ObservableProperty]
+        private double liveVolume = 1;
+
         [ObservableProperty]
         private bool isPlaying;
 
@@ -123,9 +133,31 @@ namespace DmToolsApp.Components
         [ObservableProperty]
         private bool isFadeOut;
 
+        // Réglage persisté sur la piste de scène (édité via le dialogue de paramètres) : la piste
+        // démarre automatiquement au chargement de la scène. N'affecte pas Play() lui-même (piloté
+        // depuis AudioMixerViewModel.PopulateChannelsAsync, qui lit SceneTrack.AutoPlay directement)
+        // - uniquement là pour que le strip puisse afficher ce réglage.
+        [ObservableProperty]
+        private bool isAutoPlay;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasSceneTrack))]
         private int sceneTrackId;
+
+        /// <summary>
+        /// Force les bindings dépendant du thème (fond/bandes des repères visuels côté UI, dont la
+        /// couleur est lue directement depuis ThemeService plutôt que via une DynamicResource qui se
+        /// rafraîchirait toute seule) à se réévaluer. À appeler depuis l'App layer sur
+        /// ThemeService.ThemeChanged - Core ne peut pas s'y abonner lui-même (aucune dépendance à
+        /// ThemeService ici). Un simple changement de valeur ne suffit pas ([ObservableProperty]
+        /// ignore un set qui ne change rien), d'où ce déclenchement manuel des notifications.
+        /// </summary>
+        public void RefreshThemeDependentBindings()
+        {
+            OnPropertyChanged(nameof(IsPlaying));
+            OnPropertyChanged(nameof(IsFadeIn));
+            OnPropertyChanged(nameof(IsFadeOut));
+        }
 
         // Le bouton de paramètres (gear) n'a de sens que si le strip est persisté comme piste de
         // scène : c'est là que vivent les réglages édités par SceneTracksPage.
@@ -138,6 +170,12 @@ namespace DmToolsApp.Components
 
             if (Track != null)
                 Track.Volume = newValue;
+
+            // Hors fade (CancelFade est appelé par Play/Stop, jamais par un simple ajustement du
+            // slider) : LiveVolume doit suivre Volume immédiatement, sinon le fond "en lecture"
+            // resterait sur l'ancienne valeur tant qu'aucun fade ne se déclenche. Pendant un fade,
+            // ce setter n'est de toute façon jamais atteint (rien ne réassigne Volume alors).
+            LiveVolume = newValue;
         }
 
         partial void OnIsLoopingChanged(bool value)
@@ -177,6 +215,7 @@ namespace DmToolsApp.Components
             }
 
             Player.Volume = Volume;
+            LiveVolume = Volume;
             Player.Play();
             IsPlaying = true;
         }
@@ -200,6 +239,7 @@ namespace DmToolsApp.Components
             var volumeStep = targetVolume / FadeSteps;
 
             Player.Volume = 0;
+            LiveVolume = 0;
             Player.Play();
             IsPlaying = true;
 
@@ -210,16 +250,26 @@ namespace DmToolsApp.Components
                     token.ThrowIfCancellationRequested();
                     await Task.Delay(stepDelay, token);
                     if (Player != null)
-                        Player.Volume = Math.Min(targetVolume, volumeStep * (i + 1));
+                    {
+                        var stepVolume = Math.Min(targetVolume, volumeStep * (i + 1));
+                        Player.Volume = stepVolume;
+                        LiveVolume = stepVolume;
+                    }
                 }
 
                 if (Player != null)
+                {
                     Player.Volume = targetVolume;
+                    LiveVolume = targetVolume;
+                }
             }
             catch (OperationCanceledException)
             {
                 if (Player != null)
+                {
                     Player.Volume = targetVolume;
+                    LiveVolume = targetVolume;
+                }
             }
             catch (Exception ex)
             {
@@ -294,20 +344,28 @@ namespace DmToolsApp.Components
                     token.ThrowIfCancellationRequested();
                     await Task.Delay(stepDelay, token);
                     if (Player != null)
-                        Player.Volume = Math.Max(0, startVolume - volumeStep * (i + 1));
+                    {
+                        var stepVolume = Math.Max(0, startVolume - volumeStep * (i + 1));
+                        Player.Volume = stepVolume;
+                        LiveVolume = stepVolume;
+                    }
                 }
 
                 if (Player != null)
                 {
                     Player.Stop();
                     Player.Volume = startVolume;
+                    LiveVolume = startVolume;
                     IsPlaying = false;
                 }
             }
             catch (OperationCanceledException)
             {
                 if (Player != null)
+                {
                     Player.Volume = startVolume;
+                    LiveVolume = startVolume;
+                }
             }
             finally
             {

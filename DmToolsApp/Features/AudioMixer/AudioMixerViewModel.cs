@@ -40,6 +40,19 @@ namespace DmToolsApp.Features.AudioMixer
                 vm.OnPropertyChanged(nameof(SelectedSessionLabel));
                 vm.OnPropertyChanged(nameof(SelectedSceneLabel));
             });
+
+            // Les repères visuels du channel strip (fond "en lecture", bandes de fade) lisent leur
+            // couleur directement depuis ThemeService dans leurs converters, en contournant le
+            // mécanisme DynamicResource qui se rafraîchit tout seul (cf. AppAccent/AppBorder) : sans
+            // cet abonnement, changer de thème/palette pendant qu'une scène est chargée laissait ces
+            // repères affichés dans l'ancienne couleur jusqu'au prochain changement d'état (play,
+            // fade...). Même filet déjà posé pour le thumb du slider natif sous Windows, cf.
+            // WindowsHandlers.cs.
+            ThemeService.Instance.ThemeChanged += () =>
+            {
+                foreach (var channel in CurrentChannels)
+                    channel.RefreshThemeDependentBindings();
+            };
         }
 
         // ── Sélecteur de scène ────────────────────────────────────

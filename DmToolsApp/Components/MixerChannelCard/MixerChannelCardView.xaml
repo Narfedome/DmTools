@@ -9,6 +9,11 @@
              x:Class="DmToolsApp.Components.MixerChannelCardView"
              x:DataType="corevm:ChannelStripViewModel">
 
+    <!-- Contenu pur de la carte (strip + boutons) : les repères visuels (remplissage par volume,
+         bandes de fade, badge autoplay) vivent dans AudioMixerPage.xaml au niveau du DataTemplate,
+         pas ici - ils doivent couvrir toute la carte (boutons compris) et rester au même niveau que
+         DragHighlightBorder, qui joue déjà un rôle décoratif similaire à cet endroit. -->
+
     <!-- IsEnabled global : le strip et ses boutons (livre/gear/X) restent désactivés tant que
          SON lecteur n'est pas prêt (IsLoading), sans dupliquer le binding sur chaque bouton. -->
     <Grid Margin="10" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
@@ -16,13 +21,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Border Grid.Row="0"
-                StrokeThickness="2"
-                StrokeShape="RoundRectangle 8"
-                Stroke="{Binding IsPlaying, Converter={StaticResource BoolToActiveStrokeConverter}}"
-                Padding="4">
-            <components:ChannelStripView />
-        </Border>
+        <components:ChannelStripView Grid.Row="0"/>
         <ActivityIndicator Grid.Row="0"
                 IsRunning="{Binding IsLoading}"
                 IsVisible="{Binding IsLoading}"

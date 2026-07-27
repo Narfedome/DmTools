@@ -166,6 +166,7 @@ namespace DmToolsApp.Features.AudioMixer
                 channel.IsLooping = dialogViewModel.IsLooping;
                 channel.IsFadeIn = dialogViewModel.FadeIn;
                 channel.IsFadeOut = dialogViewModel.FadeOut;
+                channel.IsAutoPlay = dialogViewModel.AutoPlay;
 
                 // Les affectations ci-dessus viennent de déclencher une sauvegarde debouncée,
                 // redondante avec la sauvegarde immédiate et complète qui suit : on l'annule.
@@ -315,6 +316,7 @@ namespace DmToolsApp.Features.AudioMixer
                 IsLooping = st.IsLooping,
                 IsFadeIn = st.FadeIn,
                 IsFadeOut = st.FadeOut,
+                IsAutoPlay = st.AutoPlay,
                 IsLoading = true
             }).ToList();
 
