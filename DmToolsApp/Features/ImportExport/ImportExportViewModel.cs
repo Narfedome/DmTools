@@ -351,6 +351,8 @@ namespace DmToolsApp.Features.ImportExport
                 // rien à supprimer dans ce cas).
                 if (file != null)
                     _fileService.DeleteIfCached(file.FullPath);
+
+                await Back();
             }
         }
 
