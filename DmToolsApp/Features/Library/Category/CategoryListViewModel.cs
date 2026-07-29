@@ -32,11 +32,23 @@ namespace DmToolsApp.Features.Library
         private CategoryRowItem? selectedCategory;
 
         // Exposée en lecture seule pour ne pas toucher au reste de la classe (Rename/Delete, bindings
-        // IsEnabled dans CategoryListPage.xaml) : la sélection réelle passe par SelectedCategory
-        // (CollectionView.SelectedItem).
+        // IsEnabled dans CategoryListPage.xaml) : la sélection réelle passe par SelectedCategory,
+        // affectée à la main via SelectCategory. Pas de CollectionView.SelectedItem/SelectionMode
+        // natif (cf. CategoryListPage.xaml) : sur Android, le fond de sélection natif reste teinté
+        // par colorAccent quel que soit le style posé dessus - seul un fond opaque le masque, ce qui
+        // empêche le simple "fond transparent + liseré qui devient bleu" voulu ici.
         public string? SelectedCategoryName => SelectedCategory?.Name;
 
         public bool CanModifySelectedCategory => SelectedCategory is { IsSystem: false };
+
+        partial void OnSelectedCategoryChanged(CategoryRowItem? oldValue, CategoryRowItem? newValue)
+        {
+            if (oldValue != null) oldValue.IsSelected = false;
+            if (newValue != null) newValue.IsSelected = true;
+        }
+
+        [RelayCommand]
+        public void SelectCategory(CategoryRowItem item) => SelectedCategory = item;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -105,8 +117,23 @@ namespace DmToolsApp.Features.Library
         }
     }
 
-    public record CategoryRowItem(string Name, bool IsSystem = false)
+    // Classe (pas record) : IsSelected doit être un ObservableProperty pilotable à la main pour la
+    // bordure de mise en évidence (cf. CategoryListViewModel.OnSelectedCategoryChanged et
+    // CategoryListPage.xaml), la sélection native du CollectionView étant évitée.
+    public partial class CategoryRowItem : ObservableObject
     {
+        public string Name { get; }
+        public bool IsSystem { get; }
+
+        [ObservableProperty]
+        private bool isSelected;
+
+        public CategoryRowItem(string Name, bool IsSystem = false)
+        {
+            this.Name = Name;
+            this.IsSystem = IsSystem;
+        }
+
         public override string ToString() => Name;
     }
 }
