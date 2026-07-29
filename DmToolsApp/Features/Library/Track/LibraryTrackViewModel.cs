@@ -108,8 +108,14 @@ namespace DmToolsApp.Features.Library
         [ObservableProperty]
         private Track? selectedTrackItem;
 
-        partial void OnSelectedTrackItemChanged(Track? value)
+        partial void OnSelectedTrackItemChanged(Track? oldValue, Track? newValue)
         {
+            // Pilote la bordure de mise en évidence à la main (cf. LibraryItem.IsPrimarySelected) :
+            // le CollectionView n'utilise plus la sélection native (SelectionMode="None"), pour
+            // éviter le fond de sélection natif Android qui reste teinté par colorAccent.
+            if (oldValue != null) oldValue.IsPrimarySelected = false;
+            if (newValue != null) newValue.IsPrimarySelected = true;
+
             OnPropertyChanged(nameof(CanDelete));
             OnPropertyChanged(nameof(DeleteTooltip));
         }

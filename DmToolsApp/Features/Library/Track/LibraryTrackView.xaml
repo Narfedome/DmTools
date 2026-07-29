@@ -70,13 +70,17 @@
                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
             </Border>
 
+        <!-- SelectionMode="None" (pas de sélection native) : sur Android, le fond de sélection natif
+             du CollectionView reste teinté par colorAccent quel que soit le style posé dessus.
+             SelectedTrackItem est donc géré à la main via un TapGestureRecognizer par tuile (cf.
+             ItemTemplate) plutôt que par SelectedItem - même traitement que CategoryListPage. -->
         <CollectionView
                  IsVisible="{Binding HasTrackItems}"
                  x:Name="ItemsCollection"
                  ItemsSource="{Binding TrackItems}"
                  IsGrouped="True"
-                 SelectionMode="Single"
-                 SelectedItem="{Binding SelectedTrackItem}"  ItemSizingStrategy="MeasureFirstItem"
+                 SelectionMode="None"
+                 ItemSizingStrategy="MeasureFirstItem"
                  Scrolled="OnCollectionViewScrolled"
                  ItemsUpdatingScrollMode="KeepScrollOffset">
             <CollectionView.Behaviors>
@@ -106,7 +110,28 @@
             </CollectionView.GroupHeaderTemplate>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Style="{StaticResource SelectableGridItemBorderStyle}">
+                    <!-- BackgroundColor="Transparent" écrase le fond translucide du style partagé
+                         (toujours utile à LibrarySpellView, resté en sélection native) : ici, plus
+                         besoin de masquer quoi que ce soit puisque la sélection native (et donc son
+                         fond orange) n'est plus utilisée du tout. -->
+                    <Border Style="{StaticResource SelectableGridItemBorderStyle}" BackgroundColor="Transparent" Stroke="Grey">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={x:Reference root}, Path=BindingContext.SelectItemCommand}"
+                                                  CommandParameter="{Binding .}"/>
+                        </Border.GestureRecognizers>
+                        <!-- VisualStateManager.VisualStateGroups vidé ici : le state "Normal" du style
+                             partagé réaffirme Stroke=Grey en continu et passe devant le DataTrigger
+                             ci-dessous (VSM prioritaire sur les Trigger en MAUI), ce qui empêchait tout
+                             affichage du liseré bleu. Le gris de base vient donc du Stroke="Grey" posé
+                             juste au-dessus, en dur sur cette instance. -->
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList/>
+                        </VisualStateManager.VisualStateGroups>
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsPrimarySelected}" Value="True">
+                                <Setter Property="Stroke" Value="LightSkyBlue"/>
+                            </DataTrigger>
+                        </Border.Triggers>
                         <Grid WidthRequest="120" HeightRequest="120"  Margin="5">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
